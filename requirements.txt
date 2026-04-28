@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+chromadb
+sentence-transformers
+python-multipart
+httpx
+Pillow
+aiofiles
+websockets

@@ -1,0 +1,45 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# FastAPI / server runtime files
+*.log
+logs/
+*.pid
+
+# Local ChromaDB persistent storage
+chroma_db/
+
+# Local knowledge-base inputs
+# Keep data/.gitkeep so the folder exists, but avoid committing private or large CSV exports.
+data/*.csv
+!data/.gitkeep
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
