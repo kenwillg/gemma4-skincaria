@@ -1,26 +1,28 @@
 import asyncio
 import base64
 import binascii
+import io
+import os
 import socket
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import httpx
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from PIL import Image
 
-from kb_builder import DEFAULT_CHROMA_DIR, DEFAULT_DATA_DIR, SkincareKB
 from ollama_client import OllamaClient
-from pipeline import ManualDescriptionRequired, SkincariaPipeline, image_bytes_to_base64, strip_data_url
 
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 INDEX_HTML = STATIC_DIR / "index.html"
-MODEL_NAME = "gemma4:4b"
+IMAGE_TEST_HTML = STATIC_DIR / "image_test.html"
+MODEL_NAME = os.getenv("SKINCARIA_MODEL", "gemma4:e4b")
 HOST = "0.0.0.0"
 PORT = 8000
 
@@ -31,6 +33,11 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")
 async def index():
+    return FileResponse(IMAGE_TEST_HTML)
+
+
+@app.get("/app")
+async def skincare_app():
     return FileResponse(INDEX_HTML)
 
 
@@ -62,11 +69,16 @@ async def analyze(
     image: Annotated[UploadFile | None, File()] = None,
     image_base64: Annotated[str | None, Form()] = None,
 ):
+    from pipeline import ManualDescriptionRequired
+
     pipeline = get_pipeline()
     encoded_image = await extract_image_base64(image, image_base64)
 
     try:
-        result = await pipeline.run_analysis(image_base64=encoded_image, concern=concern)
+        result = await pipeline.run_analysis(
+            image_base64=encoded_image,
+            concern=concern,
+        )
         return JSONResponse(result)
     except ManualDescriptionRequired as exc:
         return JSONResponse(
@@ -81,6 +93,45 @@ async def analyze(
         )
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=503, detail=f"Ollama tidak merespons: {exc}") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=f"Inferensi model gagal: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/image-caption")
+async def image_caption(
+    prompt: Annotated[str, Form()] = "Describe this image in detail.",
+    image: Annotated[UploadFile | None, File()] = None,
+    image_base64: Annotated[str | None, Form()] = None,
+):
+    encoded_image = await extract_image_base64(image, image_base64)
+    if not encoded_image:
+        raise HTTPException(status_code=400, detail="Upload image atau kirim image_base64.")
+
+    try:
+        client = get_ollama_client()
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a precise visual captioning model. Describe only what is visible.",
+            },
+            {
+                "role": "user",
+                "content": prompt.strip() or "Describe this image in detail.",
+                "images": [encoded_image],
+            },
+        ]
+        caption = await client.chat(messages, temperature=0.1)
+        return {
+            "model": client.model,
+            "prompt": prompt,
+            "caption": caption,
+        }
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=503, detail=f"Ollama tidak merespons: {exc}") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=f"Inferensi gambar gagal: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -133,7 +184,9 @@ def get_ollama_client() -> OllamaClient:
     return client
 
 
-def get_kb() -> SkincareKB:
+def get_kb() -> Any:
+    from kb_builder import DEFAULT_CHROMA_DIR, DEFAULT_DATA_DIR, SkincareKB
+
     kb = getattr(app.state, "kb", None)
     if kb is None:
         kb = SkincareKB(data_dir=DEFAULT_DATA_DIR, persist_dir=DEFAULT_CHROMA_DIR)
@@ -141,7 +194,9 @@ def get_kb() -> SkincareKB:
     return kb
 
 
-def get_pipeline() -> SkincariaPipeline:
+def get_pipeline() -> Any:
+    from pipeline import SkincariaPipeline
+
     pipeline = getattr(app.state, "pipeline", None)
     if pipeline is None:
         pipeline = SkincariaPipeline(ollama=get_ollama_client(), kb=get_kb())
@@ -185,6 +240,21 @@ def looks_like_base64(value: str) -> bool:
         return False
 
 
+def image_bytes_to_base64(raw: bytes) -> str:
+    with Image.open(io.BytesIO(raw)) as image:
+        image = image.convert("RGB")
+        image.thumbnail((1024, 1024))
+        output = io.BytesIO()
+        image.save(output, format="JPEG", quality=88, optimize=True)
+    return base64.b64encode(output.getvalue()).decode("ascii")
+
+
+def strip_data_url(value: str) -> str:
+    if "," in value and value.strip().startswith("data:"):
+        return value.split(",", 1)[1]
+    return value.strip()
+
+
 async def startup_checks() -> bool:
     client = get_ollama_client()
     print("Memeriksa Ollama di http://localhost:11434 ...")
@@ -218,9 +288,7 @@ async def startup_checks() -> bool:
         print()
         print(str(exc))
         print()
-        print("Letakkan file berikut di folder data/:")
-        print(f"  {DEFAULT_DATA_DIR / 'sociolla_products.csv'}")
-        print(f"  {DEFAULT_DATA_DIR / 'inci_products.csv'}")
+        print("Pastikan dataset CSV tersedia di folder data/ sesuai daftar di atas.")
         print("Lalu jalankan ulang: python main.py")
         return False
     except Exception as exc:
@@ -246,14 +314,16 @@ def get_lan_ip() -> str:
 
 
 def main() -> None:
-    ready = asyncio.run(startup_checks())
-    if not ready:
-        sys.exit(1)
+    if os.getenv("SKINCARIA_STARTUP_CHECKS", "0") == "1":
+        ready = asyncio.run(startup_checks())
+        if not ready:
+            sys.exit(1)
 
     lan_ip = get_lan_ip()
     print()
-    print(f"Skincaria siap. Buka di komputer ini: http://localhost:{PORT}")
-    print(f"Buka di HP kamu: http://{lan_ip}:{PORT}")
+    print(f"Image caption tester: http://localhost:{PORT}")
+    print(f"Image caption tester di HP: http://{lan_ip}:{PORT}")
+    print(f"Skincaria app lama: http://localhost:{PORT}/app")
     uvicorn.run(app, host=HOST, port=PORT)
 
 

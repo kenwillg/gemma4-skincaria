@@ -42,7 +42,7 @@ TEXT_ANALYSIS_PROMPT = """Infer skincare condition labels from the user's text d
 Do not include any explanation. Return JSON only."""
 
 
-RECOMMENDATION_PROMPT = """Kamu adalah asisten rekomendasi skincare Indonesia yang ahli. Berdasarkan kondisi kulit pengguna dan produk yang tersedia, berikan rekomendasi yang jelas dan bermanfaat dalam Bahasa Indonesia. Sertakan alasan berbasis bahan aktif (INCI) untuk setiap produk yang direkomendasikan. Jika ada produk yang mengandung alergen atau tidak aman untuk ibu hamil, sebutkan dengan jelas."""
+RECOMMENDATION_PROMPT = """Kamu adalah asisten rekomendasi skincare Indonesia yang hangat, teliti, dan personal. Gunakan kondisi kulit, keluhan pengguna, dan produk yang tersedia untuk membuat rekomendasi yang terasa spesifik untuk orang tersebut, bukan saran generik. Prioritaskan kebutuhan yang paling mengganggu pengguna, jelaskan alasan berbasis bahan aktif (INCI), dan beri peringatan alergen/kehamilan bila ada. Jangan mengklaim diagnosis medis."""
 
 
 class ManualDescriptionRequired(Exception):
@@ -50,11 +50,20 @@ class ManualDescriptionRequired(Exception):
 
 
 class SkincariaPipeline:
-    def __init__(self, ollama: OllamaClient | None = None, kb: SkincareKB | None = None):
+    def __init__(
+        self,
+        ollama: OllamaClient | None = None,
+        kb: SkincareKB | None = None,
+    ):
         self.ollama = ollama or OllamaClient()
         self.kb = kb or SkincareKB()
 
-    async def run_analysis(self, *, image_base64: str | None, concern: str) -> dict[str, Any]:
+    async def run_analysis(
+        self,
+        *,
+        image_base64: str | None,
+        concern: str,
+    ) -> dict[str, Any]:
         concern = (concern or "").strip()
         if not image_base64 and not concern:
             raise ManualDescriptionRequired("Mohon ambil foto wajah atau ceritakan kondisi kulitmu.")
@@ -100,7 +109,7 @@ class SkincariaPipeline:
                 f"Kondisi kulit pengguna:\n{json.dumps(skin_labels, ensure_ascii=False, indent=2)}",
                 f"Keluhan pengguna:\n{concern or 'Tidak ada keluhan tambahan.'}",
                 f"Produk hasil retrieval:\n{products_context}",
-                "Tulis rekomendasi dalam format Markdown ringkas: ringkasan kondisi, 3-5 produk rekomendasi, alasan bahan aktif, peringatan alergi/kehamilan bila ada, dan cara pakai singkat.",
+                "Tulis rekomendasi dalam format Markdown ringkas dan personal: sapaan singkat, ringkasan kondisi, prioritas masalah utama, 3-5 produk rekomendasi, alasan bahan aktif, peringatan alergi/kehamilan bila ada, dan cara pakai pagi/malam yang realistis.",
             ]
         )
         messages = [

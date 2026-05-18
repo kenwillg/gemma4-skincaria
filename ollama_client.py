@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from typing import Any, AsyncIterator
 
@@ -6,10 +7,11 @@ import httpx
 
 
 class OllamaClient:
-    def __init__(self, model: str = "gemma4:4b", base_url: str = "http://localhost:11434"):
-        self.model = model
+    def __init__(self, model: str | None = None, base_url: str = "http://localhost:11434"):
+        self.model = model or os.getenv("SKINCARIA_MODEL", "gemma4:e4b")
         self.base_url = base_url.rstrip("/")
         self.timeout = httpx.Timeout(connect=5.0, read=300.0, write=30.0, pool=5.0)
+        self.num_ctx = int(os.getenv("SKINCARIA_NUM_CTX", "2048"))
 
     async def list_models(self) -> list[str]:
         async with httpx.AsyncClient(base_url=self.base_url, timeout=self.timeout) as client:
@@ -86,14 +88,14 @@ class OllamaClient:
             "model": self.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": temperature},
+            "options": {"temperature": temperature, "num_ctx": self.num_ctx},
         }
         if json_mode:
             body["format"] = "json"
 
         async with httpx.AsyncClient(base_url=self.base_url, timeout=self.timeout) as client:
             response = await client.post("/api/chat", json=body)
-            response.raise_for_status()
+            self._raise_for_status(response)
             payload = response.json()
 
         return payload.get("message", {}).get("content", "")
@@ -108,12 +110,12 @@ class OllamaClient:
             "model": self.model,
             "messages": messages,
             "stream": True,
-            "options": {"temperature": temperature},
+            "options": {"temperature": temperature, "num_ctx": self.num_ctx},
         }
 
         async with httpx.AsyncClient(base_url=self.base_url, timeout=httpx.Timeout(None)) as client:
             async with client.stream("POST", "/api/chat", json=body) as response:
-                response.raise_for_status()
+                await self._raise_stream_for_status(response)
                 async for line in response.aiter_lines():
                     if not line:
                         continue
@@ -125,3 +127,33 @@ class OllamaClient:
                         yield token
                     if payload.get("done"):
                         break
+
+    def _raise_for_status(self, response: httpx.Response) -> None:
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            message = self._response_error(response)
+            raise RuntimeError(
+                f"{response.status_code} dari Ollama untuk model {self.model}: {message}"
+            ) from exc
+
+    def _response_error(self, response: httpx.Response) -> str:
+        try:
+            payload = response.json()
+        except ValueError:
+            return response.text.strip() or response.reason_phrase
+        return str(payload.get("error") or payload).strip()
+
+    async def _raise_stream_for_status(self, response: httpx.Response) -> None:
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            raw = await response.aread()
+            try:
+                payload = json.loads(raw)
+                message = str(payload.get("error") or payload).strip()
+            except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
+                message = raw.decode("utf-8", errors="replace").strip() or response.reason_phrase
+            raise RuntimeError(
+                f"{response.status_code} dari Ollama untuk model {self.model}: {message}"
+            ) from exc
