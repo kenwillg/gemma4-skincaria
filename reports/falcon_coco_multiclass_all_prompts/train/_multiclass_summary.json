@@ -1,0 +1,78 @@
+{
+  "dataset_dir": "data\\skincaria-dataset.coco",
+  "split": "train",
+  "annotation_path": "data\\skincaria-dataset.coco\\train\\_annotations.coco.json",
+  "mode": "all",
+  "device": "cuda",
+  "max_dimension": 512,
+  "max_masks_per_class": 5,
+  "images": [
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\acne (7)_png.rf.C7FsAMJo5TL7IgnQc4kR.png",
+      "overlay": "reports\\falcon_coco_multiclass_all_prompts\\train\\acne-7-png-rf-c7fsamjo5tl7ignqc4kr_multiclass_overlay.jpg",
+      "annotated_classes": [
+        "Acne",
+        "Blackheads",
+        "Dark-Spots",
+        "Dry-Skin",
+        "Englarged-Pores",
+        "Oily-Skin",
+        "Skin-Redness",
+        "Whiteheads",
+        "Wrinkles"
+      ],
+      "predicted_classes": {
+        "Acne": {
+          "prompt": "acne",
+          "prediction_count": 5,
+          "mask_area_pixels": 14291
+        },
+        "Blackheads": {
+          "prompt": "blackheads",
+          "prediction_count": 0,
+          "mask_area_pixels": 0
+        },
+        "Dark-Spots": {
+          "prompt": "dark spots",
+          "prediction_count": 5,
+          "mask_area_pixels": 16460
+        },
+        "Dry-Skin": {
+          "prompt": "dry skin",
+          "prediction_count": 1,
+          "mask_area_pixels": 390689
+        },
+        "Englarged-Pores": {
+          "prompt": "enlarged pores",
+          "prediction_count": 0,
+          "mask_area_pixels": 0
+        },
+        "Eyebags": {
+          "prompt": "eye bags",
+          "prediction_count": 0,
+          "mask_area_pixels": 0
+        },
+        "Oily-Skin": {
+          "prompt": "oily skin",
+          "prediction_count": 1,
+          "mask_area_pixels": 379335
+        },
+        "Skin-Redness": {
+          "prompt": "skin redness",
+          "prediction_count": 1,
+          "mask_area_pixels": 401795
+        },
+        "Whiteheads": {
+          "prompt": "whiteheads",
+          "prediction_count": 1,
+          "mask_area_pixels": 291376
+        },
+        "Wrinkles": {
+          "prompt": "wrinkles",
+          "prediction_count": 0,
+          "mask_area_pixels": 0
+        }
+      }
+    }
+  ]
+}

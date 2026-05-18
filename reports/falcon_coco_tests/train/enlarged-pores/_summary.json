@@ -1,0 +1,70 @@
+{
+  "dataset_dir": "data\\skincaria-dataset.coco",
+  "split": "train",
+  "annotation_path": "data\\skincaria-dataset.coco\\train\\_annotations.coco.json",
+  "prompt": "enlarged pores",
+  "device": "cuda",
+  "max_dimension": 512,
+  "images": [
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\Screenshot 2023-03-29 145623_png.rf.gOdckCwU0xAr3kEzCtKR.png",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\Screenshot 2023-03-29 145623_png.rf.gOdckCwU0xAr3kEzCtKR_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\oily (127)_jpg.rf.OSdTsiAIlkZbeg09uBcw.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\oily (127)_jpg.rf.OSdTsiAIlkZbeg09uBcw_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\oily (180)_jpg.rf.kBofQLF7JXxot3ykReN1.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\oily (180)_jpg.rf.kBofQLF7JXxot3ykReN1_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\648_jpg.rf.D0WKs4JbmwkHn8mQfzIC.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\648_jpg.rf.D0WKs4JbmwkHn8mQfzIC_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\levle1_146_png.rf.qPYe7ZoO5awP8niBLYkx.png",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\levle1_146_png.rf.qPYe7ZoO5awP8niBLYkx_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\410_jpg.rf.Wn7rAOJdvy0WKAzloR2o.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\410_jpg.rf.Wn7rAOJdvy0WKAzloR2o_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\acne (94)_jpg.rf.KfD9svHOddfy9Nli4KQ2.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\acne (94)_jpg.rf.KfD9svHOddfy9Nli4KQ2_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\1qkopa6_5_5529d207c748_jpg.rf.NqVqHltQ0ZfMxFjsRwnI.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\1qkopa6_5_5529d207c748_jpg.rf.NqVqHltQ0ZfMxFjsRwnI_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\Image_14_jpg.rf.j2CI6pFvPN5DqHKdUxFS.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\Image_14_jpg.rf.j2CI6pFvPN5DqHKdUxFS_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\Image_46_jpg.rf.PlpqTMSQUTcJ2hydG2Zv.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\enlarged-pores\\Image_46_jpg.rf.PlpqTMSQUTcJ2hydG2Zv_enlarged-pores_overlay.jpg",
+      "prediction_count": 0,
+      "predictions": []
+    }
+  ]
+}
