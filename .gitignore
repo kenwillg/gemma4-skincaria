@@ -44,3 +44,10 @@ Desktop.ini
 build/
 dist/
 *.egg-info/
+
+# Ignore YOLO training runs and weights
+runs/
+*.pt
+
+# Ignore local scripts or test artifacts if necessary
+reports/

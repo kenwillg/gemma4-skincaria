@@ -1,0 +1,464 @@
+{
+  "dataset_dir": "data\\skincaria-dataset.coco",
+  "split": "train",
+  "annotation_path": "data\\skincaria-dataset.coco\\train\\_annotations.coco.json",
+  "prompt": "acne",
+  "device": "cuda",
+  "max_dimension": 512,
+  "images": [
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\Screenshot 2023-03-29 145623_png.rf.gOdckCwU0xAr3kEzCtKR.png",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\Screenshot 2023-03-29 145623_png.rf.gOdckCwU0xAr3kEzCtKR_acne_overlay.jpg",
+      "prediction_count": 1,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.5004887585532747,
+          "y": 0.5004887585532747,
+          "h": 0.9932472705841064,
+          "w": 1.0,
+          "mask_area_pixels": 220179
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\oily (127)_jpg.rf.OSdTsiAIlkZbeg09uBcw.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\oily (127)_jpg.rf.OSdTsiAIlkZbeg09uBcw_acne_overlay.jpg",
+      "prediction_count": 3,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.804496578690127,
+          "y": 0.5112414467253177,
+          "h": 0.12921972572803497,
+          "w": 0.11208148300647736,
+          "mask_area_pixels": 652
+        },
+        {
+          "index": 2,
+          "x": 0.6480938416422287,
+          "y": 0.718475073313783,
+          "h": 0.12491533160209656,
+          "w": 0.11208148300647736,
+          "mask_area_pixels": 597
+        },
+        {
+          "index": 3,
+          "x": 0.5073313782991202,
+          "y": 0.8983382209188661,
+          "h": 0.16159775853157043,
+          "w": 0.09988709539175034,
+          "mask_area_pixels": 592
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\oily (180)_jpg.rf.kBofQLF7JXxot3ykReN1.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\oily (180)_jpg.rf.kBofQLF7JXxot3ykReN1_acne_overlay.jpg",
+      "prediction_count": 7,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.6324535679374389,
+          "y": 0.3616813294232649,
+          "h": 0.07514830678701401,
+          "w": 0.07514830678701401,
+          "mask_area_pixels": 518
+        },
+        {
+          "index": 2,
+          "x": 0.6363636363636364,
+          "y": 0.7536656891495601,
+          "h": 0.025073492899537086,
+          "w": 0.015603840351104736,
+          "mask_area_pixels": 422
+        },
+        {
+          "index": 3,
+          "x": 0.5190615835777126,
+          "y": 0.7927663734115347,
+          "h": 0.020881619304418564,
+          "w": 0.018736233934760094,
+          "mask_area_pixels": 361
+        },
+        {
+          "index": 4,
+          "x": 0.6011730205278593,
+          "y": 0.23558162267839688,
+          "h": 0.025073492899537086,
+          "w": 0.025073492899537086,
+          "mask_area_pixels": 333
+        },
+        {
+          "index": 5,
+          "x": 0.5894428152492669,
+          "y": 0.5386119257086999,
+          "h": 0.03355424851179123,
+          "w": 0.03765060752630234,
+          "mask_area_pixels": 239
+        },
+        {
+          "index": 6,
+          "x": 0.5894428152492669,
+          "y": 0.4574780058651026,
+          "h": 0.029103990644216537,
+          "w": 0.018736233934760094,
+          "mask_area_pixels": 204
+        },
+        {
+          "index": 7,
+          "x": 0.5933528836754643,
+          "y": 0.7262952101661779,
+          "h": 0.025073492899537086,
+          "w": 0.018736233934760094,
+          "mask_area_pixels": 142
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\648_jpg.rf.D0WKs4JbmwkHn8mQfzIC.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\648_jpg.rf.D0WKs4JbmwkHn8mQfzIC_acne_overlay.jpg",
+      "prediction_count": 1,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.42424242424242425,
+          "y": 0.581622678396872,
+          "h": 0.018736233934760094,
+          "w": 0.018736233934760094,
+          "mask_area_pixels": 11965
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\levle1_146_png.rf.qPYe7ZoO5awP8niBLYkx.png",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\levle1_146_png.rf.qPYe7ZoO5awP8niBLYkx_acne_overlay.jpg",
+      "prediction_count": 17,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.6011730205278593,
+          "y": 0.6793743890518084,
+          "h": 0.01669773831963539,
+          "w": 0.023750562220811844,
+          "mask_area_pixels": 224
+        },
+        {
+          "index": 2,
+          "x": 0.41055718475073316,
+          "y": 0.4125122189638319,
+          "h": 0.03355424851179123,
+          "w": 0.02032327651977539,
+          "mask_area_pixels": 195
+        },
+        {
+          "index": 3,
+          "x": 0.6832844574780058,
+          "y": 0.5268817204301075,
+          "h": 0.009977429173886776,
+          "w": 0.009977429173886776,
+          "mask_area_pixels": 144
+        },
+        {
+          "index": 4,
+          "x": 0.5738025415444771,
+          "y": 0.8005865102639296,
+          "h": 0.009977429173886776,
+          "w": 0.012061798013746738,
+          "mask_area_pixels": 125
+        },
+        {
+          "index": 5,
+          "x": 0.28934506353861195,
+          "y": 0.581622678396872,
+          "h": 0.009977429173886776,
+          "w": 0.015603840351104736,
+          "mask_area_pixels": 114
+        },
+        {
+          "index": 6,
+          "x": 0.6089931573802542,
+          "y": 0.7067448680351907,
+          "h": 0.012061798013746738,
+          "w": 0.013261989690363407,
+          "mask_area_pixels": 116
+        },
+        {
+          "index": 7,
+          "x": 0.6480938416422287,
+          "y": 0.8866080156402737,
+          "h": 0.009977429173886776,
+          "w": 0.012061798013746738,
+          "mask_area_pixels": 105
+        },
+        {
+          "index": 8,
+          "x": 0.7888563049853372,
+          "y": 0.6441837732160313,
+          "h": 0.012061798013746738,
+          "w": 0.012061798013746738,
+          "mask_area_pixels": 82
+        },
+        {
+          "index": 9,
+          "x": 0.6168132942326491,
+          "y": 0.8318670576735093,
+          "h": 0.012061798013746738,
+          "w": 0.013261989690363407,
+          "mask_area_pixels": 78
+        },
+        {
+          "index": 10,
+          "x": 0.5738025415444771,
+          "y": 0.7302052785923754,
+          "h": 0.013261989690363407,
+          "w": 0.015603840351104736,
+          "mask_area_pixels": 81
+        },
+        {
+          "index": 11,
+          "x": 0.761485826001955,
+          "y": 0.7028347996089932,
+          "h": 0.012061798013746738,
+          "w": 0.009977429173886776,
+          "mask_area_pixels": 69
+        },
+        {
+          "index": 12,
+          "x": 0.7223851417399805,
+          "y": 0.39100684261974583,
+          "h": 0.012061798013746738,
+          "w": 0.012061798013746738,
+          "mask_area_pixels": 65
+        },
+        {
+          "index": 13,
+          "x": 0.52297165200391,
+          "y": 0.8866080156402737,
+          "h": 0.012061798013746738,
+          "w": 0.009977429173886776,
+          "mask_area_pixels": 69
+        },
+        {
+          "index": 14,
+          "x": 0.7419354838709677,
+          "y": 0.6989247311827957,
+          "h": 0.013626337982714176,
+          "w": 0.013261989690363407,
+          "mask_area_pixels": 57
+        },
+        {
+          "index": 15,
+          "x": 0.581622678396872,
+          "y": 0.8866080156402737,
+          "h": 0.009977429173886776,
+          "w": 0.009977429173886776,
+          "mask_area_pixels": 54
+        },
+        {
+          "index": 16,
+          "x": 0.43792766373411535,
+          "y": 0.9726295210166178,
+          "h": 0.009977429173886776,
+          "w": 0.012061798013746738,
+          "mask_area_pixels": 20
+        },
+        {
+          "index": 17,
+          "x": 0.5777126099706745,
+          "y": 0.9217986314760508,
+          "h": 0.009977429173886776,
+          "w": 0.009977429173886776,
+          "mask_area_pixels": 18
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\410_jpg.rf.Wn7rAOJdvy0WKAzloR2o.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\410_jpg.rf.Wn7rAOJdvy0WKAzloR2o_acne_overlay.jpg",
+      "prediction_count": 1,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.5112414467253177,
+          "y": 0.6754643206256109,
+          "h": 0.014000696130096912,
+          "w": 0.027755821123719215,
+          "mask_area_pixels": 7001
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\acne (94)_jpg.rf.KfD9svHOddfy9Nli4KQ2.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\acne (94)_jpg.rf.KfD9svHOddfy9Nli4KQ2_acne_overlay.jpg",
+      "prediction_count": 4,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.5464320625610948,
+          "y": 0.4574780058651026,
+          "h": 0.30759841203689575,
+          "w": 0.17528580129146576,
+          "mask_area_pixels": 22568
+        },
+        {
+          "index": 2,
+          "x": 0.5894428152492669,
+          "y": 0.1300097751710655,
+          "h": 0.058484695851802826,
+          "w": 0.027755821123719215,
+          "mask_area_pixels": 3810
+        },
+        {
+          "index": 3,
+          "x": 0.667644183773216,
+          "y": 0.13391984359726294,
+          "h": 0.025073492899537086,
+          "w": 0.025073492899537086,
+          "mask_area_pixels": 1742
+        },
+        {
+          "index": 4,
+          "x": 0.6402737047898338,
+          "y": 0.7771260997067448,
+          "h": 0.018736233934760094,
+          "w": 0.02032327651977539,
+          "mask_area_pixels": 915
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\1qkopa6_5_5529d207c748_jpg.rf.NqVqHltQ0ZfMxFjsRwnI.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\1qkopa6_5_5529d207c748_jpg.rf.NqVqHltQ0ZfMxFjsRwnI_acne_overlay.jpg",
+      "prediction_count": 1,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.29521016617790813,
+          "y": 0.5972629521016618,
+          "h": 0.03894799202680588,
+          "w": 0.04282347112894058,
+          "mask_area_pixels": 9815
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\Image_14_jpg.rf.j2CI6pFvPN5DqHKdUxFS.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\Image_14_jpg.rf.j2CI6pFvPN5DqHKdUxFS_acne_overlay.jpg",
+      "prediction_count": 7,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.8240469208211144,
+          "y": 0.23460410557184752,
+          "h": 0.468194842338562,
+          "w": 0.24932335317134857,
+          "mask_area_pixels": 18295
+        },
+        {
+          "index": 2,
+          "x": 0.8240469208211144,
+          "y": 0.3616813294232649,
+          "h": 0.3718584477901459,
+          "w": 0.2476397454738617,
+          "mask_area_pixels": 11905
+        },
+        {
+          "index": 3,
+          "x": 0.1603128054740958,
+          "y": 0.29716520039100686,
+          "h": 0.3718584477901459,
+          "w": 0.2252286821603775,
+          "mask_area_pixels": 11924
+        },
+        {
+          "index": 4,
+          "x": 0.5073313782991202,
+          "y": 0.23362658846529813,
+          "h": 0.19272735714912415,
+          "w": 0.1469733864068985,
+          "mask_area_pixels": 4881
+        },
+        {
+          "index": 5,
+          "x": 0.48289345063538613,
+          "y": 0.06256109481915934,
+          "h": 0.11993889510631561,
+          "w": 0.16159775853157043,
+          "mask_area_pixels": 2617
+        },
+        {
+          "index": 6,
+          "x": 0.5503421309872922,
+          "y": 0.28934506353861195,
+          "h": 0.07933413982391357,
+          "w": 0.06258475035429001,
+          "mask_area_pixels": 1590
+        },
+        {
+          "index": 7,
+          "x": 0.22776148582600195,
+          "y": 0.23558162267839688,
+          "h": 0.07933413982391357,
+          "w": 0.07773780822753906,
+          "mask_area_pixels": 1152
+        }
+      ]
+    },
+    {
+      "image": "data\\skincaria-dataset.coco\\train\\Image_46_jpg.rf.PlpqTMSQUTcJ2hydG2Zv.jpg",
+      "overlay": "reports\\falcon_coco_tests\\train\\acne\\Image_46_jpg.rf.PlpqTMSQUTcJ2hydG2Zv_acne_overlay.jpg",
+      "prediction_count": 6,
+      "predictions": [
+        {
+          "index": 1,
+          "x": 0.49266862170087977,
+          "y": 0.260019550342131,
+          "h": 0.012477429583668709,
+          "w": 0.008365857414901257,
+          "mask_area_pixels": 12633
+        },
+        {
+          "index": 2,
+          "x": 0.5894428152492669,
+          "y": 0.33235581622678395,
+          "h": 0.025073492899537086,
+          "w": 0.01669773831963539,
+          "mask_area_pixels": 9294
+        },
+        {
+          "index": 3,
+          "x": 0.44379276637341153,
+          "y": 0.624633431085044,
+          "h": 0.025073492899537086,
+          "w": 0.012477429583668709,
+          "mask_area_pixels": 6633
+        },
+        {
+          "index": 4,
+          "x": 0.5464320625610948,
+          "y": 0.7575757575757576,
+          "h": 0.09988709539175034,
+          "w": 0.058484695851802826,
+          "mask_area_pixels": 5624
+        },
+        {
+          "index": 5,
+          "x": 0.42424242424242425,
+          "y": 0.5542521994134897,
+          "h": 0.025073492899537086,
+          "w": 0.018736233934760094,
+          "mask_area_pixels": 5218
+        },
+        {
+          "index": 6,
+          "x": 0.624633431085044,
+          "y": 0.5542521994134897,
+          "h": 0.025073492899537086,
+          "w": 0.01669773831963539,
+          "mask_area_pixels": 3015
+        }
+      ]
+    }
+  ]
+}
