@@ -8,3 +8,4 @@ Pillow
 aiofiles
 websockets
 ultralytics
+timm
