@@ -33,12 +33,17 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")
 async def index():
-    return FileResponse(IMAGE_TEST_HTML)
+    return FileResponse(INDEX_HTML)
 
 
 @app.get("/app")
 async def skincare_app():
     return FileResponse(INDEX_HTML)
+
+
+@app.get("/image-test")
+async def image_test():
+    return FileResponse(IMAGE_TEST_HTML)
 
 
 @app.get("/health")
@@ -161,6 +166,68 @@ async def recommend(websocket: WebSocket):
         await websocket.close()
 
 
+@app.websocket("/ws/agentic")
+async def agentic_analysis(websocket: WebSocket):
+    await websocket.accept()
+    agent = get_agentic_pipeline()
+    try:
+        payload = await websocket.receive_json()
+        concern = (payload.get("concern") or "").strip()
+        image_base64 = payload.get("image_base64")
+
+        if not image_base64 and not concern:
+            await websocket.send_json(
+                {
+                    "type": "error",
+                    "message": "Please turn video on, upload a photo, or tell Skincaria what changed.",
+                }
+            )
+            await websocket.close()
+            return
+
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "plan",
+                "message": "Gemma is routing the request and choosing tools.",
+            }
+        )
+        plan = await agent.plan(concern=concern, has_image=bool(image_base64))
+        await websocket.send_json({"type": "plan", "plan": plan})
+
+        detections = None
+        if image_base64:
+            await websocket.send_json(
+                {
+                    "type": "stage",
+                    "stage": "detect",
+                    "message": "YOLO11n 960 is detecting visible skin-condition boxes.",
+                }
+            )
+            detections = await agent.detect(image_base64)
+            await websocket.send_json({"type": "detections", "detections": detections})
+
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "answer",
+                "message": "Gemma is reviewing the detections and preparing the answer.",
+            }
+        )
+        review = await agent.review(
+            concern=concern,
+            detection_summary=detections,
+            original_image_base64=image_base64,
+        )
+        await websocket.send_json({"type": "review", "review": review})
+        await websocket.send_json({"type": "done"})
+    except WebSocketDisconnect:
+        return
+    except Exception as exc:
+        await websocket.send_json({"type": "error", "message": str(exc)})
+        await websocket.close()
+
+
 # FUTURE: Voice input via Faster Whisper
 # from faster_whisper import WhisperModel
 # model = WhisperModel("small", device="cuda", compute_type="float16")
@@ -201,6 +268,16 @@ def get_pipeline() -> Any:
     if pipeline is None:
         pipeline = SkincariaPipeline(ollama=get_ollama_client(), kb=get_kb())
         app.state.pipeline = pipeline
+    return pipeline
+
+
+def get_agentic_pipeline() -> Any:
+    from agentic_yolo import AgenticYoloPipeline
+
+    pipeline = getattr(app.state, "agentic_pipeline", None)
+    if pipeline is None:
+        pipeline = AgenticYoloPipeline(ollama=get_ollama_client())
+        app.state.agentic_pipeline = pipeline
     return pipeline
 
 
@@ -321,9 +398,9 @@ def main() -> None:
 
     lan_ip = get_lan_ip()
     print()
-    print(f"Image caption tester: http://localhost:{PORT}")
-    print(f"Image caption tester di HP: http://{lan_ip}:{PORT}")
-    print(f"Skincaria app lama: http://localhost:{PORT}/app")
+    print(f"Skincaria agent loop: http://localhost:{PORT}")
+    print(f"Skincaria agent loop di HP: http://{lan_ip}:{PORT}")
+    print(f"Image caption tester: http://localhost:{PORT}/image-test")
     uvicorn.run(app, host=HOST, port=PORT)
 
 

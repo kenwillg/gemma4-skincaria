@@ -1,56 +1,35 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Skincaria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skincaria Agent Loop</title>
   <style>
     :root {
-      --bg: #eef5f0;
-      --phone: #101413;
+      --bg: #f3f6f2;
       --surface: #ffffff;
-      --surface-soft: #f4f7f5;
-      --glass: rgba(255, 255, 255, 0.12);
-      --text: #19211f;
-      --muted: #6b7672;
-      --line: #dde7e1;
-      --accent: #2fb884;
-      --accent-strong: #0d8f61;
-      --rose: #ef6f91;
-      --danger: #f05252;
-      --warning: #c37a1f;
-      --shadow: 0 18px 45px rgba(20, 34, 29, 0.16);
+      --surface-soft: #f7faf7;
+      --text: #17211d;
+      --muted: #68756f;
+      --line: #dfe8e2;
+      --accent: #1f9d72;
+      --accent-soft: rgba(31, 157, 114, 0.12);
+      --blue: #2563eb;
+      --blue-soft: rgba(37, 99, 235, 0.12);
+      --amber: #b7791f;
+      --amber-soft: rgba(183, 121, 31, 0.12);
+      --danger: #d84d4d;
+      --shadow: 0 18px 42px rgba(24, 38, 32, 0.1);
       --radius: 8px;
-    }
-
-    [data-theme="dark"] {
-      --bg: #0e1211;
-      --phone: #080a0a;
-      --surface: #171d1b;
-      --surface-soft: #202724;
-      --glass: rgba(255, 255, 255, 0.1);
-      --text: #eef5f1;
-      --muted: #a7b2ad;
-      --line: #303a35;
-      --accent: #46d49a;
-      --accent-strong: #6fe6b2;
-      --rose: #ff8daa;
-      --danger: #ff6d6d;
-      --warning: #f3b75d;
-      --shadow: 0 18px 45px rgba(0, 0, 0, 0.34);
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html,
-    body {
-      min-height: 100%;
-    }
-
     body {
       margin: 0;
+      min-height: 100vh;
       background: var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -65,6 +44,12 @@
 
     button {
       border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
     }
 
     h1,
@@ -78,520 +63,244 @@
       display: none !important;
     }
 
-    .phone-shell {
-      width: min(430px, 100%);
-      min-height: 100svh;
+    .app {
+      width: min(1440px, 100%);
       margin: 0 auto;
-      background: var(--phone);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 30px 90px rgba(0, 0, 0, 0.25);
-    }
-
-    .welcome-screen,
-    .call-screen {
-      min-height: 100svh;
-      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
-    }
-
-    .welcome-screen {
+      padding: 24px;
       display: grid;
-      place-items: center;
-      background:
-        linear-gradient(180deg, rgba(47, 184, 132, 0.18), transparent 38%),
-        radial-gradient(circle at 50% 22%, rgba(239, 111, 145, 0.16), transparent 32%),
-        var(--surface);
-    }
-
-    .welcome-actions {
-      position: absolute;
-      right: 16px;
-      top: max(16px, env(safe-area-inset-top));
-    }
-
-    .welcome-content {
-      width: 100%;
-      display: grid;
-      justify-items: center;
       gap: 18px;
-      text-align: center;
-      padding: 12vh 0;
     }
 
-    .brand-badge {
-      width: 74px;
-      height: 74px;
-      border-radius: 24px;
-      background:
-        radial-gradient(circle at 67% 28%, #dff8eb 0 14%, transparent 15%),
-        linear-gradient(135deg, var(--rose), #f8b7c7 48%, var(--accent));
-      box-shadow: var(--shadow);
-      position: relative;
-    }
-
-    .brand-badge::after {
-      content: "";
-      position: absolute;
-      inset: 20px 19px 18px;
-      border: 3px solid rgba(255, 255, 255, 0.88);
-      border-top-color: transparent;
-      border-radius: 50%;
-      transform: rotate(-22deg);
-    }
-
-    .welcome-title {
-      max-width: 300px;
-      font-size: 2rem;
-      line-height: 1.05;
-      letter-spacing: 0;
-      color: var(--text);
-    }
-
-    .welcome-copy {
-      max-width: 310px;
-      color: var(--muted);
-      font-size: 0.98rem;
-    }
-
-    .call-button,
-    .scan-button {
-      min-height: 54px;
-      border-radius: 999px;
-      background: var(--accent);
-      color: #ffffff;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 16px 34px rgba(47, 184, 132, 0.32);
-      transition: transform 160ms ease, opacity 160ms ease;
-    }
-
-    .call-button {
-      min-width: 190px;
-      padding: 0 24px;
-    }
-
-    .scan-button {
-      width: 100%;
-      margin-top: 12px;
-    }
-
-    .call-button:hover,
-    .scan-button:hover,
-    .icon-button:hover,
-    .control-button:hover {
-      transform: translateY(-1px);
-    }
-
-    .call-button:disabled,
-    .scan-button:disabled,
-    .icon-button:disabled,
-    .control-button:disabled,
-    .control-label.is-disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-      transform: none;
-    }
-
-    .call-screen {
-      display: grid;
-      grid-template-rows: auto auto auto auto 1fr;
-      gap: 12px;
-      background: var(--phone);
-      color: #ffffff;
-    }
-
-    .call-top {
+    .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
 
-    .call-brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
+    .brand {
+      display: grid;
+      gap: 4px;
       min-width: 0;
     }
 
-    .call-brand .brand-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      box-shadow: none;
+    .brand h1 {
+      font-size: 1.35rem;
+      letter-spacing: 0;
     }
 
-    .call-brand .brand-badge::after {
-      inset: 11px 10px 10px;
-      border-width: 2px;
+    .brand p {
+      color: var(--muted);
+      font-size: 0.93rem;
     }
 
-    .call-name {
-      font-weight: 850;
-      line-height: 1.1;
-    }
-
-    .call-status {
-      color: rgba(255, 255, 255, 0.72);
-      font-size: 0.82rem;
-    }
-
-    .status-pill {
-      min-height: 32px;
-      border-radius: 999px;
-      background: var(--glass);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      padding: 0 10px;
-      font-size: 0.8rem;
-      font-weight: 800;
+    .status {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 0.86rem;
       white-space: nowrap;
     }
 
     .status-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 0 rgba(47, 184, 132, 0.68);
-      animation: pulse 1.45s infinite;
+      background: currentColor;
     }
 
-    @keyframes pulse {
-      70% {
-        box-shadow: 0 0 0 8px rgba(47, 184, 132, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(47, 184, 132, 0);
-      }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(380px, 0.95fr) minmax(480px, 1.35fr);
+      gap: 18px;
+      align-items: start;
     }
 
-    .video-stage {
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .input-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-stage {
       position: relative;
       width: 100%;
-      aspect-ratio: 9 / 14;
-      min-height: 430px;
-      max-height: 60svh;
-      border-radius: 28px;
+      aspect-ratio: 4 / 3;
+      background: #0d1110;
+      border-radius: var(--radius);
       overflow: hidden;
-      background: #060707;
-      box-shadow: 0 22px 54px rgba(0, 0, 0, 0.38);
-      isolation: isolate;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      background: #060707;
-    }
-
-    video.mirror {
-      transform: scaleX(-1);
-    }
-
-    .video-placeholder {
-      position: absolute;
-      inset: 0;
+      border: 1px solid #101816;
       display: grid;
       place-items: center;
-      padding: 34px;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.76);
-      background:
-        linear-gradient(180deg, rgba(47, 184, 132, 0.22), transparent),
-        #0e1110;
-      z-index: 1;
     }
 
-    .video-stage.is-live .video-placeholder {
+    video,
+    .preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #0d1110;
+    }
+
+    .preview-image {
+      position: absolute;
+      inset: 0;
+    }
+
+    .placeholder {
+      color: rgba(255, 255, 255, 0.72);
+      text-align: center;
+      padding: 24px;
+      max-width: 420px;
+      font-weight: 650;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .button {
+      min-height: 40px;
+      border-radius: var(--radius);
+      padding: 0 14px;
+      font-weight: 800;
+      background: var(--surface-soft);
+      color: var(--text);
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .button.blue {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+    }
+
+    .button.danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #ffffff;
+    }
+
+    .file-input {
       display: none;
     }
 
-    .face-mask {
-      position: absolute;
-      left: 50%;
-      top: 46%;
-      width: min(70%, 250px);
-      aspect-ratio: 0.76;
-      border: 2px solid rgba(255, 255, 255, 0.72);
-      border-radius: 50% / 56%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.32), inset 0 0 28px rgba(47, 184, 132, 0.18);
-      pointer-events: none;
-      z-index: 2;
+    label.button {
+      cursor: pointer;
     }
 
-    .face-mask::before,
-    .face-mask::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      width: 22%;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.58);
-      transform: translateX(-50%);
+    .field {
+      display: grid;
+      gap: 7px;
     }
 
-    .face-mask::before {
-      top: 34%;
-    }
-
-    .face-mask::after {
-      bottom: 30%;
-    }
-
-    .mask-caption {
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      bottom: 14px;
-      z-index: 3;
-      min-height: 38px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.46);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 14px;
-      font-size: 0.86rem;
-      font-weight: 750;
-      text-align: center;
-    }
-
-    .notice {
-      padding: 11px 12px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(243, 183, 93, 0.34);
-      color: #ffe2ad;
-      background: rgba(195, 122, 31, 0.14);
+    .field label {
       font-size: 0.88rem;
-    }
-
-    .personal-panel {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 18px;
-      padding: 12px;
-    }
-
-    .personal-label {
-      display: block;
       font-weight: 800;
-      color: #ffffff;
-      font-size: 0.9rem;
-      margin-bottom: 8px;
+      color: var(--text);
     }
 
     textarea {
-      width: 100%;
-      min-height: 76px;
+      min-height: 112px;
       resize: vertical;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      background: rgba(0, 0, 0, 0.2);
-      color: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
       padding: 12px;
       outline: none;
     }
 
-    textarea::placeholder {
-      color: rgba(255, 255, 255, 0.52);
-    }
-
     textarea:focus {
-      border-color: rgba(47, 184, 132, 0.88);
-      box-shadow: 0 0 0 3px rgba(47, 184, 132, 0.16);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
-    .control-dock {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      align-items: center;
-      padding: 4px 6px 8px;
+    .note {
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 12px;
+      font-size: 0.9rem;
     }
 
-    .control-button,
-    .control-label,
-    .icon-button {
-      min-height: 52px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
-    }
-
-    .control-button,
-    .control-label {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-
-    .control-button.is-active {
-      background: #ffffff;
-      color: #111615;
-    }
-
-    .control-button.is-muted {
-      background: rgba(239, 111, 145, 0.2);
-      color: #ffc7d4;
-      border-color: rgba(239, 111, 145, 0.34);
-    }
-
-    .end-button {
-      background: var(--danger);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    .icon-button {
-      width: 42px;
-      min-height: 42px;
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .theme-icon,
-    .video-icon,
-    .gallery-icon,
-    .mic-icon,
-    .phone-icon {
-      width: 21px;
-      height: 21px;
-      position: relative;
-      display: inline-block;
-      flex: 0 0 auto;
-    }
-
-    .theme-icon::before {
-      content: "";
-      position: absolute;
-      width: 17px;
-      height: 17px;
-      right: 0;
-      top: 1px;
-      border-radius: 50%;
-      box-shadow: -6px 0 0 0 currentColor;
-    }
-
-    .video-icon::before {
-      content: "";
-      position: absolute;
-      left: 1px;
-      top: 5px;
-      width: 13px;
-      height: 10px;
-      border: 2px solid currentColor;
-      border-radius: 4px;
-    }
-
-    .video-icon::after {
-      content: "";
-      position: absolute;
-      right: 1px;
-      top: 7px;
-      border-top: 4px solid transparent;
-      border-bottom: 4px solid transparent;
-      border-left: 7px solid currentColor;
-    }
-
-    .gallery-icon::before {
-      content: "";
-      position: absolute;
-      inset: 3px 2px;
-      border: 2px solid currentColor;
-      border-radius: 4px;
-    }
-
-    .gallery-icon::after {
-      content: "";
-      position: absolute;
-      left: 6px;
-      bottom: 6px;
-      width: 10px;
-      height: 7px;
-      border-left: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      transform: skew(-18deg);
-    }
-
-    .mic-icon::before {
-      content: "";
-      position: absolute;
-      inset: 1px 6px 7px;
-      border: 2px solid currentColor;
-      border-radius: 9px;
-    }
-
-    .mic-icon::after {
-      content: "";
-      position: absolute;
-      left: 9px;
-      bottom: 1px;
-      width: 2px;
-      height: 7px;
-      background: currentColor;
-      box-shadow: -5px -3px 0 -1px currentColor, 5px -3px 0 -1px currentColor;
-    }
-
-    .control-button.is-muted .mic-icon {
-      transform: rotate(-18deg);
-    }
-
-    .phone-icon::before {
-      content: "";
-      position: absolute;
-      left: 3px;
-      top: 6px;
-      width: 15px;
-      height: 9px;
-      border: 3px solid currentColor;
-      border-top: 0;
-      border-radius: 0 0 14px 14px;
-      transform: rotate(180deg);
-    }
-
-    .results-sheet {
-      display: grid;
-      gap: 12px;
-      color: var(--text);
-      padding-bottom: 6px;
-    }
-
-    .stepper {
+    .steps {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 7px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 8px;
-      box-shadow: var(--shadow);
+      gap: 10px;
     }
 
     .step {
-      min-height: 54px;
-      border-radius: 13px;
+      min-height: 76px;
+      border-radius: var(--radius);
       background: var(--surface-soft);
-      padding: 8px;
+      border: 1px solid var(--line);
+      padding: 10px;
       display: grid;
       align-content: center;
-      gap: 5px;
+      gap: 6px;
       color: var(--muted);
-      font-size: 0.73rem;
+      font-size: 0.84rem;
       font-weight: 800;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
     }
 
     .step-marker {
@@ -599,22 +308,24 @@
       height: 13px;
       border-radius: 50%;
       border: 2px solid var(--muted);
+      flex: 0 0 auto;
     }
 
     .step.is-active {
-      color: var(--accent-strong);
-      background: rgba(47, 184, 132, 0.12);
+      border-color: rgba(31, 157, 114, 0.42);
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
     .step.is-active .step-marker {
       border-color: var(--accent);
       border-top-color: transparent;
-      animation: spin 800ms linear infinite;
+      animation: spin 850ms linear infinite;
     }
 
     .step.is-done {
-      color: var(--accent-strong);
-      background: rgba(47, 184, 132, 0.16);
+      border-color: rgba(31, 157, 114, 0.34);
+      background: rgba(31, 157, 114, 0.08);
     }
 
     .step.is-done .step-marker {
@@ -629,41 +340,62 @@
       }
     }
 
-    .panel {
-      background: var(--surface);
+    .trace {
+      display: grid;
+      gap: 12px;
+    }
+
+    .trace-card {
       border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      background: var(--surface);
       overflow: hidden;
     }
 
-    .panel-title {
+    .trace-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 13px 14px;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-soft);
       border-bottom: 1px solid var(--line);
     }
 
-    .panel-title h2 {
-      font-size: 0.96rem;
-      letter-spacing: 0;
+    .trace-card-header h3 {
+      font-size: 0.94rem;
     }
 
-    .panel-body {
+    .pill {
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 0 9px;
+      display: inline-flex;
+      align-items: center;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 0.76rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .pill.green {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .pill.amber {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .trace-card-body {
       padding: 14px;
+      display: grid;
+      gap: 12px;
     }
 
-    .empty-state {
-      color: var(--muted);
-      background: var(--surface-soft);
-      border-radius: 13px;
-      padding: 13px;
-      font-size: 0.92rem;
-    }
-
-    .badge-grid {
+    .badge-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -671,66 +403,58 @@
 
     .badge {
       border-radius: 999px;
-      background: rgba(47, 184, 132, 0.12);
-      color: var(--accent-strong);
+      background: var(--accent-soft);
+      color: var(--accent);
       padding: 7px 10px;
       font-size: 0.82rem;
       font-weight: 850;
     }
 
-    .products-row {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(156px, 72%);
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-      scroll-snap-type: x proximity;
-    }
-
-    .product-card {
-      min-height: 112px;
-      border-radius: 14px;
+    .detection-image {
+      width: 100%;
+      max-height: 560px;
+      object-fit: contain;
+      border-radius: var(--radius);
       border: 1px solid var(--line);
       background: var(--surface-soft);
-      padding: 11px;
+    }
+
+    .detection-grid {
       display: grid;
-      gap: 5px;
-      align-content: start;
-      scroll-snap-align: start;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
     }
 
-    .product-brand {
-      color: var(--accent-strong);
-      font-weight: 850;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      overflow-wrap: anywhere;
+    .det-card {
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: var(--radius);
+      padding: 10px;
+      display: grid;
+      gap: 4px;
+      min-height: 100px;
     }
 
-    .product-name {
-      font-weight: 850;
-      line-height: 1.25;
-      overflow-wrap: anywhere;
+    .det-class {
+      font-weight: 900;
+      color: var(--text);
     }
 
-    .product-meta {
+    .det-meta {
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.84rem;
       overflow-wrap: anywhere;
     }
 
     .markdown {
-      min-height: 210px;
       color: var(--text);
       overflow-wrap: anywhere;
-      font-size: 0.94rem;
+      font-size: 0.95rem;
     }
 
-    .markdown h2,
     .markdown h3 {
       font-size: 1rem;
-      margin: 14px 0 6px;
+      margin: 10px 0 6px;
     }
 
     .markdown p {
@@ -746,21 +470,16 @@
       margin: 4px 0;
     }
 
-    .skeleton-group {
-      display: grid;
-      gap: 10px;
-    }
-
     .skeleton {
-      min-height: 18px;
+      min-height: 17px;
       border-radius: 7px;
-      background: linear-gradient(90deg, var(--surface-soft), rgba(47, 184, 132, 0.14), var(--surface-soft));
+      background: linear-gradient(90deg, var(--surface-soft), rgba(31, 157, 114, 0.14), var(--surface-soft));
       background-size: 220% 100%;
       animation: shimmer 1.2s infinite;
     }
 
     .skeleton.big {
-      min-height: 76px;
+      min-height: 82px;
     }
 
     @keyframes shimmer {
@@ -769,747 +488,330 @@
       }
     }
 
-    @media (min-width: 720px) {
-      body {
-        padding: 22px 0;
-      }
-
-      .phone-shell {
-        min-height: calc(100svh - 44px);
-        border-radius: 32px;
-      }
-
-      .welcome-screen,
-      .call-screen {
-        min-height: calc(100svh - 44px);
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 380px) {
-      .welcome-screen,
-      .call-screen {
-        padding-left: 12px;
-        padding-right: 12px;
+    @media (max-width: 700px) {
+      .app {
+        padding: 12px;
       }
 
-      .video-stage {
-        min-height: 390px;
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .control-dock {
-        gap: 8px;
+      .steps {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 <body>
-  <div class="phone-shell">
-    <section class="welcome-screen" id="welcomeScreen" aria-label="Mulai panggilan Skincaria">
-      <div class="welcome-actions">
-        <button class="icon-button" id="themeToggle" type="button" aria-label="Ganti mode warna">
-          <span class="theme-icon" aria-hidden="true"></span>
-        </button>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Skincaria Agent Loop</h1>
+        <p>Image upload or webcam capture -> Gemma plans -> YOLO11n detects -> Gemma answers. No Falcon, no knowledge base.</p>
       </div>
-      <div class="welcome-content">
-        <div class="brand-badge" aria-hidden="true"></div>
-        <h1 class="welcome-title">Skincaria's Here for You</h1>
-        <p class="welcome-copy">A calm skin check-in with camera, photo upload, and personal product recommendations.</p>
-        <button class="call-button" id="callButton" type="button">Call Skincaria</button>
-      </div>
-    </section>
+      <div class="status" id="status"><span class="status-dot" aria-hidden="true"></span><span>Ready</span></div>
+    </header>
 
-    <section class="call-screen" id="callScreen" aria-label="Live Skincaria" hidden>
-      <header class="call-top">
-        <div class="call-brand">
-          <div class="brand-badge" aria-hidden="true"></div>
-          <div>
-            <div class="call-name">Skincaria</div>
-            <div class="call-status" id="callStatus">Ready when you are</div>
+    <section class="workspace">
+      <section class="panel" aria-label="Image input">
+        <div class="panel-header">
+          <h2>Image Input</h2>
+          <button class="button danger" id="clearButton" type="button">Clear</button>
+        </div>
+        <div class="panel-body input-stack">
+          <div class="preview-stage">
+            <video id="webcam" autoplay muted playsinline hidden></video>
+            <img id="previewImage" class="preview-image" alt="Selected skin image preview" hidden>
+            <div class="placeholder" id="placeholder">Open the webcam, capture a frame, or upload a face image.</div>
+          </div>
+
+          <div class="toolbar">
+            <button class="button" id="openCameraButton" type="button">Open Webcam</button>
+            <button class="button blue" id="captureButton" type="button" disabled>Capture Frame</button>
+            <button class="button" id="stopCameraButton" type="button" disabled>Stop Webcam</button>
+            <label class="button" for="fileInput">Upload Image</label>
+            <input class="file-input" id="fileInput" type="file" accept="image/*">
+          </div>
+
+          <div class="field">
+            <label for="queryInput">User query / concern</label>
+            <textarea id="queryInput" placeholder="Example: Check this image for acne, blackheads, enlarged pores, and redness."></textarea>
+          </div>
+
+          <button class="button primary" id="runButton" type="button">Run Agent Loop</button>
+
+          <div class="note">
+            This stage only demonstrates visual planning and detection. Product retrieval and skincare knowledge-base recommendations are intentionally disabled.
           </div>
         </div>
-        <div class="status-pill"><span class="status-dot" aria-hidden="true"></span><span>LIVE</span></div>
-      </header>
+      </section>
 
-      <div class="video-stage" id="videoStage">
-        <video id="cameraVideo" class="mirror" autoplay muted playsinline></video>
-        <div class="video-placeholder" id="videoPlaceholder">Skincaria will look for your face inside the mask area.</div>
-        <div class="face-mask" aria-hidden="true"></div>
-        <div class="mask-caption" id="maskStatus">Face mask ready</div>
-      </div>
-
-      <div class="notice" id="cameraNotice" hidden></div>
-      <input id="fallbackFile" type="file" accept="image/*" capture="user" hidden>
-
-      <div class="personal-panel">
-        <label class="personal-label" for="personalConcern">Tell Skincaria what feels different today</label>
-        <textarea id="personalConcern" placeholder="Example: oily T-zone, redness after serum, dry cheeks, or acne around the jaw."></textarea>
-        <button class="scan-button" id="scanButton" type="button">Talk to Skincaria</button>
-      </div>
-
-      <nav class="control-dock" aria-label="Kontrol panggilan">
-        <button class="control-button is-active" id="videoToggle" type="button" aria-label="Nyalakan atau matikan video">
-          <span class="video-icon" aria-hidden="true"></span>
-        </button>
-        <label class="control-label" id="galleryButton" for="fallbackFile" aria-label="Unggah foto dari galeri">
-          <span class="gallery-icon" aria-hidden="true"></span>
-        </label>
-        <button class="control-button" id="muteButton" type="button" aria-label="Mute">
-          <span class="mic-icon" aria-hidden="true"></span>
-        </button>
-        <button class="control-button end-button" id="endCallButton" type="button" aria-label="Akhiri panggilan">
-          <span class="phone-icon" aria-hidden="true"></span>
-        </button>
-      </nav>
-
-      <section class="results-sheet" aria-label="Hasil rekomendasi">
-        <div class="stepper" aria-label="Progres">
-          <div class="step" data-step="analyze">
-            <span class="step-marker" aria-hidden="true"></span>
-            <span>Menganalisis</span>
+      <section class="panel" aria-label="Agent output">
+        <div class="panel-header">
+          <h2>Agent Trace</h2>
+          <span class="pill green">YOLO11n custom weights</span>
+        </div>
+        <div class="panel-body">
+          <div class="steps" aria-label="Agent progress">
+            <div class="step" data-step="plan">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Plans</span></div>
+              <span>Route and tool choice</span>
+            </div>
+            <div class="step" data-step="detect">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>YOLO Detects</span></div>
+              <span>Bounding boxes and counts</span>
+            </div>
+            <div class="step" data-step="answer">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Answers</span></div>
+              <span>Observation-only final answer</span>
+            </div>
           </div>
-          <div class="step" data-step="retrieve">
-            <span class="step-marker" aria-hidden="true"></span>
-            <span>Mencari produk</span>
-          </div>
-          <div class="step" data-step="generate">
-            <span class="step-marker" aria-hidden="true"></span>
-            <span>Rekomendasi</span>
+
+          <div class="trace" id="trace">
+            <div class="note">Run the agent loop to see each step appear here.</div>
           </div>
         </div>
-
-        <section class="panel" aria-label="Analisis kulit">
-          <div class="panel-title">
-            <h2>Personal Skin Read</h2>
-          </div>
-          <div class="panel-body">
-            <div id="analysisEmpty" class="empty-state">Your skin labels will appear after Skincaria checks the frame.</div>
-            <div id="analysisSkeleton" class="skeleton-group" hidden>
-              <div class="skeleton"></div>
-              <div class="skeleton"></div>
-              <div class="skeleton"></div>
-            </div>
-            <div id="badges" class="badge-grid" hidden></div>
-          </div>
-        </section>
-
-        <section class="panel" aria-label="Produk terambil">
-          <div class="panel-title">
-            <h2>Matched Products</h2>
-          </div>
-          <div class="panel-body">
-            <div id="productsEmpty" class="empty-state">Products will appear once Skincaria understands your concern.</div>
-            <div id="productsSkeleton" class="skeleton-group" hidden>
-              <div class="skeleton big"></div>
-              <div class="skeleton big"></div>
-            </div>
-            <div id="productsRow" class="products-row" hidden></div>
-          </div>
-        </section>
-
-        <section class="panel" aria-label="Rekomendasi">
-          <div class="panel-title">
-            <h2>Skincaria Says</h2>
-          </div>
-          <div class="panel-body">
-            <div id="outputEmpty" class="empty-state">Your recommendation will stream here.</div>
-            <div id="outputSkeleton" class="skeleton-group" hidden>
-              <div class="skeleton"></div>
-              <div class="skeleton"></div>
-              <div class="skeleton big"></div>
-            </div>
-            <div id="recommendationOutput" class="markdown" hidden></div>
-          </div>
-        </section>
       </section>
     </section>
-  </div>
+  </main>
 
-  <canvas id="captureCanvas" width="768" height="1024" hidden></canvas>
+  <canvas id="captureCanvas" hidden></canvas>
 
   <script>
     const refs = {
-      html: document.documentElement,
-      welcomeScreen: document.getElementById("welcomeScreen"),
-      callScreen: document.getElementById("callScreen"),
-      callButton: document.getElementById("callButton"),
-      callStatus: document.getElementById("callStatus"),
-      cameraVideo: document.getElementById("cameraVideo"),
-      videoStage: document.getElementById("videoStage"),
-      videoPlaceholder: document.getElementById("videoPlaceholder"),
-      maskStatus: document.getElementById("maskStatus"),
-      captureCanvas: document.getElementById("captureCanvas"),
-      cameraNotice: document.getElementById("cameraNotice"),
-      fallbackFile: document.getElementById("fallbackFile"),
-      galleryButton: document.getElementById("galleryButton"),
-      personalConcern: document.getElementById("personalConcern"),
-      scanButton: document.getElementById("scanButton"),
-      videoToggle: document.getElementById("videoToggle"),
-      muteButton: document.getElementById("muteButton"),
-      endCallButton: document.getElementById("endCallButton"),
-      themeToggle: document.getElementById("themeToggle"),
-      analysisEmpty: document.getElementById("analysisEmpty"),
-      analysisSkeleton: document.getElementById("analysisSkeleton"),
-      badges: document.getElementById("badges"),
-      productsEmpty: document.getElementById("productsEmpty"),
-      productsSkeleton: document.getElementById("productsSkeleton"),
-      productsRow: document.getElementById("productsRow"),
-      outputEmpty: document.getElementById("outputEmpty"),
-      outputSkeleton: document.getElementById("outputSkeleton"),
-      recommendationOutput: document.getElementById("recommendationOutput")
+      status: document.getElementById("status"),
+      webcam: document.getElementById("webcam"),
+      previewImage: document.getElementById("previewImage"),
+      placeholder: document.getElementById("placeholder"),
+      fileInput: document.getElementById("fileInput"),
+      openCameraButton: document.getElementById("openCameraButton"),
+      captureButton: document.getElementById("captureButton"),
+      stopCameraButton: document.getElementById("stopCameraButton"),
+      clearButton: document.getElementById("clearButton"),
+      runButton: document.getElementById("runButton"),
+      queryInput: document.getElementById("queryInput"),
+      trace: document.getElementById("trace"),
+      captureCanvas: document.getElementById("captureCanvas")
     };
-
-    const labelMap = {
-      skin_type: {
-        title: "Skin",
-        values: { oily: "Oily", dry: "Dry", combination: "Combination", normal: "Normal" }
-      },
-      acne_severity: {
-        title: "Acne",
-        values: { none: "None", mild: "Mild", moderate: "Moderate", severe: "Severe" }
-      },
-      redness: {
-        title: "Redness",
-        values: { none: "None", mild: "Mild", moderate: "Moderate", severe: "Severe" }
-      },
-      pore_condition: {
-        title: "Pores",
-        values: { normal: "Normal", enlarged: "Enlarged", clogged: "Clogged" }
-      },
-      dehydration: {
-        title: "Dehydration",
-        values: { none: "None", mild: "Mild", severe: "Severe" }
-      }
-    };
-
-    const FACE_OVAL_LANDMARKS = [
-      10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
-      397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
-      172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
-    ];
-    const MEDIAPIPE_PACKAGE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
-    const MEDIAPIPE_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm";
-    const FACE_LANDMARKER_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task";
 
     let cameraStream = null;
-    let facingMode = "user";
+    let selectedImageDataUrl = "";
     let activeSocket = null;
-    let recommendationText = "";
     let busy = false;
-    let muted = false;
-    let pendingRetrieveTimer = null;
-    let faceLandmarker = null;
-    let faceLandmarkerPromise = null;
-    let faceLandmarkerAvailable = false;
 
-    init();
+    refs.openCameraButton.addEventListener("click", openWebcam);
+    refs.captureButton.addEventListener("click", captureFrame);
+    refs.stopCameraButton.addEventListener("click", stopWebcam);
+    refs.clearButton.addEventListener("click", clearInput);
+    refs.runButton.addEventListener("click", runAgentLoop);
+    refs.fileInput.addEventListener("change", handleUpload);
 
-    function init() {
-      applySavedTheme();
-      bindEvents();
-      setStep("idle");
-    }
-
-    function bindEvents() {
-      refs.themeToggle.addEventListener("click", toggleTheme);
-      refs.callButton.addEventListener("click", startCall);
-      refs.videoToggle.addEventListener("click", toggleVideo);
-      refs.muteButton.addEventListener("click", toggleMute);
-      refs.endCallButton.addEventListener("click", endCall);
-      refs.scanButton.addEventListener("click", analyzeFromCamera);
-      refs.fallbackFile.addEventListener("change", analyzeFromGallery);
-    }
-
-    function applySavedTheme() {
-      const saved = localStorage.getItem("skincaria-theme");
-      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      refs.html.dataset.theme = saved || (prefersDark ? "dark" : "light");
-    }
-
-    function toggleTheme() {
-      const next = refs.html.dataset.theme === "dark" ? "light" : "dark";
-      refs.html.dataset.theme = next;
-      localStorage.setItem("skincaria-theme", next);
-    }
-
-    async function startCall() {
-      refs.welcomeScreen.hidden = true;
-      refs.callScreen.hidden = false;
-      resetResults();
-      setStep("idle");
-      setCallStatus("Finding your camera");
-      loadFaceLandmarker();
-      await startCamera();
-    }
-
-    function endCall() {
-      closeActiveSocket();
-      stopCamera();
-      busy = false;
-      setButtonsDisabled(false);
-      refs.personalConcern.value = "";
-      refs.fallbackFile.value = "";
-      refs.callScreen.hidden = true;
-      refs.welcomeScreen.hidden = false;
-      setCallStatus("Ready when you are");
-      resetResults();
-    }
-
-    async function toggleVideo() {
-      if (busy) {
-        return;
-      }
-      if (cameraStream) {
-        stopCamera();
-        refs.videoToggle.classList.remove("is-active");
-        refs.videoStage.classList.remove("is-live");
-        refs.maskStatus.textContent = "Video off";
-        setCallStatus("Video paused");
-        return;
-      }
-      refs.videoToggle.classList.add("is-active");
-      await startCamera();
-    }
-
-    function toggleMute() {
-      muted = !muted;
-      refs.muteButton.classList.toggle("is-muted", muted);
-      setCallStatus(muted ? "Muted" : "Listening to your note");
-    }
-
-    async function startCamera() {
+    async function openWebcam() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showCameraFallback("Camera is unavailable in this browser. Use the gallery button.");
+        setStatus("Webcam unavailable");
+        addTraceNote("This browser cannot open a webcam. Upload an image instead.");
         return;
       }
 
       try {
-        stopCamera();
+        stopWebcam();
         cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode,
-            width: { ideal: 1280 },
-            height: { ideal: 1600 }
-          },
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
           audio: false
         });
-        refs.cameraVideo.srcObject = cameraStream;
-        refs.cameraVideo.classList.toggle("mirror", facingMode === "user");
-        refs.videoStage.classList.add("is-live");
-        refs.cameraNotice.hidden = true;
-        refs.videoToggle.classList.add("is-active");
-        refs.maskStatus.textContent = faceLandmarkerAvailable
-          ? "Face mesh ready"
-          : "Loading face mesh";
-        setCallStatus("Video on");
-        await refs.cameraVideo.play();
+        refs.webcam.srcObject = cameraStream;
+        refs.webcam.hidden = false;
+        refs.previewImage.hidden = true;
+        refs.placeholder.hidden = true;
+        refs.captureButton.disabled = false;
+        refs.stopCameraButton.disabled = false;
+        refs.openCameraButton.disabled = true;
+        await refs.webcam.play();
+        setStatus("Webcam open");
       } catch (error) {
-        showCameraFallback("Camera permission was denied or unavailable. Use the gallery button.");
+        setStatus("Webcam blocked");
+        addTraceNote("Camera permission was denied or the webcam is unavailable.");
       }
     }
 
-    function stopCamera() {
-      if (!cameraStream) {
-        return;
-      }
-      for (const track of cameraStream.getTracks()) {
-        track.stop();
+    function stopWebcam() {
+      if (cameraStream) {
+        for (const track of cameraStream.getTracks()) {
+          track.stop();
+        }
       }
       cameraStream = null;
-      refs.cameraVideo.srcObject = null;
+      refs.webcam.srcObject = null;
+      refs.webcam.hidden = true;
+      refs.captureButton.disabled = true;
+      refs.stopCameraButton.disabled = true;
+      refs.openCameraButton.disabled = false;
     }
 
-    function showCameraFallback(message) {
-      refs.cameraNotice.textContent = message;
-      refs.cameraNotice.hidden = false;
-      refs.videoStage.classList.remove("is-live");
-      refs.videoToggle.classList.remove("is-active");
-      refs.maskStatus.textContent = "Upload a face photo from gallery";
-      setCallStatus("Gallery mode");
+    function captureFrame() {
+      if (!cameraStream || !refs.webcam.videoWidth || !refs.webcam.videoHeight) {
+        addTraceNote("Webcam is not ready yet.");
+        return;
+      }
+      const canvas = refs.captureCanvas;
+      canvas.width = refs.webcam.videoWidth;
+      canvas.height = refs.webcam.videoHeight;
+      const context = canvas.getContext("2d");
+      context.drawImage(refs.webcam, 0, 0, canvas.width, canvas.height);
+      selectedImageDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      showPreview(selectedImageDataUrl);
+      setStatus("Frame captured");
     }
 
-    async function analyzeFromCamera() {
+    function handleUpload() {
+      const file = refs.fileInput.files[0];
+      if (!file) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        selectedImageDataUrl = String(reader.result || "");
+        showPreview(selectedImageDataUrl);
+        setStatus("Image uploaded");
+      };
+      reader.onerror = () => addTraceNote("Could not read the uploaded image.");
+      reader.readAsDataURL(file);
+    }
+
+    function showPreview(dataUrl) {
+      refs.previewImage.src = dataUrl;
+      refs.previewImage.hidden = false;
+      refs.placeholder.hidden = true;
+      refs.webcam.hidden = true;
+    }
+
+    function clearInput() {
+      closeSocket();
+      stopWebcam();
+      selectedImageDataUrl = "";
+      refs.previewImage.src = "";
+      refs.previewImage.hidden = true;
+      refs.placeholder.hidden = false;
+      refs.fileInput.value = "";
+      refs.queryInput.value = "";
+      refs.trace.innerHTML = '<div class="note">Run the agent loop to see each step appear here.</div>';
+      setStep("idle");
+      setStatus("Ready");
+      busy = false;
+      setBusy(false);
+    }
+
+    async function runAgentLoop() {
       if (busy) {
         return;
       }
-      const concern = refs.personalConcern.value.trim();
-      const form = new FormData();
-      form.append("concern", concern);
+      const concern = refs.queryInput.value.trim();
+      if (!selectedImageDataUrl && cameraStream) {
+        captureFrame();
+      }
+      if (!selectedImageDataUrl && !concern) {
+        addTraceNote("Upload an image, capture a webcam frame, or enter a query.");
+        return;
+      }
 
-      try {
-        if (cameraStream && refs.cameraVideo.readyState >= 2) {
-          const blob = await captureMaskedFrame();
-          form.append("image", blob, "skincaria-face-mask.jpg");
-        } else if (refs.fallbackFile.files[0]) {
-          const blob = await maskUploadedImage(refs.fallbackFile.files[0]);
-          form.append("image", blob, "skincaria-gallery-mask.jpg");
-        } else if (!concern) {
-          showInlineMessage("Please turn video on, upload a photo, or tell Skincaria what changed.");
+      closeSocket();
+      refs.trace.innerHTML = "";
+      setBusy(true);
+      setStep("plan");
+      setStatus("Gemma planning");
+
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      activeSocket = new WebSocket(`${protocol}://${window.location.host}/ws/agentic`);
+
+      activeSocket.addEventListener("open", () => {
+        activeSocket.send(JSON.stringify({
+          concern,
+          image_base64: selectedImageDataUrl || null
+        }));
+      });
+
+      activeSocket.addEventListener("message", (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === "stage") {
+          setStep(message.stage);
+          setStatus(message.message || "Agent running");
+          renderStageSkeleton(message.stage);
           return;
         }
-        await submitAnalysis(form, concern);
-      } catch (error) {
-        showInlineMessage(error.message || "Could not capture the frame.");
-      }
-    }
-
-    async function analyzeFromGallery() {
-      if (busy || !refs.fallbackFile.files[0]) {
-        return;
-      }
-      const concern = refs.personalConcern.value.trim();
-      const form = new FormData();
-      form.append("concern", concern);
-      const blob = await maskUploadedImage(refs.fallbackFile.files[0]);
-      form.append("image", blob, "skincaria-gallery-mask.jpg");
-      await submitAnalysis(form, concern);
-    }
-
-    async function loadFaceLandmarker() {
-      if (faceLandmarkerPromise) {
-        return faceLandmarkerPromise;
-      }
-
-      refs.maskStatus.textContent = "Loading face mesh";
-      faceLandmarkerPromise = import(MEDIAPIPE_PACKAGE_URL)
-        .then(async ({ FaceLandmarker, FilesetResolver }) => {
-          const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
-          faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath: FACE_LANDMARKER_MODEL_URL,
-              delegate: "GPU"
-            },
-            runningMode: "IMAGE",
-            numFaces: 1,
-            minFaceDetectionConfidence: 0.45,
-            minFacePresenceConfidence: 0.45,
-            minTrackingConfidence: 0.45
-          });
-          faceLandmarkerAvailable = true;
-          refs.maskStatus.textContent = "Face mesh ready";
-          return faceLandmarker;
-        })
-        .catch((error) => {
-          console.warn("MediaPipe Face Landmarker unavailable; using oval fallback.", error);
-          faceLandmarker = null;
-          faceLandmarkerAvailable = false;
-          refs.maskStatus.textContent = "Using oval fallback";
-          return null;
-        });
-
-      return faceLandmarkerPromise;
-    }
-
-    function detectFaceLandmarks(source) {
-      if (!faceLandmarker) {
-        return null;
-      }
-      try {
-        const result = faceLandmarker.detect(source);
-        const landmarks = result.faceLandmarks && result.faceLandmarks[0];
-        return landmarks || null;
-      } catch (error) {
-        console.warn("Face mesh detection failed; using oval fallback.", error);
-        return null;
-      }
-    }
-
-    async function waitForFaceLandmarker(maxWaitMs = 1800) {
-      if (!faceLandmarkerPromise || faceLandmarkerAvailable) {
-        return faceLandmarker;
-      }
-      const timeout = new Promise((resolve) => {
-        window.setTimeout(() => resolve(null), maxWaitMs);
-      });
-      await Promise.race([faceLandmarkerPromise, timeout]);
-      return faceLandmarker;
-    }
-
-    async function captureMaskedFrame() {
-      const video = refs.cameraVideo;
-      if (!video.videoWidth || !video.videoHeight) {
-        throw new Error("Camera is not ready yet.");
-      }
-      await waitForFaceLandmarker();
-      const canvas = refs.captureCanvas;
-      const context = canvas.getContext("2d");
-      canvas.width = 768;
-      canvas.height = 1024;
-      drawCoverImage(context, video, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
-      drawFaceMask(context, canvas, canvas.width, canvas.height);
-      return canvasToJpegBlob(canvas, "Could not create a masked frame.");
-    }
-
-    function maskUploadedImage(file) {
-      return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = async () => {
-          await waitForFaceLandmarker();
-          const canvas = refs.captureCanvas;
-          const context = canvas.getContext("2d");
-          canvas.width = 768;
-          canvas.height = 1024;
-          drawCoverImage(context, image, image.naturalWidth, image.naturalHeight, canvas.width, canvas.height);
-          drawFaceMask(context, canvas, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              reject(new Error("Could not prepare the uploaded photo."));
-              return;
-            }
-            resolve(blob);
-          }, "image/jpeg", 0.9);
-          URL.revokeObjectURL(image.src);
-        };
-        image.onerror = () => reject(new Error("Could not read the uploaded photo."));
-        image.src = URL.createObjectURL(file);
-      });
-    }
-
-    function canvasToJpegBlob(canvas, errorMessage) {
-      return new Promise((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            reject(new Error(errorMessage));
-            return;
-          }
-          resolve(blob);
-        }, "image/jpeg", 0.9);
-      });
-    }
-
-    function drawCoverImage(context, source, sourceWidth, sourceHeight, targetWidth, targetHeight) {
-      const scale = Math.max(targetWidth / sourceWidth, targetHeight / sourceHeight);
-      const width = sourceWidth * scale;
-      const height = sourceHeight * scale;
-      const x = (targetWidth - width) / 2;
-      const y = (targetHeight - height) / 2;
-      context.clearRect(0, 0, targetWidth, targetHeight);
-      context.drawImage(source, x, y, width, height);
-    }
-
-    function drawFaceMask(context, source, width, height) {
-      const landmarks = detectFaceLandmarks(source);
-      if (landmarks) {
-        drawMeshFaceMask(context, landmarks, width, height);
-        refs.maskStatus.textContent = "Face mesh mask captured";
-        return;
-      }
-      drawOvalFallbackMask(context, width, height);
-      refs.maskStatus.textContent = "Oval fallback mask captured";
-    }
-
-    function drawMeshFaceMask(context, landmarks, width, height) {
-      const path = new Path2D();
-      let started = false;
-      for (const index of FACE_OVAL_LANDMARKS) {
-        const point = landmarks[index];
-        if (!point) {
-          continue;
+        if (message.type === "plan") {
+          renderPlan(message.plan);
+          return;
         }
-        const x = point.x * width;
-        const y = point.y * height;
-        if (!started) {
-          path.moveTo(x, y);
-          started = true;
-        } else {
-          path.lineTo(x, y);
+        if (message.type === "detections") {
+          renderDetections(message.detections);
+          return;
         }
-      }
-
-      if (!started) {
-        drawOvalFallbackMask(context, width, height);
-        return;
-      }
-
-      path.closePath();
-      context.save();
-      context.fillStyle = "rgba(8, 10, 10, 0.62)";
-      const overlayPath = new Path2D();
-      overlayPath.rect(0, 0, width, height);
-      overlayPath.addPath(path);
-      context.fill(overlayPath, "evenodd");
-      context.strokeStyle = "rgba(70, 212, 154, 0.92)";
-      context.lineWidth = 5;
-      context.stroke(path);
-      context.restore();
-    }
-
-    function drawOvalFallbackMask(context, width, height) {
-      const centerX = width / 2;
-      const centerY = height * 0.45;
-      const radiusX = width * 0.34;
-      const radiusY = height * 0.32;
-      context.save();
-      context.fillStyle = "rgba(8, 10, 10, 0.58)";
-      context.beginPath();
-      context.rect(0, 0, width, height);
-      context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2, true);
-      context.fill("evenodd");
-      context.strokeStyle = "rgba(255, 255, 255, 0.82)";
-      context.lineWidth = 4;
-      context.beginPath();
-      context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
-      context.stroke();
-      context.restore();
-    }
-
-    async function submitAnalysis(form, concern) {
-      busy = true;
-      closeActiveSocket();
-      resetResults();
-      setButtonsDisabled(true);
-      setStep("analyze");
-      setCallStatus("Reading your skin");
-      refs.maskStatus.textContent = "Face mask captured";
-      refs.analysisEmpty.hidden = true;
-      refs.analysisSkeleton.hidden = false;
-      refs.productsEmpty.hidden = true;
-      refs.productsSkeleton.hidden = false;
-
-      pendingRetrieveTimer = window.setTimeout(() => setStep("retrieve"), 900);
-
-      try {
-        const response = await fetch("/analyze", { method: "POST", body: form });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.detail || "Analysis failed.");
+        if (message.type === "review") {
+          renderReview(message.review);
+          return;
         }
-
-        window.clearTimeout(pendingRetrieveTimer);
-        pendingRetrieveTimer = null;
-
-        if (data.manual_input_required) {
+        if (message.type === "done") {
+          setStep("done");
+          setStatus("Done");
+          finishRun();
+          return;
+        }
+        if (message.type === "error") {
+          addTraceNote(message.message || "Agent loop failed.");
+          setStatus("Error");
           setStep("idle");
-          showInlineMessage(data.message || "Tell Skincaria about your skin manually.");
-          refs.personalConcern.focus();
-          return;
+          finishRun();
         }
+      });
 
-        renderBadges(data.skin_labels);
-        setStep("retrieve");
-        renderProducts(data.products || []);
-        setStep("generate");
-        await startRecommendation(data, concern);
-      } catch (error) {
-        window.clearTimeout(pendingRetrieveTimer);
-        pendingRetrieveTimer = null;
+      activeSocket.addEventListener("error", () => {
+        addTraceNote("Agent loop connection was interrupted.");
+        setStatus("Connection error");
         setStep("idle");
-        setCallStatus("Try again");
-        showInlineMessage(error.message || "Something went wrong.");
-      } finally {
-        if (!activeSocket) {
-          busy = false;
-          setButtonsDisabled(false);
-        }
-        refs.analysisSkeleton.hidden = true;
-        refs.productsSkeleton.hidden = true;
-      }
-    }
+        finishRun();
+      });
 
-    function startRecommendation(data, concern) {
-      return new Promise((resolve) => {
-        recommendationText = "";
-        refs.outputEmpty.hidden = true;
-        refs.outputSkeleton.hidden = false;
-        refs.recommendationOutput.hidden = false;
-        refs.recommendationOutput.innerHTML = "";
-
-        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-        activeSocket = new WebSocket(`${protocol}://${window.location.host}/ws/recommend`);
-
-        activeSocket.addEventListener("open", () => {
-          activeSocket.send(JSON.stringify({
-            skin_labels: data.skin_labels,
-            concern,
-            products_context: data.products_context
-          }));
-        });
-
-        activeSocket.addEventListener("message", (event) => {
-          const message = JSON.parse(event.data);
-          if (message.type === "stage") {
-            setStep("generate");
-            setCallStatus("Personalizing your routine");
-            return;
-          }
-          if (message.type === "token") {
-            refs.outputSkeleton.hidden = true;
-            recommendationText += message.content;
-            refs.recommendationOutput.innerHTML = renderMarkdown(recommendationText);
-            return;
-          }
-          if (message.type === "done") {
-            setStep("done");
-            setCallStatus("Recommendation ready");
-            cleanupAfterStream();
-            resolve();
-            return;
-          }
-          if (message.type === "error") {
-            showInlineMessage(message.message || "Recommendation failed.");
-            setStep("idle");
-            setCallStatus("Try again");
-            cleanupAfterStream();
-            resolve();
-          }
-        });
-
-        activeSocket.addEventListener("error", () => {
-          showInlineMessage("Recommendation connection was interrupted.");
-          setStep("idle");
-          setCallStatus("Try again");
-          cleanupAfterStream();
-          resolve();
-        });
-
-        activeSocket.addEventListener("close", () => {
-          cleanupAfterStream();
-          resolve();
-        });
+      activeSocket.addEventListener("close", () => {
+        finishRun();
       });
     }
 
-    function cleanupAfterStream() {
+    function finishRun() {
       activeSocket = null;
-      busy = false;
-      setButtonsDisabled(false);
-      refs.outputSkeleton.hidden = true;
+      setBusy(false);
     }
 
-    function closeActiveSocket() {
+    function closeSocket() {
       if (activeSocket) {
         activeSocket.close();
         activeSocket = null;
       }
     }
 
-    function resetResults() {
-      refs.analysisEmpty.hidden = false;
-      refs.productsEmpty.hidden = false;
-      refs.outputEmpty.hidden = false;
-      refs.badges.hidden = true;
-      refs.productsRow.hidden = true;
-      refs.recommendationOutput.hidden = true;
-      refs.badges.innerHTML = "";
-      refs.productsRow.innerHTML = "";
-      refs.recommendationOutput.innerHTML = "";
-      refs.analysisSkeleton.hidden = true;
-      refs.productsSkeleton.hidden = true;
-      refs.outputSkeleton.hidden = true;
+    function setBusy(value) {
+      busy = value;
+      refs.runButton.disabled = value;
+      refs.clearButton.disabled = value;
+      refs.openCameraButton.disabled = value || Boolean(cameraStream);
+      refs.fileInput.disabled = value;
+      refs.captureButton.disabled = value || !cameraStream;
+      refs.stopCameraButton.disabled = value || !cameraStream;
     }
 
-    function setButtonsDisabled(disabled) {
-      refs.scanButton.disabled = disabled;
-      refs.videoToggle.disabled = disabled;
-      refs.fallbackFile.disabled = disabled;
-      refs.galleryButton.classList.toggle("is-disabled", disabled);
-    }
-
-    function setCallStatus(message) {
-      refs.callStatus.textContent = message;
+    function setStatus(message) {
+      refs.status.querySelector("span:last-child").textContent = message;
     }
 
     function setStep(stage) {
-      const order = ["analyze", "retrieve", "generate"];
+      const order = ["plan", "detect", "answer"];
       document.querySelectorAll(".step").forEach((element) => {
         const name = element.dataset.step;
         element.classList.remove("is-active", "is-done");
@@ -1527,54 +829,115 @@
       });
     }
 
-    function renderBadges(labels) {
-      refs.analysisEmpty.hidden = true;
-      refs.analysisSkeleton.hidden = true;
-      refs.badges.hidden = false;
-      refs.badges.innerHTML = Object.entries(labelMap).map(([key, config]) => {
-        const value = labels && labels[key] ? labels[key] : "";
-        const readable = config.values[value] || value || "-";
-        return `<span class="badge">${escapeHtml(config.title)}: ${escapeHtml(readable)}</span>`;
-      }).join("");
+    function renderStageSkeleton(stage) {
+      const id = `stage-${stage}`;
+      if (document.getElementById(id)) {
+        return;
+      }
+      const title = stage === "plan" ? "Gemma Plan" : stage === "detect" ? "YOLO11n Detection" : "Gemma Review";
+      const pill = stage === "detect" ? "YOLO11n" : "Gemma";
+      refs.trace.insertAdjacentHTML("beforeend", `
+        <article class="trace-card" id="${id}">
+          <div class="trace-card-header">
+            <h3>${title}</h3>
+            <span class="pill ${stage === "detect" ? "amber" : "green"}">${pill}</span>
+          </div>
+          <div class="trace-card-body">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton big"></div>
+          </div>
+        </article>
+      `);
     }
 
-    function renderProducts(products) {
-      refs.productsEmpty.hidden = true;
-      refs.productsSkeleton.hidden = true;
-      refs.productsRow.hidden = false;
+    function renderPlan(plan) {
+      const card = ensureCard("stage-plan", "Gemma Plan", "Gemma", "green");
+      const actions = Array.isArray(plan && plan.actions) ? plan.actions : [];
+      const limits = Array.isArray(plan && plan.known_limits) ? plan.known_limits : [];
+      card.querySelector(".trace-card-body").innerHTML = `
+        <p>${escapeHtml(plan && plan.summary ? plan.summary : "Gemma selected the agentic YOLO analysis path.")}</p>
+        <div class="badge-row">
+          <span class="badge">Route: ${escapeHtml(plan && plan.route ? plan.route : "agentic")}</span>
+          ${actions.map((action) => `<span class="badge">${escapeHtml(action.tool || "STEP")}: ${escapeHtml(action.reason || "")}</span>`).join("")}
+        </div>
+        ${limits.length ? `<div class="note">${limits.map(escapeHtml).join("<br>")}</div>` : ""}
+      `;
+    }
 
-      if (!products.length) {
-        refs.productsRow.innerHTML = "<div class=\"empty-state\">No matching products found.</div>";
+    function renderDetections(summary) {
+      const card = ensureCard("stage-detect", "YOLO11n Detection", "YOLO11n", "amber");
+      const detections = summary && Array.isArray(summary.detections) ? summary.detections : [];
+      const counts = summary && summary.counts ? summary.counts : {};
+      const annotated = summary && summary.annotated_image ? summary.annotated_image : "";
+      const countBadges = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `<span class="badge">${escapeHtml(name)}: ${escapeHtml(count)}</span>`)
+        .join("");
+
+      if (!detections.length) {
+        card.querySelector(".trace-card-body").innerHTML = '<div class="note">YOLO11n did not return detections above the current confidence threshold.</div>';
         return;
       }
 
-      refs.productsRow.innerHTML = products.map((product) => {
-        const price = product.price ? `<div class="product-meta">${escapeHtml(product.price)}</div>` : "";
-        const category = product.category ? `<div class="product-meta">${escapeHtml(product.category)}</div>` : "";
-        return `
-          <article class="product-card">
-            <div class="product-brand">${escapeHtml(product.brand || "Brand")}</div>
-            <div class="product-name">${escapeHtml(product.product_name || "Product")}</div>
-            ${category}
-            ${price}
-          </article>
-        `;
-      }).join("");
+      const detectionCards = detections.slice(0, 12).map((detection) => `
+        <article class="det-card">
+          <div class="det-class">${escapeHtml(detection.class || "Detection")}</div>
+          <div class="det-meta">Confidence ${(Number(detection.confidence || 0) * 100).toFixed(1)}%</div>
+          <div class="det-meta">Box: ${escapeHtml((detection.bbox || []).join(", "))}</div>
+          <div class="det-meta">Area: ${escapeHtml(detection.area_px || 0)} px</div>
+        </article>
+      `).join("");
+
+      card.querySelector(".trace-card-body").innerHTML = `
+        ${annotated ? `<img class="detection-image" src="data:image/jpeg;base64,${annotated}" alt="YOLO11n annotated detection result">` : ""}
+        <div class="badge-row">${countBadges}</div>
+        <div class="note">Showing top ${Math.min(12, detections.length)} of ${detections.length} detections from the trained Skincaria YOLO11n weights.</div>
+        <div class="detection-grid">${detectionCards}</div>
+      `;
     }
 
-    function showInlineMessage(message) {
-      refs.analysisSkeleton.hidden = true;
-      refs.productsSkeleton.hidden = true;
-      refs.outputSkeleton.hidden = true;
-      refs.analysisEmpty.hidden = false;
-      refs.analysisEmpty.textContent = message;
+    function renderReview(review) {
+      const card = ensureCard("stage-answer", "Final Answer", "Gemma", "green");
+      const observations = Array.isArray(review && review.observations) ? review.observations : [];
+      const uncertainties = Array.isArray(review && review.uncertainties) ? review.uncertainties : [];
+      const finalAnswer = review && review.final_answer ? review.final_answer : "Agent loop completed.";
+      const sections = [];
+      if (observations.length) {
+        sections.push("### Observations\n" + observations.map((item) => `- ${item}`).join("\n"));
+      }
+      if (uncertainties.length) {
+        sections.push("### Caveats\n" + uncertainties.map((item) => `- ${item}`).join("\n"));
+      }
+      sections.push("### Answer\n" + finalAnswer);
+      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(sections.join("\n\n"))}</div>`;
+    }
+
+    function ensureCard(id, title, pill, pillClass) {
+      let card = document.getElementById(id);
+      if (card) {
+        return card;
+      }
+      refs.trace.insertAdjacentHTML("beforeend", `
+        <article class="trace-card" id="${id}">
+          <div class="trace-card-header">
+            <h3>${escapeHtml(title)}</h3>
+            <span class="pill ${escapeHtml(pillClass)}">${escapeHtml(pill)}</span>
+          </div>
+          <div class="trace-card-body"></div>
+        </article>
+      `);
+      return document.getElementById(id);
+    }
+
+    function addTraceNote(message) {
+      refs.trace.innerHTML = `<div class="note">${escapeHtml(message)}</div>`;
     }
 
     function renderMarkdown(source) {
       const lines = escapeHtml(source).split("\n");
       let html = "";
       let inList = false;
-
       for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line) {
@@ -1584,7 +947,6 @@
           }
           continue;
         }
-
         if (line.startsWith("### ")) {
           if (inList) {
             html += "</ul>";
@@ -1593,16 +955,6 @@
           html += `<h3>${inlineMarkdown(line.slice(4))}</h3>`;
           continue;
         }
-
-        if (line.startsWith("## ")) {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
-          html += `<h2>${inlineMarkdown(line.slice(3))}</h2>`;
-          continue;
-        }
-
         if (line.startsWith("- ") || line.startsWith("* ")) {
           if (!inList) {
             html += "<ul>";
@@ -1611,23 +963,12 @@
           html += `<li>${inlineMarkdown(line.slice(2))}</li>`;
           continue;
         }
-
-        if (/^\d+\.\s+/.test(line)) {
-          if (!inList) {
-            html += "<ul>";
-            inList = true;
-          }
-          html += `<li>${inlineMarkdown(line.replace(/^\d+\.\s+/, ""))}</li>`;
-          continue;
-        }
-
         if (inList) {
           html += "</ul>";
           inList = false;
         }
         html += `<p>${inlineMarkdown(line)}</p>`;
       }
-
       if (inList) {
         html += "</ul>";
       }
