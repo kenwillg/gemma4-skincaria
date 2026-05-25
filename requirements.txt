@@ -9,3 +9,6 @@ aiofiles
 websockets
 ultralytics
 timm
+transformers
+safetensors
+opencv-python

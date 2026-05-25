@@ -29,6 +29,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threshold", type=float, default=0.25)
     parser.add_argument("--nms-iou", type=float, default=0.5)
     parser.add_argument("--max-det", type=int, default=30)
+    parser.add_argument("--max-images", type=int, default=None)
     parser.add_argument("--device", default=None, help="Use cuda, cpu, or omit for auto.")
     return parser.parse_args()
 
@@ -55,6 +56,8 @@ def main() -> None:
     model.eval()
 
     image_paths = collect_images(args.image)
+    if args.max_images is not None:
+        image_paths = image_paths[: args.max_images]
     if not image_paths:
         raise FileNotFoundError(f"No images found: {args.image}")
 

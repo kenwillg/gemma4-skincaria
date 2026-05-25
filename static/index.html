@@ -446,6 +446,65 @@
       overflow-wrap: anywhere;
     }
 
+    .texture-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .texture-row {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .texture-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .texture-name {
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .texture-score {
+      font-size: 0.82rem;
+      font-weight: 850;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .texture-bar {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: #e7eee9;
+      overflow: hidden;
+    }
+
+    .texture-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .texture-threshold {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--danger);
+    }
+
+    .texture-row.is-inactive .texture-fill {
+      background: var(--amber);
+    }
+
     .markdown {
       color: var(--text);
       overflow-wrap: anywhere;
@@ -515,7 +574,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Skincaria Agent Loop</h1>
-        <p>Image upload or webcam capture -> Gemma plans -> YOLO11n detects -> Gemma answers. No Falcon, no knowledge base.</p>
+        <p>Image upload or webcam capture -> input quality check -> YOLO detects boxes -> EfficientNet classifies texture -> Gemma answers. No Falcon, no knowledge base.</p>
       </div>
       <div class="status" id="status"><span class="status-dot" aria-hidden="true"></span><span>Ready</span></div>
     </header>
@@ -557,7 +616,7 @@
       <section class="panel" aria-label="Agent output">
         <div class="panel-header">
           <h2>Agent Trace</h2>
-          <span class="pill green">YOLO11n custom weights</span>
+          <span class="pill green">YOLO11n + EfficientNetV2-B0</span>
         </div>
         <div class="panel-body">
           <div class="steps" aria-label="Agent progress">
@@ -565,9 +624,17 @@
               <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Plans</span></div>
               <span>Route and tool choice</span>
             </div>
+            <div class="step" data-step="quality">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Input Check</span></div>
+              <span>Face/skin signal quality</span>
+            </div>
             <div class="step" data-step="detect">
               <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>YOLO Detects</span></div>
               <span>Bounding boxes and counts</span>
+            </div>
+            <div class="step" data-step="classify">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>EfficientNet Classifies</span></div>
+              <span>Texture labels and thresholds</span>
             </div>
             <div class="step" data-step="answer">
               <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Answers</span></div>
@@ -750,8 +817,16 @@
           renderPlan(message.plan);
           return;
         }
+        if (message.type === "quality") {
+          renderQuality(message.quality);
+          return;
+        }
         if (message.type === "detections") {
           renderDetections(message.detections);
+          return;
+        }
+        if (message.type === "texture") {
+          renderTexture(message.texture);
           return;
         }
         if (message.type === "review") {
@@ -811,7 +886,7 @@
     }
 
     function setStep(stage) {
-      const order = ["plan", "detect", "answer"];
+      const order = ["plan", "quality", "detect", "classify", "answer"];
       document.querySelectorAll(".step").forEach((element) => {
         const name = element.dataset.step;
         element.classList.remove("is-active", "is-done");
@@ -834,8 +909,8 @@
       if (document.getElementById(id)) {
         return;
       }
-      const title = stage === "plan" ? "Gemma Plan" : stage === "detect" ? "YOLO11n Detection" : "Gemma Review";
-      const pill = stage === "detect" ? "YOLO11n" : "Gemma";
+      const title = stage === "plan" ? "Gemma Plan" : stage === "quality" ? "Input Quality Check" : stage === "detect" ? "YOLO11n Detection" : stage === "classify" ? "EfficientNet Texture Classification" : "Gemma Review";
+      const pill = stage === "detect" ? "YOLO11n" : stage === "classify" ? "EfficientNetV2-B0" : stage === "quality" ? "Quality Gate" : "Gemma";
       refs.trace.insertAdjacentHTML("beforeend", `
         <article class="trace-card" id="${id}">
           <div class="trace-card-header">
@@ -863,6 +938,29 @@
         </div>
         ${limits.length ? `<div class="note">${limits.map(escapeHtml).join("<br>")}</div>` : ""}
       `;
+    }
+
+    function renderQuality(summary) {
+      const card = ensureCard("stage-quality", "Input Quality Check", "Quality Gate", "amber");
+      const warnings = Array.isArray(summary && summary.warnings) ? summary.warnings : [];
+      const acceptable = Boolean(summary && summary.acceptable);
+      const skinRatio = Number(summary && summary.skin_pixel_ratio ? summary.skin_pixel_ratio : 0);
+      const faceText = summary && summary.face_detected ? "Face detected" : "No frontal face detected";
+      const badgeClass = acceptable ? "green" : "amber";
+
+      card.querySelector(".trace-card-body").innerHTML = `
+        ${summary && summary.skin_mask_overlay ? `<img class="detection-image" src="data:image/jpeg;base64,${summary.skin_mask_overlay}" alt="Likely skin mask input quality preview">` : ""}
+        <div class="badge-row">
+          <span class="badge">${escapeHtml(faceText)}</span>
+          <span class="badge">Likely skin area: ${(skinRatio * 100).toFixed(1)}%</span>
+          <span class="badge">Blur score: ${escapeHtml(summary && summary.blur_score ? summary.blur_score : "n/a")}</span>
+          <span class="badge">Quality: ${acceptable ? "usable" : "weak"}</span>
+        </div>
+        <div class="note">
+          ${warnings.length ? warnings.map(escapeHtml).join("<br>") : "The image has enough visible face/skin signal for analysis."}
+        </div>
+      `;
+      card.querySelector(".pill").className = `pill ${badgeClass}`;
     }
 
     function renderDetections(summary) {
@@ -894,6 +992,52 @@
         <div class="badge-row">${countBadges}</div>
         <div class="note">Showing top ${Math.min(12, detections.length)} of ${detections.length} detections from the trained Skincaria YOLO11n weights.</div>
         <div class="detection-grid">${detectionCards}</div>
+      `;
+    }
+
+    function renderTexture(summary) {
+      const card = ensureCard("stage-classify", "EfficientNet Texture Classification", "EfficientNetV2-B0", "green");
+      const predictions = summary && Array.isArray(summary.predictions) ? summary.predictions : [];
+      const active = summary && Array.isArray(summary.active_labels) ? summary.active_labels : [];
+      const gradcam = summary && summary.gradcam ? summary.gradcam : null;
+
+      if (!predictions.length) {
+        card.querySelector(".trace-card-body").innerHTML = '<div class="note">EfficientNet did not return texture-classification outputs.</div>';
+        return;
+      }
+
+      const activeBadges = active.length
+        ? active.map((item) => `<span class="badge">${escapeHtml(item.class)} ${(Number(item.probability || 0) * 100).toFixed(1)}%</span>`).join("")
+        : '<span class="badge">No texture label passed threshold</span>';
+
+      const rows = predictions.map((item) => {
+        const probability = clamp01(Number(item.probability || 0));
+        const threshold = clamp01(Number(item.threshold || 0.5));
+        const activeClass = item.active ? "" : " is-inactive";
+        const status = item.active ? "passed" : "below";
+        return `
+          <article class="texture-row${activeClass}">
+            <div class="texture-topline">
+              <div class="texture-name">${escapeHtml(item.class || "Texture")}</div>
+              <div class="texture-score">${(probability * 100).toFixed(1)}% / threshold ${(threshold * 100).toFixed(0)}% (${status})</div>
+            </div>
+            <div class="texture-bar" aria-hidden="true">
+              <div class="texture-fill" style="width: ${(probability * 100).toFixed(1)}%"></div>
+              <div class="texture-threshold" style="left: ${(threshold * 100).toFixed(1)}%"></div>
+            </div>
+            <div class="det-meta">Margin ${(Number(item.margin || 0) * 100).toFixed(1)} percentage points</div>
+          </article>
+        `;
+      }).join("");
+
+      card.querySelector(".trace-card-body").innerHTML = `
+        <div class="note">EfficientNetV2-B0 analyzes the full raw image as image-level texture classification. It does not draw boxes; labels pass only when probability is above the tuned validation threshold.</div>
+        <div class="badge-row">${activeBadges}</div>
+        ${gradcam && gradcam.overlay_image ? `
+          <div class="note">Grad-CAM explanation for ${escapeHtml(gradcam.class)}: brighter warm regions contributed more to this texture label.</div>
+          <img class="detection-image" src="data:image/jpeg;base64,${gradcam.overlay_image}" alt="EfficientNet Grad-CAM explanation for ${escapeHtml(gradcam.class)}">
+        ` : ""}
+        <div class="texture-list">${rows}</div>
       `;
     }
 
@@ -988,6 +1132,13 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function clamp01(value) {
+      if (!Number.isFinite(value)) {
+        return 0;
+      }
+      return Math.max(0, Math.min(1, value));
     }
   </script>
 </body>

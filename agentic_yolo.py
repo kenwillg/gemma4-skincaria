@@ -23,6 +23,20 @@ DEFAULT_WEIGHTS = (
     / "weights"
     / "best.pt"
 )
+DEFAULT_EFFICIENTNET_CHECKPOINT = (
+    BASE_DIR
+    / "runs"
+    / "classify"
+    / "efficientnetv2-b0-texture"
+    / "best.pt"
+)
+DEFAULT_EFFICIENTNET_THRESHOLDS = (
+    BASE_DIR
+    / "runs"
+    / "classify"
+    / "efficientnetv2-b0-texture"
+    / "thresholds.json"
+)
 
 PALETTE = {
     "Acne": "#ef4444",
@@ -44,21 +58,23 @@ Use this schema:
 {
   "summary": "one short sentence",
   "route": "static|agentic",
-  "actions": [{"tool": "PLAN|DETECT|REVIEW|ANSWER", "reason": "short reason"}],
+  "actions": [{"tool": "PLAN|DETECT|CLASSIFY|REVIEW|ANSWER", "reason": "short reason"}],
   "known_limits": ["short limitation"]
 }
 Keep reasons concise. Do not reveal hidden chain-of-thought."""
 
 
 REVIEW_PROMPT = """You are Skincaria's visual review module.
-Use the user's concern, YOLO11n detection summary, and attached images to produce a careful skin-observation answer.
+Use the user's concern, YOLO11n detection summary, EfficientNetV2 texture-classification summary, and attached images to produce a careful skin-observation answer.
 Do not recommend products yet. Do not mention a knowledge base. Do not diagnose disease.
 Important:
 - YOLO detections are machine detections, not exhaustive truth.
 - The first attached image, when present, is the original user image.
 - The second attached image, when present, is the YOLO-annotated image.
-- If you visually notice a likely condition that YOLO did not detect, include it as "VLM cross-check: possible ...", not as a YOLO detection.
-- Separate detector-backed observations from VLM-only observations in plain language.
+- YOLO provides localized bounding-box evidence.
+- EfficientNetV2 provides image-level texture evidence only; it does not localize boxes.
+- If you visually notice a likely condition that the models did not detect, include it as "VLM cross-check: possible ...", not as a detector result.
+- Separate YOLO-backed, EfficientNet-backed, and VLM-only observations in plain language.
 Return JSON only:
 {
   "observations": ["short visible observation"],
@@ -74,21 +90,37 @@ class AgenticYoloPipeline:
         *,
         ollama: OllamaClient,
         weights_path: Path | None = None,
+        efficientnet_checkpoint: Path | None = None,
     ) -> None:
         self.ollama = ollama
         self.weights_path = Path(os.getenv("SKINCARIA_YOLO_WEIGHTS", weights_path or DEFAULT_WEIGHTS))
+        self.efficientnet_checkpoint = Path(
+            os.getenv(
+                "SKINCARIA_EFFICIENTNET_CHECKPOINT",
+                efficientnet_checkpoint or DEFAULT_EFFICIENTNET_CHECKPOINT,
+            )
+        )
+        self.efficientnet_thresholds_path = Path(
+            os.getenv("SKINCARIA_EFFICIENTNET_THRESHOLDS", DEFAULT_EFFICIENTNET_THRESHOLDS)
+        )
         self.conf = float(os.getenv("SKINCARIA_YOLO_CONF", "0.12"))
         self.iou = float(os.getenv("SKINCARIA_YOLO_IOU", "0.55"))
         self.imgsz = int(os.getenv("SKINCARIA_YOLO_IMGSZ", "960"))
         self.max_det = int(os.getenv("SKINCARIA_YOLO_MAX_DET", "80"))
         self._model: Any | None = None
+        self._efficientnet: EfficientNetTextureClassifier | None = None
 
     async def plan(self, *, concern: str, has_image: bool) -> dict[str, Any]:
         user_prompt = json.dumps(
             {
                 "user_concern": concern or "",
                 "image_available": has_image,
-                "available_tools": ["YOLO11n object detection", "Gemma visual review", "final answer"],
+                "available_tools": [
+                    "YOLO11n object detection",
+                    "EfficientNetV2-B0 texture classification",
+                    "Gemma visual review",
+                    "final answer",
+                ],
                 "excluded_tools": ["Falcon Perception", "product knowledge base"],
             },
             ensure_ascii=False,
@@ -106,11 +138,18 @@ class AgenticYoloPipeline:
     async def detect(self, image_base64: str) -> dict[str, Any]:
         return await asyncio.to_thread(self._detect_sync, image_base64)
 
+    async def assess_input(self, image_base64: str) -> dict[str, Any]:
+        return await asyncio.to_thread(self._assess_input_sync, image_base64)
+
+    async def classify_texture(self, image_base64: str) -> dict[str, Any]:
+        return await asyncio.to_thread(self._classify_texture_sync, image_base64)
+
     async def review(
         self,
         *,
         concern: str,
         detection_summary: dict[str, Any] | None,
+        texture_summary: dict[str, Any] | None = None,
         original_image_base64: str | None = None,
     ) -> dict[str, Any]:
         user_message: dict[str, Any] = {
@@ -120,6 +159,8 @@ class AgenticYoloPipeline:
                     "user_concern": concern or "",
                     "detector": "YOLO11n Skincaria weights, image size 960",
                     "detection_summary": compact_detection_summary(detection_summary),
+                    "texture_classifier": "EfficientNetV2-B0 raw texture classifier with tuned per-class thresholds",
+                    "texture_summary": compact_texture_summary(texture_summary),
                     "image_note": (
                         "Attached images are ordered as: original user image first, "
                         "YOLO-annotated frame second. Use the original image for visual cross-checks."
@@ -158,6 +199,12 @@ class AgenticYoloPipeline:
         actions = [{"tool": "PLAN", "reason": "Classify the request and choose the analysis path."}]
         if has_image:
             actions.append({"tool": "DETECT", "reason": "Run YOLO11n 960 on the face image."})
+            actions.append(
+                {
+                    "tool": "CLASSIFY",
+                    "reason": "Run EfficientNetV2-B0 for image-level texture labels.",
+                }
+            )
         actions.extend(
             [
                 {"tool": "REVIEW", "reason": "Ask Gemma to summarize detections safely."},
@@ -168,7 +215,9 @@ class AgenticYoloPipeline:
             "summary": "Use the agentic image-analysis path without Falcon or knowledge-base retrieval.",
             "route": "agentic",
             "actions": actions,
-            "known_limits": ["YOLO labels are experimental and should be treated as visual signals."],
+            "known_limits": [
+                "YOLO boxes and EfficientNet labels are experimental visual signals, not diagnoses."
+            ],
         }
 
     def _detect_sync(self, image_base64: str) -> dict[str, Any]:
@@ -220,6 +269,15 @@ class AgenticYoloPipeline:
             "annotated_image": encode_image(draw_detections(image, detections)),
         }
 
+    def _assess_input_sync(self, image_base64: str) -> dict[str, Any]:
+        image = decode_base64_image(image_base64)
+        return assess_input_image(image)
+
+    def _classify_texture_sync(self, image_base64: str) -> dict[str, Any]:
+        image = decode_base64_image(image_base64)
+        classifier = self._load_efficientnet()
+        return classifier.predict(image)
+
     def _load_model(self) -> Any:
         if self._model is not None:
             return self._model
@@ -229,6 +287,174 @@ class AgenticYoloPipeline:
 
         self._model = YOLO(str(self.weights_path))
         return self._model
+
+    def _load_efficientnet(self) -> "EfficientNetTextureClassifier":
+        if self._efficientnet is not None:
+            return self._efficientnet
+        self._efficientnet = EfficientNetTextureClassifier(
+            checkpoint_path=self.efficientnet_checkpoint,
+            thresholds_path=self.efficientnet_thresholds_path,
+        )
+        return self._efficientnet
+
+
+class EfficientNetTextureClassifier:
+    def __init__(self, *, checkpoint_path: Path, thresholds_path: Path) -> None:
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"EfficientNet checkpoint not found: {checkpoint_path}")
+        import timm
+        import torch
+        from torchvision import transforms
+
+        self.torch = torch
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.checkpoint_path = checkpoint_path
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        self.config = checkpoint["config"]
+        self.class_names = list(self.config["class_names"])
+        self.imgsz = int(self.config.get("imgsz", 384))
+        self.model = timm.create_model(
+            self.config.get("model", "tf_efficientnetv2_b0"),
+            pretrained=False,
+            num_classes=len(self.class_names),
+        ).to(self.device)
+        self.model.load_state_dict(checkpoint["model_state"])
+        self.model.eval()
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize((self.imgsz, self.imgsz)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            ]
+        )
+        self.thresholds = self._load_thresholds(thresholds_path)
+
+    def predict(self, image: Image.Image) -> dict[str, Any]:
+        image = image.convert("RGB")
+        tensor = self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)
+        logits, probs, activations, gradients, hook_handles = self._forward_for_gradcam(tensor)
+        try:
+            probs_list = probs.squeeze(0).detach().cpu().tolist()
+
+            predictions = []
+            for class_name, probability in zip(self.class_names, probs_list):
+                threshold = float(self.thresholds.get(class_name, 0.5))
+                predictions.append(
+                    {
+                        "class": class_name,
+                        "probability": round(float(probability), 4),
+                        "threshold": round(threshold, 4),
+                        "active": float(probability) >= threshold,
+                        "margin": round(float(probability) - threshold, 4),
+                    }
+                )
+            predictions.sort(key=lambda item: item["probability"], reverse=True)
+            active = [item for item in predictions if item["active"]]
+            gradcam_target = active[0] if active else predictions[0]
+            gradcam_index = self.class_names.index(gradcam_target["class"])
+            gradcam = self._make_gradcam(
+                image=image,
+                logits=logits,
+                target_index=gradcam_index,
+                target_prediction=gradcam_target,
+                activations=activations,
+                gradients=gradients,
+            )
+        finally:
+            for handle in hook_handles:
+                handle.remove()
+        return {
+            "model": str(self.checkpoint_path),
+            "task": "image-level texture multi-label classification",
+            "imgsz": self.imgsz,
+            "threshold_source": "tuned validation thresholds",
+            "predictions": predictions,
+            "active_labels": active,
+            "gradcam": gradcam,
+        }
+
+    def _forward_for_gradcam(self, tensor: Any) -> tuple[Any, Any, dict[str, Any], dict[str, Any], list[Any]]:
+        activations: dict[str, Any] = {}
+        gradients: dict[str, Any] = {}
+
+        def forward_hook(_module: Any, _inputs: Any, output: Any) -> None:
+            activations["value"] = output
+
+        def backward_hook(_module: Any, _grad_input: Any, grad_output: Any) -> None:
+            gradients["value"] = grad_output[0]
+
+        forward_handle = self.model.conv_head.register_forward_hook(forward_hook)
+        backward_handle = self.model.conv_head.register_full_backward_hook(backward_hook)
+        self.model.zero_grad(set_to_none=True)
+        logits = self.model(tensor)
+        probs = self.torch.sigmoid(logits)
+        return logits, probs, activations, gradients, [forward_handle, backward_handle]
+
+    def _make_gradcam(
+        self,
+        *,
+        image: Image.Image,
+        logits: Any,
+        target_index: int,
+        target_prediction: dict[str, Any],
+        activations: dict[str, Any],
+        gradients: dict[str, Any],
+    ) -> dict[str, Any]:
+        import cv2
+        import numpy as np
+
+        self.model.zero_grad(set_to_none=True)
+        logits[0, target_index].backward()
+        activation = activations["value"].detach()
+        gradient = gradients["value"].detach()
+        weights = gradient.mean(dim=(2, 3), keepdim=True)
+        cam = self.torch.relu((weights * activation).sum(dim=1, keepdim=True))
+        cam = self.torch.nn.functional.interpolate(
+            cam,
+            size=(image.height, image.width),
+            mode="bilinear",
+            align_corners=False,
+        )
+        cam = cam.squeeze().detach().cpu().numpy()
+        cam = cam - float(cam.min())
+        max_value = float(cam.max())
+        if max_value > 0:
+            cam = cam / max_value
+
+        heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
+        heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+        base = np.asarray(image).astype(np.float32)
+        overlay = np.clip(base * 0.55 + heatmap.astype(np.float32) * 0.45, 0, 255).astype(np.uint8)
+        hotspot_y, hotspot_x = np.unravel_index(int(np.argmax(cam)), cam.shape)
+        overlay_image = Image.fromarray(overlay, mode="RGB")
+        overlay_image = draw_gradcam_label(
+            overlay_image,
+            class_name=target_prediction["class"],
+            probability=float(target_prediction["probability"]),
+            threshold=float(target_prediction["threshold"]),
+            active=bool(target_prediction["active"]),
+            hotspot=(int(hotspot_x), int(hotspot_y)),
+        )
+        return {
+            "class": target_prediction["class"],
+            "probability": target_prediction["probability"],
+            "threshold": target_prediction["threshold"],
+            "active": target_prediction["active"],
+            "hotspot": {"x": int(hotspot_x), "y": int(hotspot_y)},
+            "overlay_image": encode_image(overlay_image),
+            "method": "Grad-CAM on EfficientNetV2-B0 conv_head",
+            "note": "Heatmap indicates regions that contributed to the selected image-level texture label.",
+        }
+
+    def _load_thresholds(self, thresholds_path: Path) -> dict[str, float]:
+        if not thresholds_path.exists():
+            return {class_name: 0.5 for class_name in self.class_names}
+        payload = json.loads(thresholds_path.read_text(encoding="utf-8"))
+        thresholds = payload.get("thresholds", {})
+        return {
+            class_name: float(thresholds.get(class_name, 0.5))
+            for class_name in self.class_names
+        }
 
 
 def decode_base64_image(value: str) -> Image.Image:
@@ -278,6 +504,112 @@ def draw_detections(image: Image.Image, detections: list[dict[str, Any]]) -> Ima
     return annotated
 
 
+def draw_gradcam_label(
+    image: Image.Image,
+    *,
+    class_name: str,
+    probability: float,
+    threshold: float,
+    active: bool,
+    hotspot: tuple[int, int],
+) -> Image.Image:
+    annotated = image.copy()
+    draw = ImageDraw.Draw(annotated, "RGBA")
+    font = ImageFont.load_default()
+    status = "passed" if active else "below threshold"
+    label = f"Grad-CAM: {class_name} {probability * 100:.1f}% / threshold {threshold * 100:.0f}% ({status})"
+    text_box = draw.textbbox((0, 0), label, font=font)
+    text_w = text_box[2] - text_box[0]
+    text_h = text_box[3] - text_box[1]
+    pad = 8
+    x1 = 8
+    y1 = 8
+    x2 = min(annotated.width - 8, x1 + text_w + pad * 2)
+    y2 = y1 + text_h + pad * 2
+    fill = (31, 157, 114, 230) if active else (183, 121, 31, 230)
+    draw.rectangle((x1, y1, x2, y2), fill=fill)
+    draw.text((x1 + pad, y1 + pad), label, fill=(255, 255, 255, 255), font=font)
+
+    hx, hy = hotspot
+    radius = max(8, round(min(annotated.size) / 45))
+    draw.ellipse((hx - radius, hy - radius, hx + radius, hy + radius), outline=(255, 255, 255, 240), width=3)
+    draw.ellipse((hx - 3, hy - 3, hx + 3, hy + 3), fill=(255, 255, 255, 240))
+    hotspot_label = "highest activation"
+    hotspot_box = draw.textbbox((0, 0), hotspot_label, font=font)
+    label_w = hotspot_box[2] - hotspot_box[0]
+    label_h = hotspot_box[3] - hotspot_box[1]
+    lx = min(max(8, hx + radius + 6), max(8, annotated.width - label_w - pad * 2 - 8))
+    ly = min(max(8, hy - label_h // 2 - pad), max(8, annotated.height - label_h - pad * 2 - 8))
+    draw.rectangle((lx, ly, lx + label_w + pad * 2, ly + label_h + pad * 2), fill=(17, 24, 39, 210))
+    draw.text((lx + pad, ly + pad), hotspot_label, fill=(255, 255, 255, 255), font=font)
+    return annotated
+
+
+def assess_input_image(image: Image.Image) -> dict[str, Any]:
+    import cv2
+    import numpy as np
+
+    rgb = np.asarray(image.convert("RGB"))
+    hls = cv2.cvtColor(rgb, cv2.COLOR_RGB2HLS)
+    h = hls[:, :, 0].astype(np.float32)
+    l = hls[:, :, 1].astype(np.float32)
+    s = hls[:, :, 2].astype(np.float32)
+    ls_ratio = l / np.maximum(s, 1.0)
+    skin_mask = (
+        (s >= 35.0)
+        & (ls_ratio > 0.45)
+        & (ls_ratio < 3.2)
+        & ((h <= 18.0) | (h >= 160.0))
+    ).astype(np.uint8) * 255
+    kernel = np.ones((5, 5), dtype=np.uint8)
+    skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_OPEN, kernel)
+    skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel)
+    skin_ratio = float((skin_mask > 0).mean())
+
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    cascade_path = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
+    detector = cv2.CascadeClassifier(str(cascade_path))
+    faces = detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(48, 48))
+    face_bbox = None
+    face_area_ratio = 0.0
+    if len(faces) > 0:
+        x, y, width, height = max(faces, key=lambda item: item[2] * item[3])
+        face_bbox = [int(x), int(y), int(width), int(height)]
+        face_area_ratio = float((width * height) / max(image.width * image.height, 1))
+
+    blur_score = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    warnings = []
+    if face_bbox is None:
+        warnings.append("No frontal face was detected; results may be unreliable.")
+    if skin_ratio < 0.12:
+        warnings.append("Only a small likely-skin area was found; upload a clearer face/skin photo.")
+    if blur_score < 35.0:
+        warnings.append("The image appears blurry; retaking the photo may improve analysis.")
+
+    acceptable = bool(face_bbox is not None or skin_ratio >= 0.18)
+    if not acceptable:
+        warnings.append("Input quality is below the recommended level for skin analysis.")
+
+    mask_overlay = rgb.astype(np.float32).copy()
+    green = np.zeros_like(mask_overlay)
+    green[:, :, 1] = 255
+    alpha = (skin_mask.astype(np.float32) / 255.0)[:, :, None] * 0.35
+    mask_overlay = np.clip(mask_overlay * (1.0 - alpha) + green * alpha, 0, 255).astype(np.uint8)
+
+    return {
+        "image_size": {"width": image.width, "height": image.height},
+        "face_detected": face_bbox is not None,
+        "face_bbox": face_bbox,
+        "face_area_ratio": round(face_area_ratio, 4),
+        "skin_pixel_ratio": round(skin_ratio, 4),
+        "blur_score": round(blur_score, 2),
+        "acceptable": acceptable,
+        "warnings": warnings,
+        "skin_mask_overlay": encode_image(Image.fromarray(mask_overlay, mode="RGB")),
+        "method": "OpenCV Haar face check + HSL likely-skin mask",
+    }
+
+
 def hex_to_rgb(value: str) -> tuple[int, int, int]:
     value = value.lstrip("#")
     return int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16)
@@ -306,4 +638,15 @@ def compact_detection_summary(summary: dict[str, Any] | None) -> dict[str, Any]:
         "counts": summary.get("counts", {}),
         "top_classes": summary.get("top_classes", []),
         "detections": (summary.get("detections") or [])[:20],
+    }
+
+
+def compact_texture_summary(summary: dict[str, Any] | None) -> dict[str, Any]:
+    if not summary:
+        return {}
+    return {
+        "task": summary.get("task"),
+        "threshold_source": summary.get("threshold_source"),
+        "active_labels": summary.get("active_labels", []),
+        "predictions": (summary.get("predictions") or [])[:10],
     }

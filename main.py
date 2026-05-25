@@ -195,8 +195,20 @@ async def agentic_analysis(websocket: WebSocket):
         plan = await agent.plan(concern=concern, has_image=bool(image_base64))
         await websocket.send_json({"type": "plan", "plan": plan})
 
+        quality = None
         detections = None
+        texture = None
         if image_base64:
+            await websocket.send_json(
+                {
+                    "type": "stage",
+                    "stage": "quality",
+                    "message": "Checking whether the image contains enough face/skin signal.",
+                }
+            )
+            quality = await agent.assess_input(image_base64)
+            await websocket.send_json({"type": "quality", "quality": quality})
+
             await websocket.send_json(
                 {
                     "type": "stage",
@@ -206,6 +218,16 @@ async def agentic_analysis(websocket: WebSocket):
             )
             detections = await agent.detect(image_base64)
             await websocket.send_json({"type": "detections", "detections": detections})
+
+            await websocket.send_json(
+                {
+                    "type": "stage",
+                    "stage": "classify",
+                    "message": "EfficientNetV2-B0 is classifying image-level texture labels.",
+                }
+            )
+            texture = await agent.classify_texture(image_base64)
+            await websocket.send_json({"type": "texture", "texture": texture})
 
         await websocket.send_json(
             {
@@ -217,6 +239,7 @@ async def agentic_analysis(websocket: WebSocket):
         review = await agent.review(
             concern=concern,
             detection_summary=detections,
+            texture_summary=texture,
             original_image_base64=image_base64,
         )
         await websocket.send_json({"type": "review", "review": review})
