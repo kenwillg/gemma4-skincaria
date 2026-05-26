@@ -53,7 +53,7 @@ PALETTE = {
 
 
 PLANNER_PROMPT = """You are the Skincaria agent planner.
-Return JSON only. Do not recommend products. Do not use a knowledge base.
+Return JSON only. Plan visual analysis first, then product retrieval and recommendation when a usable concern or image is available.
 Use this schema:
 {
   "summary": "one short sentence",
@@ -119,9 +119,11 @@ class AgenticYoloPipeline:
                     "YOLO11n object detection",
                     "EfficientNetV2-B0 texture classification",
                     "Gemma visual review",
+                    "product knowledge base retrieval",
+                    "Gemma product recommendation",
                     "final answer",
                 ],
-                "excluded_tools": ["Falcon Perception", "product knowledge base"],
+                "excluded_tools": ["Falcon Perception"],
             },
             ensure_ascii=False,
         )
@@ -189,11 +191,11 @@ class AgenticYoloPipeline:
         parsed = parse_json_object(raw)
         if parsed:
             return parsed
-        return {
-            "observations": [],
-            "uncertainties": ["Gemma did not return valid JSON, so this fallback is conservative."],
-            "final_answer": "YOLO detection finished, but Gemma's review response could not be parsed. Please inspect the detections and try again.",
-        }
+        return fallback_visual_review(
+            concern=concern,
+            detection_summary=detection_summary,
+            texture_summary=texture_summary,
+        )
 
     def default_plan(self, has_image: bool) -> dict[str, Any]:
         actions = [{"tool": "PLAN", "reason": "Classify the request and choose the analysis path."}]
@@ -208,11 +210,13 @@ class AgenticYoloPipeline:
         actions.extend(
             [
                 {"tool": "REVIEW", "reason": "Ask Gemma to summarize detections safely."},
-                {"tool": "ANSWER", "reason": "Return observations without product retrieval."},
+                {"tool": "RETRIEVE", "reason": "Search the product knowledge base using visual evidence."},
+                {"tool": "RECOMMEND", "reason": "Explain product matches with customer-specific reasons."},
+                {"tool": "ANSWER", "reason": "Return observations and product recommendations."},
             ]
         )
         return {
-            "summary": "Use the agentic image-analysis path without Falcon or knowledge-base retrieval.",
+            "summary": "Use the agentic image-analysis path, then retrieve matched products for recommendation.",
             "route": "agentic",
             "actions": actions,
             "known_limits": [
@@ -320,6 +324,13 @@ class EfficientNetTextureClassifier:
         ).to(self.device)
         self.model.load_state_dict(checkpoint["model_state"])
         self.model.eval()
+        self.skin_mask_enabled = os.getenv("SKINCARIA_EFFICIENTNET_SKIN_MASK", "1").strip().lower() not in {
+            "0",
+            "false",
+            "no",
+            "off",
+        }
+        self.mask_background = os.getenv("SKINCARIA_EFFICIENTNET_MASK_BACKGROUND", "mean").strip().lower()
         self.transform = transforms.Compose(
             [
                 transforms.Resize((self.imgsz, self.imgsz)),
@@ -331,7 +342,26 @@ class EfficientNetTextureClassifier:
 
     def predict(self, image: Image.Image) -> dict[str, Any]:
         image = image.convert("RGB")
-        tensor = self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)
+        model_image = image
+        skin_mask = None
+        preprocessing: dict[str, Any] = {
+            "skin_mask_enabled": self.skin_mask_enabled,
+            "input": "raw RGB image",
+        }
+        if self.skin_mask_enabled:
+            model_image, skin_mask, skin_ratio = mask_non_skin_for_texture(
+                image,
+                background=self.mask_background,
+            )
+            preprocessing = {
+                "skin_mask_enabled": True,
+                "input": "likely-skin masked RGB image",
+                "mask_background": self.mask_background,
+                "skin_pixel_ratio": round(skin_ratio, 4),
+                "note": "Non-skin pixels are replaced before EfficientNet inference; Grad-CAM is also gated to likely-skin pixels.",
+            }
+
+        tensor = self.transform(model_image).unsqueeze(0).to(self.device)
         logits, probs, activations, gradients, hook_handles = self._forward_for_gradcam(tensor)
         try:
             probs_list = probs.squeeze(0).detach().cpu().tolist()
@@ -359,6 +389,7 @@ class EfficientNetTextureClassifier:
                 target_prediction=gradcam_target,
                 activations=activations,
                 gradients=gradients,
+                skin_mask=skin_mask,
             )
         finally:
             for handle in hook_handles:
@@ -368,6 +399,7 @@ class EfficientNetTextureClassifier:
             "task": "image-level texture multi-label classification",
             "imgsz": self.imgsz,
             "threshold_source": "tuned validation thresholds",
+            "preprocessing": preprocessing,
             "predictions": predictions,
             "active_labels": active,
             "gradcam": gradcam,
@@ -399,6 +431,7 @@ class EfficientNetTextureClassifier:
         target_prediction: dict[str, Any],
         activations: dict[str, Any],
         gradients: dict[str, Any],
+        skin_mask: Any | None,
     ) -> dict[str, Any]:
         import cv2
         import numpy as np
@@ -416,6 +449,13 @@ class EfficientNetTextureClassifier:
             align_corners=False,
         )
         cam = cam.squeeze().detach().cpu().numpy()
+        if skin_mask is not None:
+            mask = cv2.resize(
+                skin_mask.astype(np.float32) / 255.0,
+                (image.width, image.height),
+                interpolation=cv2.INTER_LINEAR,
+            )
+            cam = cam * mask
         cam = cam - float(cam.min())
         max_value = float(cam.max())
         if max_value > 0:
@@ -550,20 +590,7 @@ def assess_input_image(image: Image.Image) -> dict[str, Any]:
     import numpy as np
 
     rgb = np.asarray(image.convert("RGB"))
-    hls = cv2.cvtColor(rgb, cv2.COLOR_RGB2HLS)
-    h = hls[:, :, 0].astype(np.float32)
-    l = hls[:, :, 1].astype(np.float32)
-    s = hls[:, :, 2].astype(np.float32)
-    ls_ratio = l / np.maximum(s, 1.0)
-    skin_mask = (
-        (s >= 35.0)
-        & (ls_ratio > 0.45)
-        & (ls_ratio < 3.2)
-        & ((h <= 18.0) | (h >= 160.0))
-    ).astype(np.uint8) * 255
-    kernel = np.ones((5, 5), dtype=np.uint8)
-    skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_OPEN, kernel)
-    skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel)
+    skin_mask = likely_skin_mask(image)
     skin_ratio = float((skin_mask > 0).mean())
 
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
@@ -610,6 +637,54 @@ def assess_input_image(image: Image.Image) -> dict[str, Any]:
     }
 
 
+def likely_skin_mask(image: Image.Image) -> Any:
+    import cv2
+    import numpy as np
+
+    rgb = np.asarray(image.convert("RGB"))
+    hls = cv2.cvtColor(rgb, cv2.COLOR_RGB2HLS)
+    h = hls[:, :, 0].astype(np.float32)
+    l = hls[:, :, 1].astype(np.float32)
+    s = hls[:, :, 2].astype(np.float32)
+    ls_ratio = l / np.maximum(s, 1.0)
+    skin_mask = (
+        (s >= 35.0)
+        & (ls_ratio > 0.45)
+        & (ls_ratio < 3.2)
+        & ((h <= 18.0) | (h >= 160.0))
+    ).astype(np.uint8) * 255
+    kernel = np.ones((5, 5), dtype=np.uint8)
+    skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_OPEN, kernel)
+    skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel)
+    return skin_mask
+
+
+def mask_non_skin_for_texture(
+    image: Image.Image,
+    *,
+    background: str,
+) -> tuple[Image.Image, Any, float]:
+    import cv2
+    import numpy as np
+
+    rgb = np.asarray(image.convert("RGB")).copy()
+    skin_mask = likely_skin_mask(image)
+    skin_ratio = float((skin_mask > 0).mean())
+    alpha = cv2.GaussianBlur(skin_mask, (9, 9), 0).astype(np.float32) / 255.0
+    alpha = alpha[:, :, None]
+
+    if background == "black":
+        bg = np.zeros_like(rgb, dtype=np.float32)
+    else:
+        bg = np.empty_like(rgb, dtype=np.float32)
+        bg[:, :, 0] = 123.675
+        bg[:, :, 1] = 116.28
+        bg[:, :, 2] = 103.53
+
+    masked = rgb.astype(np.float32) * alpha + bg * (1.0 - alpha)
+    return Image.fromarray(np.clip(masked, 0, 255).astype(np.uint8), mode="RGB"), skin_mask, skin_ratio
+
+
 def hex_to_rgb(value: str) -> tuple[int, int, int]:
     value = value.lstrip("#")
     return int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16)
@@ -647,6 +722,54 @@ def compact_texture_summary(summary: dict[str, Any] | None) -> dict[str, Any]:
     return {
         "task": summary.get("task"),
         "threshold_source": summary.get("threshold_source"),
+        "preprocessing": summary.get("preprocessing"),
         "active_labels": summary.get("active_labels", []),
         "predictions": (summary.get("predictions") or [])[:10],
+    }
+
+
+def fallback_visual_review(
+    *,
+    concern: str,
+    detection_summary: dict[str, Any] | None,
+    texture_summary: dict[str, Any] | None,
+) -> dict[str, Any]:
+    counts = (detection_summary or {}).get("counts") or {}
+    detections = (detection_summary or {}).get("detections") or []
+    active_labels = (texture_summary or {}).get("active_labels") or []
+
+    observations = []
+    if counts:
+        count_text = ", ".join(
+            f"{name}: {count}"
+            for name, count in sorted(counts.items(), key=lambda item: item[1], reverse=True)
+        )
+        observations.append(f"YOLO-backed localized detections: {count_text}.")
+    top_detections = [
+        f"{item.get('class')} ({float(item.get('confidence', 0.0)) * 100:.1f}%)"
+        for item in detections[:5]
+        if item.get("class")
+    ]
+    if top_detections:
+        observations.append(f"Highest-confidence visible findings: {', '.join(top_detections)}.")
+    if active_labels:
+        texture_text = ", ".join(
+            f"{item.get('class')} ({float(item.get('probability', 0.0)) * 100:.1f}%)"
+            for item in active_labels
+            if item.get("class")
+        )
+        if texture_text:
+            observations.append(f"EfficientNet image-level texture evidence: {texture_text}.")
+    if concern:
+        observations.append(f"User concern included: {concern}.")
+    if not observations:
+        observations.append("No strong model-backed skin condition signal was available from the current input.")
+
+    return {
+        "observations": observations,
+        "uncertainties": [
+            "Gemma visual review did not return valid JSON, so this summary was built from structured model outputs.",
+            "YOLO and EfficientNet outputs are experimental support signals, not medical diagnoses.",
+        ],
+        "final_answer": "Visual analysis completed using structured YOLO and EfficientNet outputs. Product retrieval can continue from these model-backed observations.",
     }

@@ -19,6 +19,8 @@
       --amber: #b7791f;
       --amber-soft: rgba(183, 121, 31, 0.12);
       --danger: #d84d4d;
+      --violet: #7c3aed;
+      --violet-soft: rgba(124, 58, 237, 0.11);
       --shadow: 0 18px 42px rgba(24, 38, 32, 0.1);
       --radius: 8px;
     }
@@ -226,6 +228,12 @@
       color: #ffffff;
     }
 
+    .button.violet {
+      background: var(--violet);
+      border-color: var(--violet);
+      color: #ffffff;
+    }
+
     .button.danger {
       background: var(--danger);
       border-color: var(--danger);
@@ -278,7 +286,7 @@
 
     .steps {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 10px;
     }
 
@@ -389,6 +397,11 @@
       color: var(--amber);
     }
 
+    .pill.violet {
+      background: var(--violet-soft);
+      color: var(--violet);
+    }
+
     .trace-card-body {
       padding: 14px;
       display: grid;
@@ -425,6 +438,12 @@
       gap: 10px;
     }
 
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
     .det-card {
       border: 1px solid var(--line);
       background: var(--surface-soft);
@@ -444,6 +463,27 @@
       color: var(--muted);
       font-size: 0.84rem;
       overflow-wrap: anywhere;
+    }
+
+    .product-card {
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: var(--radius);
+      padding: 11px;
+      display: grid;
+      gap: 6px;
+      min-height: 132px;
+    }
+
+    .product-name {
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .product-brand {
+      font-size: 0.84rem;
+      color: var(--violet);
+      font-weight: 850;
     }
 
     .texture-list {
@@ -574,7 +614,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Skincaria Agent Loop</h1>
-        <p>Image upload or webcam capture -> input quality check -> YOLO detects boxes -> EfficientNet classifies texture -> Gemma answers. No Falcon, no knowledge base.</p>
+        <p>Image upload or webcam capture -> input quality check -> YOLO detects boxes -> EfficientNet classifies texture -> product KB retrieval -> Gemma recommends.</p>
       </div>
       <div class="status" id="status"><span class="status-dot" aria-hidden="true"></span><span>Ready</span></div>
     </header>
@@ -605,10 +645,13 @@
             <textarea id="queryInput" placeholder="Example: Check this image for acne, blackheads, enlarged pores, and redness."></textarea>
           </div>
 
-          <button class="button primary" id="runButton" type="button">Run Agent Loop</button>
+          <div class="toolbar">
+            <button class="button primary" id="runButton" type="button">Analyze and Recommend</button>
+            <button class="button violet" id="saveCaseButton" type="button" disabled>Save Judge Case</button>
+          </div>
 
           <div class="note">
-            This stage only demonstrates visual planning and detection. Product retrieval and skincare knowledge-base recommendations are intentionally disabled.
+            Save Judge Case stores the inquiry, structured model outputs, retrieved products, and recommendation text. Raw face images are not saved.
           </div>
         </div>
       </section>
@@ -637,8 +680,16 @@
               <span>Texture labels and thresholds</span>
             </div>
             <div class="step" data-step="answer">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Answers</span></div>
-              <span>Observation-only final answer</span>
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Reviews</span></div>
+              <span>Visual observations</span>
+            </div>
+            <div class="step" data-step="retrieve">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>KB Retrieves</span></div>
+              <span>Matched products</span>
+            </div>
+            <div class="step" data-step="recommend">
+              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Recommends</span></div>
+              <span>Product reasons</span>
             </div>
           </div>
 
@@ -664,6 +715,7 @@
       stopCameraButton: document.getElementById("stopCameraButton"),
       clearButton: document.getElementById("clearButton"),
       runButton: document.getElementById("runButton"),
+      saveCaseButton: document.getElementById("saveCaseButton"),
       queryInput: document.getElementById("queryInput"),
       trace: document.getElementById("trace"),
       captureCanvas: document.getElementById("captureCanvas")
@@ -672,6 +724,9 @@
     let cameraStream = null;
     let selectedImageDataUrl = "";
     let activeSocket = null;
+    let recommendationMarkdown = "";
+    let lastRun = null;
+    let caseSaved = false;
     let busy = false;
 
     refs.openCameraButton.addEventListener("click", openWebcam);
@@ -679,6 +734,7 @@
     refs.stopCameraButton.addEventListener("click", stopWebcam);
     refs.clearButton.addEventListener("click", clearInput);
     refs.runButton.addEventListener("click", runAgentLoop);
+    refs.saveCaseButton.addEventListener("click", saveEvaluationCase);
     refs.fileInput.addEventListener("change", handleUpload);
 
     async function openWebcam() {
@@ -770,6 +826,10 @@
       refs.fileInput.value = "";
       refs.queryInput.value = "";
       refs.trace.innerHTML = '<div class="note">Run the agent loop to see each step appear here.</div>';
+      recommendationMarkdown = "";
+      lastRun = null;
+      caseSaved = false;
+      refs.saveCaseButton.disabled = true;
       setStep("idle");
       setStatus("Ready");
       busy = false;
@@ -791,6 +851,18 @@
 
       closeSocket();
       refs.trace.innerHTML = "";
+      recommendationMarkdown = "";
+      caseSaved = false;
+      refs.saveCaseButton.disabled = true;
+      lastRun = {
+        user_concern: concern,
+        quality: null,
+        detections: null,
+        texture: null,
+        review: null,
+        retrieval: null,
+        assistant_response: ""
+      };
       setBusy(true);
       setStep("plan");
       setStatus("Gemma planning");
@@ -818,24 +890,50 @@
           return;
         }
         if (message.type === "quality") {
+          if (lastRun) {
+            lastRun.quality = message.quality;
+          }
           renderQuality(message.quality);
           return;
         }
         if (message.type === "detections") {
+          if (lastRun) {
+            lastRun.detections = message.detections;
+          }
           renderDetections(message.detections);
           return;
         }
         if (message.type === "texture") {
+          if (lastRun) {
+            lastRun.texture = message.texture;
+          }
           renderTexture(message.texture);
           return;
         }
         if (message.type === "review") {
+          if (lastRun) {
+            lastRun.review = message.review;
+          }
           renderReview(message.review);
+          return;
+        }
+        if (message.type === "products") {
+          if (lastRun) {
+            lastRun.retrieval = message.retrieval;
+          }
+          renderProducts(message.retrieval);
+          return;
+        }
+        if (message.type === "recommendation_token") {
+          appendRecommendationToken(message.content || "");
           return;
         }
         if (message.type === "done") {
           setStep("done");
           setStatus("Done");
+          if (lastRun) {
+            lastRun.assistant_response = recommendationMarkdown;
+          }
           finishRun();
           return;
         }
@@ -862,6 +960,7 @@
     function finishRun() {
       activeSocket = null;
       setBusy(false);
+      updateSaveCaseButton();
     }
 
     function closeSocket() {
@@ -879,6 +978,21 @@
       refs.fileInput.disabled = value;
       refs.captureButton.disabled = value || !cameraStream;
       refs.stopCameraButton.disabled = value || !cameraStream;
+      updateSaveCaseButton();
+    }
+
+    function updateSaveCaseButton() {
+      const ready = Boolean(
+        lastRun &&
+        lastRun.assistant_response &&
+        lastRun.retrieval &&
+        Array.isArray(lastRun.retrieval.products) &&
+        lastRun.retrieval.products.length &&
+        !busy &&
+        !caseSaved
+      );
+      refs.saveCaseButton.disabled = !ready;
+      refs.saveCaseButton.textContent = caseSaved ? "Judge Case Saved" : "Save Judge Case";
     }
 
     function setStatus(message) {
@@ -886,7 +1000,7 @@
     }
 
     function setStep(stage) {
-      const order = ["plan", "quality", "detect", "classify", "answer"];
+      const order = ["plan", "quality", "detect", "classify", "answer", "retrieve", "recommend"];
       document.querySelectorAll(".step").forEach((element) => {
         const name = element.dataset.step;
         element.classList.remove("is-active", "is-done");
@@ -909,13 +1023,14 @@
       if (document.getElementById(id)) {
         return;
       }
-      const title = stage === "plan" ? "Gemma Plan" : stage === "quality" ? "Input Quality Check" : stage === "detect" ? "YOLO11n Detection" : stage === "classify" ? "EfficientNet Texture Classification" : "Gemma Review";
-      const pill = stage === "detect" ? "YOLO11n" : stage === "classify" ? "EfficientNetV2-B0" : stage === "quality" ? "Quality Gate" : "Gemma";
+      const title = stage === "plan" ? "Gemma Plan" : stage === "quality" ? "Input Quality Check" : stage === "detect" ? "YOLO11n Detection" : stage === "classify" ? "EfficientNet Texture Classification" : stage === "answer" ? "Gemma Visual Review" : stage === "retrieve" ? "Product Knowledge Base" : "Product Recommendation";
+      const pill = stage === "detect" ? "YOLO11n" : stage === "classify" ? "EfficientNetV2-B0" : stage === "quality" ? "Quality Gate" : stage === "retrieve" ? "ChromaDB" : "Gemma";
+      const pillClass = stage === "detect" ? "amber" : stage === "retrieve" || stage === "recommend" ? "violet" : "green";
       refs.trace.insertAdjacentHTML("beforeend", `
         <article class="trace-card" id="${id}">
           <div class="trace-card-header">
             <h3>${title}</h3>
-            <span class="pill ${stage === "detect" ? "amber" : "green"}">${pill}</span>
+            <span class="pill ${pillClass}">${pill}</span>
           </div>
           <div class="trace-card-body">
             <div class="skeleton"></div>
@@ -1000,6 +1115,7 @@
       const predictions = summary && Array.isArray(summary.predictions) ? summary.predictions : [];
       const active = summary && Array.isArray(summary.active_labels) ? summary.active_labels : [];
       const gradcam = summary && summary.gradcam ? summary.gradcam : null;
+      const preprocessing = summary && summary.preprocessing ? summary.preprocessing : {};
 
       if (!predictions.length) {
         card.querySelector(".trace-card-body").innerHTML = '<div class="note">EfficientNet did not return texture-classification outputs.</div>';
@@ -1031,7 +1147,7 @@
       }).join("");
 
       card.querySelector(".trace-card-body").innerHTML = `
-        <div class="note">EfficientNetV2-B0 analyzes the full raw image as image-level texture classification. It does not draw boxes; labels pass only when probability is above the tuned validation threshold.</div>
+        <div class="note">EfficientNetV2-B0 analyzes ${escapeHtml(preprocessing.input || "the input image")} as image-level texture classification. It does not draw boxes; labels pass only when probability is above the tuned validation threshold.${preprocessing.skin_mask_enabled ? ` Likely skin area: ${(Number(preprocessing.skin_pixel_ratio || 0) * 100).toFixed(1)}%; non-skin pixels are masked before inference and Grad-CAM is gated to likely skin.` : ""}</div>
         <div class="badge-row">${activeBadges}</div>
         ${gradcam && gradcam.overlay_image ? `
           <div class="note">Grad-CAM explanation for ${escapeHtml(gradcam.class)}: brighter warm regions contributed more to this texture label.</div>
@@ -1042,7 +1158,7 @@
     }
 
     function renderReview(review) {
-      const card = ensureCard("stage-answer", "Final Answer", "Gemma", "green");
+      const card = ensureCard("stage-answer", "Gemma Visual Review", "Gemma", "green");
       const observations = Array.isArray(review && review.observations) ? review.observations : [];
       const uncertainties = Array.isArray(review && review.uncertainties) ? review.uncertainties : [];
       const finalAnswer = review && review.final_answer ? review.final_answer : "Agent loop completed.";
@@ -1055,6 +1171,137 @@
       }
       sections.push("### Answer\n" + finalAnswer);
       card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(sections.join("\n\n"))}</div>`;
+    }
+
+    function renderProducts(retrieval) {
+      const card = ensureCard("stage-retrieve", "Product Knowledge Base", "ChromaDB", "violet");
+      const products = retrieval && Array.isArray(retrieval.products) ? retrieval.products : [];
+      const query = retrieval && retrieval.query ? retrieval.query : "";
+
+      if (!products.length) {
+        card.querySelector(".trace-card-body").innerHTML = `
+          <div class="note">No products were found in the skincare knowledge base.</div>
+          ${query ? `<div class="note">${escapeHtml(query)}</div>` : ""}
+        `;
+        return;
+      }
+
+      const productCards = products.map((product) => `
+        <article class="product-card">
+          <div>
+            <div class="product-name">${escapeHtml(product.product_name || "Unnamed product")}</div>
+            <div class="product-brand">${escapeHtml(product.brand || "Unknown brand")}</div>
+          </div>
+          <div class="det-meta">${escapeHtml(product.category || "Category unavailable")}</div>
+          <div class="det-meta">${escapeHtml(product.price || "Price unavailable")}</div>
+          <div class="det-meta">Concerns: ${escapeHtml(product.concerns || "not specified")}</div>
+          <div class="det-meta">Skin: ${escapeHtml(product.skin_type || "not specified")}</div>
+          <div class="det-meta">Similarity: ${product.similarity == null ? "n/a" : (Number(product.similarity) * 100).toFixed(1) + "%"}</div>
+        </article>
+      `).join("");
+
+      card.querySelector(".trace-card-body").innerHTML = `
+        <div class="note">Top ${products.length} product candidates retrieved from the local skincare knowledge base. Gemma will use these only, then explain why each recommendation fits this customer.</div>
+        <div class="product-grid">${productCards}</div>
+      `;
+    }
+
+    function appendRecommendationToken(token) {
+      recommendationMarkdown += token;
+      if (lastRun) {
+        lastRun.assistant_response = recommendationMarkdown;
+      }
+      const card = ensureCard("stage-recommend", "Product Recommendation", "Gemma", "violet");
+      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(recommendationMarkdown || "Preparing recommendation...")}</div>`;
+    }
+
+    async function saveEvaluationCase() {
+      if (!lastRun || !lastRun.assistant_response || !lastRun.retrieval) {
+        addTraceNote("Run analysis first, then save the completed case.");
+        return;
+      }
+
+      refs.saveCaseButton.disabled = true;
+      refs.saveCaseButton.textContent = "Saving...";
+      const payload = buildEvaluationPayload(lastRun);
+      try {
+        const response = await fetch("/evaluation/cases", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.detail || "Could not save evaluation case.");
+        }
+        caseSaved = true;
+        setStatus(`Saved ${result.id}`);
+        ensureCard("stage-save", "Evaluation Case", "Dataset", "violet")
+          .querySelector(".trace-card-body").innerHTML = `
+            <div class="note">Saved judge case <strong>${escapeHtml(result.id)}</strong> to ${escapeHtml(result.path)}. Raw face image was not saved.</div>
+          `;
+      } catch (error) {
+        setStatus("Save failed");
+        refs.saveCaseButton.disabled = false;
+        refs.saveCaseButton.textContent = "Save Judge Case";
+        ensureCard("stage-save", "Evaluation Case", "Dataset", "violet")
+          .querySelector(".trace-card-body").innerHTML = `<div class="note">${escapeHtml(error.message || "Could not save evaluation case.")}</div>`;
+        return;
+      }
+      updateSaveCaseButton();
+    }
+
+    function buildEvaluationPayload(run) {
+      const detections = run.detections || {};
+      const texture = run.texture || {};
+      const review = run.review || {};
+      const retrieval = run.retrieval || {};
+      const products = Array.isArray(retrieval.products) ? retrieval.products : [];
+      const activeTextures = Array.isArray(texture.active_labels)
+        ? texture.active_labels.map((item) => ({
+            class: item.class || "",
+            probability: item.probability,
+            threshold: item.threshold
+          }))
+        : [];
+      const topDetections = Array.isArray(detections.detections)
+        ? detections.detections.slice(0, 20).map((item) => ({
+            class: item.class || "",
+            confidence: item.confidence,
+            bbox: item.bbox,
+            area_px: item.area_px
+          }))
+        : [];
+
+      return {
+        user_concern: run.user_concern || "",
+        visual_evidence: {
+          quality: run.quality || {},
+          yolo_counts: detections.counts || {},
+          yolo_top_detections: topDetections,
+          efficientnet_active: activeTextures,
+          efficientnet_preprocessing: texture.preprocessing || {},
+          visual_review: {
+            observations: Array.isArray(review.observations) ? review.observations : [],
+            uncertainties: Array.isArray(review.uncertainties) ? review.uncertainties : [],
+            final_answer: review.final_answer || ""
+          }
+        },
+        retrieved_products: products.map((product) => ({
+          brand: product.brand || "",
+          product_name: product.product_name || "",
+          category: product.category || "",
+          price: product.price || "",
+          skin_type: product.skin_type || "",
+          concerns: product.concerns || "",
+          allergen_flag: product.allergen_flag || "",
+          pregnancy_safe: product.pregnancy_safe || "",
+          ingredient_functions: product.ingredient_functions || "",
+          ingredient_warnings: product.ingredient_warnings || "",
+          similarity: product.similarity
+        })),
+        assistant_response: run.assistant_response || ""
+      };
     }
 
     function ensureCard(id, title, pill, pillClass) {

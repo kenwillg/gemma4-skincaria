@@ -2,15 +2,18 @@ import asyncio
 import base64
 import binascii
 import io
+import json
 import os
 import socket
 import sys
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -22,6 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 INDEX_HTML = STATIC_DIR / "index.html"
 IMAGE_TEST_HTML = STATIC_DIR / "image_test.html"
+EVALUATION_DIR = BASE_DIR / "data" / "evaluation"
+LLM_JUDGE_CASES_JSONL = EVALUATION_DIR / "llm_judge_cases.jsonl"
 MODEL_NAME = os.getenv("SKINCARIA_MODEL", "gemma4:e4b")
 HOST = "0.0.0.0"
 PORT = 8000
@@ -65,6 +70,47 @@ async def health():
         "model_available": model_available,
         "kb_collection": "skincare_kb",
         "kb_document_count": kb.count(),
+    }
+
+
+@app.post("/evaluation/cases")
+async def save_evaluation_case(request: Request):
+    payload = await request.json()
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Expected a JSON object.")
+
+    user_concern = str(payload.get("user_concern") or "").strip()
+    assistant_response = str(payload.get("assistant_response") or "").strip()
+    retrieved_products = payload.get("retrieved_products") or []
+    visual_evidence = payload.get("visual_evidence") or {}
+
+    if not user_concern and not visual_evidence:
+        raise HTTPException(status_code=400, detail="Evaluation case needs a concern or visual evidence.")
+    if not assistant_response:
+        raise HTTPException(status_code=400, detail="Evaluation case needs an assistant response.")
+    if not isinstance(retrieved_products, list):
+        raise HTTPException(status_code=400, detail="retrieved_products must be a list.")
+    if not isinstance(visual_evidence, dict):
+        raise HTTPException(status_code=400, detail="visual_evidence must be an object.")
+
+    row = {
+        "id": payload.get("id") or f"case_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "user_concern": user_concern,
+        "visual_evidence": visual_evidence,
+        "retrieved_products": retrieved_products,
+        "assistant_response": assistant_response,
+        "metadata": {
+            "source": "skincaria_frontend",
+            "raw_image_saved": False,
+            "note": "Raw face image is intentionally not stored in the LLM judge case.",
+        },
+    }
+    await asyncio.to_thread(append_jsonl_row, LLM_JUDGE_CASES_JSONL, row)
+    return {
+        "saved": True,
+        "id": row["id"],
+        "path": str(LLM_JUDGE_CASES_JSONL.relative_to(BASE_DIR)),
     }
 
 
@@ -243,6 +289,38 @@ async def agentic_analysis(websocket: WebSocket):
             original_image_base64=image_base64,
         )
         await websocket.send_json({"type": "review", "review": review})
+
+        recommendation_pipeline = get_pipeline()
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "retrieve",
+                "message": "Searching the product knowledge base for matched skincare options.",
+            }
+        )
+        retrieval = await recommendation_pipeline.retrieve_products_from_perception(
+            concern=concern,
+            detection_summary=detections,
+            texture_summary=texture,
+            review=review,
+            top_k=5,
+        )
+        await websocket.send_json({"type": "products", "retrieval": retrieval})
+
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "recommend",
+                "message": "Preparing grounded product recommendations with customer-specific reasons.",
+            }
+        )
+        await websocket.send_json(
+            {
+                "type": "recommendation_token",
+                "content": retrieval.get("recommendation_markdown")
+                or "Tidak ada rekomendasi produk yang bisa dibuat dari knowledge base lokal.",
+            }
+        )
         await websocket.send_json({"type": "done"})
     except WebSocketDisconnect:
         return
@@ -302,6 +380,12 @@ def get_agentic_pipeline() -> Any:
         pipeline = AgenticYoloPipeline(ollama=get_ollama_client())
         app.state.agentic_pipeline = pipeline
     return pipeline
+
+
+def append_jsonl_row(path: Path, row: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as file:
+        file.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 async def extract_image_base64(
