@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 INDEX_HTML = STATIC_DIR / "index.html"
 IMAGE_TEST_HTML = STATIC_DIR / "image_test.html"
+FACE_MODEL_IMAGE = BASE_DIR / "data" / "face-model.jpg"
 EVALUATION_DIR = BASE_DIR / "data" / "evaluation"
 LLM_JUDGE_CASES_JSONL = EVALUATION_DIR / "llm_judge_cases.jsonl"
 MODEL_NAME = os.getenv("SKINCARIA_MODEL", "gemma4:e4b")
@@ -49,6 +50,13 @@ async def skincare_app():
 @app.get("/image-test")
 async def image_test():
     return FileResponse(IMAGE_TEST_HTML)
+
+
+@app.get("/assets/face-model")
+async def face_model_asset():
+    if not FACE_MODEL_IMAGE.exists():
+        raise HTTPException(status_code=404, detail="face-model.jpg not found in data/.")
+    return FileResponse(FACE_MODEL_IMAGE)
 
 
 @app.get("/health")

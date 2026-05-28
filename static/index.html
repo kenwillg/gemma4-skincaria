@@ -3,31 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Skincaria Agent Loop</title>
+  <title>Skincaria</title>
   <style>
     :root {
-      --bg: #f3f6f2;
+      --bg: #eef3ef;
       --surface: #ffffff;
       --surface-soft: #f7faf7;
       --text: #17211d;
-      --muted: #68756f;
-      --line: #dfe8e2;
-      --accent: #1f9d72;
-      --accent-soft: rgba(31, 157, 114, 0.12);
+      --muted: #66746e;
+      --line: #d9e4dd;
+      --accent: #168661;
+      --accent-soft: rgba(22, 134, 97, 0.12);
       --blue: #2563eb;
-      --blue-soft: rgba(37, 99, 235, 0.12);
+      --blue-soft: rgba(37, 99, 235, 0.11);
       --amber: #b7791f;
-      --amber-soft: rgba(183, 121, 31, 0.12);
+      --amber-soft: rgba(183, 121, 31, 0.13);
       --danger: #d84d4d;
-      --violet: #7c3aed;
-      --violet-soft: rgba(124, 58, 237, 0.11);
+      --pink: #e83e8c;
+      --violet: #6d4bd8;
+      --violet-soft: rgba(109, 75, 216, 0.11);
       --shadow: 0 18px 42px rgba(24, 38, 32, 0.1);
       --radius: 8px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -36,97 +35,96 @@
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.45;
+      overflow: hidden;
     }
 
-    button,
-    textarea,
-    input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin: 0;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
+    button, textarea, input { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    h1, h2, h3, p { margin: 0; }
+    [hidden] { display: none !important; }
 
     .app {
-      width: min(1440px, 100%);
-      margin: 0 auto;
-      padding: 24px;
+      height: 100vh;
       display: grid;
-      gap: 18px;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      padding: 16px;
+      overflow: hidden;
     }
 
     .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
-      padding: 18px 20px;
+      min-height: 74px;
+      padding: 14px 16px;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
-    .brand {
-      display: grid;
+    .brand { display: grid; gap: 3px; min-width: 0; }
+    .brand h1 { font-size: 1.18rem; letter-spacing: 0; }
+    .brand p { color: var(--muted); font-size: 0.9rem; }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 4px;
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: var(--radius);
       gap: 4px;
-      min-width: 0;
     }
 
-    .brand h1 {
-      font-size: 1.35rem;
-      letter-spacing: 0;
-    }
-
-    .brand p {
+    .segmented button {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: transparent;
       color: var(--muted);
-      font-size: 0.93rem;
+      font-weight: 850;
+    }
+
+    .segmented button.is-active {
+      color: #fff;
+      background: var(--accent);
     }
 
     .status {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      min-height: 34px;
-      padding: 0 12px;
-      border-radius: 999px;
       background: var(--accent-soft);
       color: var(--accent);
-      font-weight: 800;
-      font-size: 0.86rem;
+      font-weight: 900;
       white-space: nowrap;
+      font-size: 0.86rem;
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
-      border-radius: 50%;
+      border-radius: 999px;
       background: currentColor;
     }
 
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(380px, 0.95fr) minmax(480px, 1.35fr);
-      gap: 18px;
-      align-items: start;
+    .view {
+      min-height: 0;
+      overflow: hidden;
     }
 
     .panel {
@@ -134,79 +132,35 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      min-height: 0;
       overflow: hidden;
     }
 
     .panel-header {
-      min-height: 54px;
+      min-height: 52px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--line);
     }
 
-    .panel-header h2 {
-      font-size: 1rem;
-    }
+    .panel-header h2 { font-size: 0.98rem; }
 
     .panel-body {
-      padding: 16px;
+      padding: 14px;
       display: grid;
-      gap: 14px;
-    }
-
-    .input-stack {
-      display: grid;
-      gap: 14px;
-    }
-
-    .preview-stage {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      background: #0d1110;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 1px solid #101816;
-      display: grid;
-      place-items: center;
-    }
-
-    video,
-    .preview-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      background: #0d1110;
-    }
-
-    .preview-image {
-      position: absolute;
-      inset: 0;
-    }
-
-    .placeholder {
-      color: rgba(255, 255, 255, 0.72);
-      text-align: center;
-      padding: 24px;
-      max-width: 420px;
-      font-weight: 650;
-    }
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
+      min-height: 0;
+      overflow: auto;
     }
 
     .button {
       min-height: 40px;
       border-radius: var(--radius);
       padding: 0 14px;
-      font-weight: 800;
+      font-weight: 850;
       background: var(--surface-soft);
       color: var(--text);
       border: 1px solid var(--line);
@@ -216,57 +170,23 @@
       gap: 8px;
     }
 
-    .button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #ffffff;
-    }
-
-    .button.blue {
-      background: var(--blue);
-      border-color: var(--blue);
-      color: #ffffff;
-    }
-
-    .button.violet {
-      background: var(--violet);
-      border-color: var(--violet);
-      color: #ffffff;
-    }
-
-    .button.danger {
-      background: var(--danger);
-      border-color: var(--danger);
-      color: #ffffff;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    label.button {
-      cursor: pointer;
-    }
-
-    .field {
-      display: grid;
-      gap: 7px;
-    }
-
-    .field label {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--text);
-    }
+    .button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .button.blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .button.violet { background: var(--violet); border-color: var(--violet); color: #fff; }
+    .button.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .button.ghost { background: transparent; }
+    .file-input { display: none; }
+    label.button { cursor: pointer; }
 
     textarea {
-      min-height: 112px;
-      resize: vertical;
+      width: 100%;
+      min-height: 92px;
+      resize: none;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface-soft);
       color: var(--text);
-      padding: 12px;
+      padding: 11px;
       outline: none;
     }
 
@@ -280,77 +200,74 @@
       background: var(--surface-soft);
       border: 1px solid var(--line);
       color: var(--muted);
-      padding: 12px;
-      font-size: 0.9rem;
+      padding: 11px;
+      font-size: 0.88rem;
     }
 
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 9px; }
 
-    .step {
-      min-height: 76px;
+    .preview-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #101513;
+      border: 1px solid #111a17;
       border-radius: var(--radius);
-      background: var(--surface-soft);
-      border: 1px solid var(--line);
-      padding: 10px;
+      overflow: hidden;
       display: grid;
-      align-content: center;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 0.84rem;
-      font-weight: 800;
+      place-items: center;
     }
 
-    .step-title {
-      display: flex;
+    video, .preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #101513;
+    }
+
+    .preview-image { position: absolute; inset: 0; }
+
+    .placeholder {
+      max-width: 420px;
+      padding: 24px;
+      color: rgba(255, 255, 255, 0.76);
+      text-align: center;
+      font-weight: 750;
+    }
+
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .badge, .pill {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      color: var(--text);
-    }
-
-    .step-marker {
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      border: 2px solid var(--muted);
-      flex: 0 0 auto;
-    }
-
-    .step.is-active {
-      border-color: rgba(31, 157, 114, 0.42);
+      border-radius: 999px;
+      min-height: 26px;
+      padding: 0 9px;
       background: var(--accent-soft);
       color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 900;
+      white-space: nowrap;
     }
 
-    .step.is-active .step-marker {
-      border-color: var(--accent);
-      border-top-color: transparent;
-      animation: spin 850ms linear infinite;
-    }
+    .pill.blue, .badge.blue { background: var(--blue-soft); color: var(--blue); }
+    .pill.amber, .badge.amber { background: var(--amber-soft); color: var(--amber); }
+    .pill.violet, .badge.violet { background: var(--violet-soft); color: var(--violet); }
+    .pill.danger, .badge.danger { background: rgba(216, 77, 77, 0.12); color: var(--danger); }
 
-    .step.is-done {
-      border-color: rgba(31, 157, 114, 0.34);
-      background: rgba(31, 157, 114, 0.08);
-    }
-
-    .step.is-done .step-marker {
-      border-color: var(--accent);
-      background: var(--accent);
-      box-shadow: inset 0 0 0 3px var(--surface);
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .developer-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(340px, 0.8fr) minmax(520px, 1.4fr);
+      gap: 14px;
+      min-height: 0;
     }
 
     .trace {
       display: grid;
       gap: 12px;
+      min-height: 0;
     }
 
     .trace-card {
@@ -361,251 +278,505 @@
     }
 
     .trace-card-header {
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
+      gap: 10px;
+      padding: 10px 12px;
       background: var(--surface-soft);
       border-bottom: 1px solid var(--line);
     }
 
-    .trace-card-header h3 {
-      font-size: 0.94rem;
-    }
-
-    .pill {
-      min-height: 26px;
-      border-radius: 999px;
-      padding: 0 9px;
-      display: inline-flex;
-      align-items: center;
-      background: var(--blue-soft);
-      color: var(--blue);
-      font-size: 0.76rem;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-
-    .pill.green {
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-
-    .pill.amber {
-      background: var(--amber-soft);
-      color: var(--amber);
-    }
-
-    .pill.violet {
-      background: var(--violet-soft);
-      color: var(--violet);
-    }
+    .trace-card-header h3 { font-size: 0.92rem; }
 
     .trace-card-body {
-      padding: 14px;
+      padding: 12px;
       display: grid;
-      gap: 12px;
-    }
-
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .badge {
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      padding: 7px 10px;
-      font-size: 0.82rem;
-      font-weight: 850;
+      gap: 10px;
     }
 
     .detection-image {
       width: 100%;
-      max-height: 560px;
+      max-height: 520px;
       object-fit: contain;
       border-radius: var(--radius);
       border: 1px solid var(--line);
       background: var(--surface-soft);
     }
 
-    .detection-grid {
+    .detection-grid, .product-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 9px;
     }
 
-    .product-grid {
+    .det-card, .product-card {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 10px;
-    }
-
-    .det-card {
-      border: 1px solid var(--line);
-      background: var(--surface-soft);
-      border-radius: var(--radius);
+      gap: 5px;
       padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      min-height: 106px;
+    }
+
+    .det-class, .product-name { font-weight: 950; color: var(--text); }
+    .product-brand { font-weight: 900; color: var(--violet); font-size: 0.84rem; }
+    .det-meta { color: var(--muted); font-size: 0.82rem; overflow-wrap: anywhere; }
+
+    .markdown { color: var(--text); overflow-wrap: anywhere; font-size: 0.94rem; }
+    .markdown h3 { font-size: 1rem; margin: 8px 0 6px; }
+    .markdown p { margin: 0 0 9px; }
+    .markdown ul { margin: 0 0 10px 18px; padding: 0; }
+    .markdown li { margin: 4px 0; }
+
+    .user-shell {
+      height: 100%;
+      position: relative;
       display: grid;
-      gap: 4px;
-      min-height: 100px;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      min-height: 0;
     }
 
-    .det-class {
-      font-weight: 900;
-      color: var(--text);
+    .progress-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
     }
 
-    .det-meta {
+    .progress-step {
+      min-height: 58px;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      display: grid;
+      align-content: center;
+      gap: 3px;
       color: var(--muted);
-      font-size: 0.84rem;
-      overflow-wrap: anywhere;
+      font-size: 0.82rem;
+      font-weight: 800;
     }
 
-    .product-card {
+    .progress-step strong { color: var(--text); font-size: 0.9rem; }
+    .progress-step.is-active { border-color: rgba(22, 134, 97, 0.45); background: var(--accent-soft); color: var(--accent); }
+    .progress-step.is-done { border-color: rgba(37, 99, 235, 0.28); background: var(--blue-soft); }
+
+    .user-page {
+      min-height: 0;
+      display: none;
+    }
+
+    .user-page.is-active { display: grid; }
+
+    .page-card {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .page-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-title { display: grid; gap: 3px; }
+    .page-title h2 { font-size: 1.12rem; }
+    .page-title p { color: var(--muted); font-size: 0.9rem; }
+
+    .page-body {
+      min-height: 0;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .upload-layout {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(360px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 16px;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    .quality-layout, .detect-layout {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(390px, 1fr) minmax(320px, 0.7fr);
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .recommend-layout {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(280px, 0.7fr) minmax(440px, 1.25fr) minmax(300px, 0.8fr);
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .user-photo-frame {
+      position: relative;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      background: #101513;
+      border: 1px solid #111a17;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .user-photo-frame img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 90px;
+      padding: 11px;
       border: 1px solid var(--line);
       background: var(--surface-soft);
       border-radius: var(--radius);
-      padding: 11px;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+    }
+
+    .metric strong { font-size: 1.25rem; }
+    .metric span { color: var(--muted); font-size: 0.84rem; font-weight: 750; }
+
+    .side-stack {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .product-list {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 9px;
+      align-content: start;
+    }
+
+    .select-product {
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 12px;
       display: grid;
       gap: 6px;
-      min-height: 132px;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
 
-    .product-name {
+    .select-product:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(24, 38, 32, 0.05);
+    }
+
+    .select-product.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      background: var(--surface-soft);
+    }
+
+    .product-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
       font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .prescription-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .prescription-header {
+      border-bottom: 2px dashed var(--line);
+      padding-bottom: 10px;
+      margin-bottom: 2px;
+    }
+
+    .prescription-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .prescription-title-row h4 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 950;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .prescription-section {
+      display: grid;
+      gap: 4px;
+    }
+
+    .prescription-section h5 {
+      margin: 0;
+      font-size: 0.78rem;
+      font-weight: 950;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prescription-section-content {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .prescription-section-content.warning-box {
+      background: rgba(216, 77, 77, 0.04);
+      border-color: rgba(216, 77, 77, 0.14);
+      color: #991b1b;
+    }
+
+    .prescription-section-content.success-box {
+      background: rgba(22, 134, 97, 0.03);
+      border-color: rgba(22, 134, 97, 0.12);
+      color: #065f46;
+    }
+
+    .ingredient-list-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ingredient-tag {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ingredient-tag strong {
       color: var(--text);
     }
 
-    .product-brand {
-      font-size: 0.84rem;
-      color: var(--violet);
-      font-weight: 850;
+    .ingredient-tag span {
+      font-size: 0.7rem;
+      color: var(--muted);
     }
 
-    .texture-list {
+    .mapping-stage {
+      min-height: 0;
       display: grid;
-      gap: 10px;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 12px;
     }
 
-    .texture-row {
+    .mapping-visuals {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .wireframe-panel {
+      position: relative;
+      min-height: 0;
+      background: var(--surface-soft);
       border: 1px solid var(--line);
       border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .face-map {
+      width: min(100%, 360px);
+      height: min(100%, 480px);
+      display: block;
+    }
+
+    .hidden-face-model {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .face-line {
+      fill: none;
+      stroke: #30443b;
+      stroke-width: 2.2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .face-soft {
+      fill: rgba(22, 134, 97, 0.06);
+      stroke: rgba(48, 68, 59, 0.42);
+      stroke-width: 1.4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .map-point {
+      stroke: #fff;
+      stroke-width: 2;
+      opacity: 0.32;
+    }
+
+    .map-point.is-active {
+      opacity: 0.95;
+      r: 9;
+    }
+
+    .landmark-point {
+      fill: rgba(48, 68, 59, 0.62);
+    }
+
+    .landmark-line {
+      fill: none;
+      stroke: rgba(48, 68, 59, 0.38);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .concern-blob {
+      stroke: rgba(255, 255, 255, 0.85);
+      stroke-width: 1.5;
+      mix-blend-mode: multiply;
+    }
+
+    .map-label {
+      display: none;
+    }
+
+    .explain-card {
+      border: 1px solid var(--line);
       background: var(--surface-soft);
-      padding: 10px;
+      border-radius: var(--radius);
+      padding: 12px;
       display: grid;
       gap: 8px;
     }
 
-    .texture-topline {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .texture-name {
-      font-weight: 900;
+    .nav-button {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       color: var(--text);
+      display: grid;
+      place-items: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      transition: all 0.2s ease;
+      opacity: 0.8;
     }
 
-    .texture-score {
-      font-size: 0.82rem;
-      font-weight: 850;
-      color: var(--muted);
-      white-space: nowrap;
+    .nav-button:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.75);
+      opacity: 1;
+      transform: translateY(-50%) scale(1.05);
     }
 
-    .texture-bar {
-      position: relative;
-      height: 10px;
-      border-radius: 999px;
-      background: #e7eee9;
-      overflow: hidden;
+    .nav-button:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
     }
 
-    .texture-fill {
-      height: 100%;
-      border-radius: inherit;
-      background: var(--accent);
-    }
+    .nav-button.prev { left: 24px; }
+    .nav-button.next { right: 24px; }
 
-    .texture-threshold {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: var(--danger);
-    }
-
-    .texture-row.is-inactive .texture-fill {
-      background: var(--amber);
-    }
-
-    .markdown {
-      color: var(--text);
-      overflow-wrap: anywhere;
-      font-size: 0.95rem;
-    }
-
-    .markdown h3 {
-      font-size: 1rem;
-      margin: 10px 0 6px;
-    }
-
-    .markdown p {
-      margin: 0 0 10px;
-    }
-
-    .markdown ul {
-      margin: 0 0 12px 18px;
-      padding: 0;
-    }
-
-    .markdown li {
-      margin: 4px 0;
+    .nav-button span {
+      display: none;
     }
 
     .skeleton {
       min-height: 17px;
       border-radius: 7px;
-      background: linear-gradient(90deg, var(--surface-soft), rgba(31, 157, 114, 0.14), var(--surface-soft));
+      background: linear-gradient(90deg, var(--surface-soft), rgba(22, 134, 97, 0.14), var(--surface-soft));
       background-size: 220% 100%;
       animation: shimmer 1.2s infinite;
     }
 
-    .skeleton.big {
-      min-height: 82px;
-    }
+    .skeleton.big { min-height: 86px; }
+    @keyframes shimmer { to { background-position: -220% 0; } }
 
-    @keyframes shimmer {
-      to {
-        background-position: -220% 0;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .workspace {
+    @media (max-width: 1080px) {
+      body { overflow: auto; }
+      .app { height: auto; min-height: 100vh; overflow: visible; }
+      .view { overflow: visible; }
+      .developer-grid, .upload-layout, .quality-layout, .detect-layout, .recommend-layout, .mapping-visuals {
         grid-template-columns: 1fr;
       }
+      .nav-button { display: none; }
+      .page-body { overflow: auto; }
+      .progress-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    @media (max-width: 700px) {
-      .app {
-        padding: 12px;
-      }
-
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .steps {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 720px) {
+      .app { padding: 10px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .progress-strip { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -613,91 +784,208 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
-        <h1>Skincaria Agent Loop</h1>
-        <p>Image upload or webcam capture -> input quality check -> YOLO detects boxes -> EfficientNet classifies texture -> product KB retrieval -> Gemma recommends.</p>
+        <h1>Skincaria</h1>
+        <p id="modeSubtitle">Developer trace for the local CV + RAG recommendation loop.</p>
       </div>
-      <div class="status" id="status"><span class="status-dot" aria-hidden="true"></span><span>Ready</span></div>
+      <div class="top-actions">
+        <div class="segmented" aria-label="View mode">
+          <button id="developerModeButton" class="is-active" type="button">Developer</button>
+          <button id="userModeButton" type="button">User</button>
+        </div>
+        <div class="status" id="status"><span class="status-dot" aria-hidden="true"></span><span>Ready</span></div>
+      </div>
     </header>
 
-    <section class="workspace">
-      <section class="panel" aria-label="Image input">
-        <div class="panel-header">
-          <h2>Image Input</h2>
-          <button class="button danger" id="clearButton" type="button">Clear</button>
+    <section class="view" id="developerView">
+      <div class="developer-grid">
+        <section class="panel" aria-label="Developer input">
+          <div class="panel-header">
+            <h2>Input</h2>
+            <button class="button danger" id="clearButton" type="button">Clear</button>
+          </div>
+          <div class="panel-body">
+            <div class="preview-stage">
+              <video id="webcam" autoplay muted playsinline hidden></video>
+              <img id="previewImage" class="preview-image" alt="Selected skin image preview" hidden>
+              <div class="placeholder" id="placeholder">Open the webcam, capture a frame, or upload a face image.</div>
+            </div>
+            <div class="toolbar">
+              <button class="button" id="openCameraButton" type="button">Open Webcam</button>
+              <button class="button blue" id="captureButton" type="button" disabled>Capture</button>
+              <button class="button" id="stopCameraButton" type="button" disabled>Stop</button>
+              <label class="button" for="fileInput">Upload Image</label>
+              <input class="file-input" id="fileInput" type="file" accept="image/*">
+            </div>
+            <textarea id="queryInput" placeholder="Tell Skincaria what you want checked. Example: I want acne and redness recommendations."></textarea>
+            <div class="toolbar">
+              <button class="button primary" id="runButton" type="button">Analyze and Recommend</button>
+              <button class="button violet" id="saveCaseButton" type="button" disabled>Save Judge Case</button>
+            </div>
+            <div class="note">Developer view keeps the full trace, including texture classification. User view hides Grad-CAM and presents a guided flow.</div>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Developer trace">
+          <div class="panel-header">
+            <h2>Agent Trace</h2>
+            <span class="pill">YOLO11n + RAG</span>
+          </div>
+          <div class="panel-body">
+            <div class="trace" id="trace">
+              <div class="note">Run the agent loop to see each step here.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="userView" hidden>
+      <button class="nav-button prev" id="prevPageButton" type="button" aria-label="Previous stage">‹<span>Previous</span></button>
+      <button class="nav-button next" id="nextPageButton" type="button" aria-label="Next stage">›<span>Next</span></button>
+
+      <div class="user-shell">
+        <div class="progress-strip" id="userProgress">
+          <button class="progress-step is-active" data-page="0" type="button"><strong>1. Upload</strong><span>Photo and inquiry</span></button>
+          <button class="progress-step" data-page="1" type="button"><strong>2. Quality</strong><span>Input gate</span></button>
+          <button class="progress-step" data-page="2" type="button"><strong>3. Detection</strong><span>YOLO11n boxes</span></button>
+          <button class="progress-step" data-page="3" type="button"><strong>4. Products</strong><span>Mapped reasons</span></button>
         </div>
-        <div class="panel-body input-stack">
-          <div class="preview-stage">
-            <video id="webcam" autoplay muted playsinline hidden></video>
-            <img id="previewImage" class="preview-image" alt="Selected skin image preview" hidden>
-            <div class="placeholder" id="placeholder">Open the webcam, capture a frame, or upload a face image.</div>
-          </div>
 
-          <div class="toolbar">
-            <button class="button" id="openCameraButton" type="button">Open Webcam</button>
-            <button class="button blue" id="captureButton" type="button" disabled>Capture Frame</button>
-            <button class="button" id="stopCameraButton" type="button" disabled>Stop Webcam</button>
-            <label class="button" for="fileInput">Upload Image</label>
-            <input class="file-input" id="fileInput" type="file" accept="image/*">
-          </div>
+        <section class="user-page is-active" data-user-page="0">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>Upload Your Skin Photo</h2>
+                <p>Use one clear face photo and write what you want help with.</p>
+              </div>
+              <span class="pill blue">Step 1</span>
+            </div>
+            <div class="page-body">
+              <div class="upload-layout">
+                <div class="user-photo-frame">
+                  <img id="userUploadPreview" alt="Uploaded face preview" hidden>
+                  <div class="placeholder" id="userUploadPlaceholder">Upload or capture a face photo to begin.</div>
+                </div>
+                <div class="side-stack">
+                  <div class="explain-card">
+                    <h3>Photo Input</h3>
+                    <div class="toolbar">
+                      <label class="button" for="userFileInput">Upload Photo</label>
+                      <input class="file-input" id="userFileInput" type="file" accept="image/*">
+                      <button class="button" id="userUseCurrentButton" type="button">Use Current Developer Photo</button>
+                    </div>
+                    <div class="note">Raw face photos are used for the live analysis session. The judge-case saver stores structured outputs only, not the image.</div>
+                  </div>
+                  <div class="explain-card">
+                    <h3>Your Inquiry</h3>
+                    <textarea id="userQueryInput" placeholder="Example: I want help choosing products for acne, redness, oily skin, and visible pores."></textarea>
+                  </div>
+                  <div class="toolbar">
+                    <button class="button primary" id="userRunButton" type="button">Start Analysis</button>
+                    <button class="button violet" id="userSaveCaseButton" type="button" disabled>Save Judge Case</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
 
-          <div class="field">
-            <label for="queryInput">User query / concern</label>
-            <textarea id="queryInput" placeholder="Example: Check this image for acne, blackheads, enlarged pores, and redness."></textarea>
-          </div>
+        <section class="user-page" data-user-page="1">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>Input Quality Check</h2>
+                <p>Skincaria checks whether the image has enough visible face and skin signal.</p>
+              </div>
+              <span class="pill amber" id="qualityStatusPill">Waiting</span>
+            </div>
+            <div class="page-body">
+              <div class="quality-layout">
+                <div class="user-photo-frame" id="qualityImageFrame">
+                  <div class="placeholder">Quality preview will appear after analysis starts.</div>
+                </div>
+                <div class="side-stack">
+                  <div class="metric-grid" id="qualityMetrics">
+                    <div class="metric"><strong>-</strong><span>Face signal</span></div>
+                    <div class="metric"><strong>-</strong><span>Likely skin area</span></div>
+                    <div class="metric"><strong>-</strong><span>Blur score</span></div>
+                    <div class="metric"><strong>-</strong><span>Decision</span></div>
+                  </div>
+                  <div class="note" id="qualityWarnings">Run the analysis to view quality feedback.</div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
 
-          <div class="toolbar">
-            <button class="button primary" id="runButton" type="button">Analyze and Recommend</button>
-            <button class="button violet" id="saveCaseButton" type="button" disabled>Save Judge Case</button>
-          </div>
+        <section class="user-page" data-user-page="2">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>YOLO11n Detection</h2>
+                <p>Localized detections are shown as bounding boxes. These are model signals, not medical diagnosis.</p>
+              </div>
+              <span class="pill amber" id="detectionStatusPill">Waiting</span>
+            </div>
+            <div class="page-body">
+              <div class="detect-layout">
+                <div class="user-photo-frame" id="detectionImageFrame">
+                  <div class="placeholder">YOLO11n output will appear here.</div>
+                </div>
+                <div class="side-stack">
+                  <div class="badge-row" id="detectionBadges"></div>
+                  <div class="detection-grid" id="userDetectionCards"></div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
 
-          <div class="note">
-            Save Judge Case stores the inquiry, structured model outputs, retrieved products, and recommendation text. Raw face images are not saved.
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" aria-label="Agent output">
-        <div class="panel-header">
-          <h2>Agent Trace</h2>
-          <span class="pill green">YOLO11n + EfficientNetV2-B0</span>
-        </div>
-        <div class="panel-body">
-          <div class="steps" aria-label="Agent progress">
-            <div class="step" data-step="plan">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Plans</span></div>
-              <span>Route and tool choice</span>
+        <section class="user-page" data-user-page="3">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>Product Knowledge Base</h2>
+                <p>Select a recommended product to see which detected concerns it addresses.</p>
+              </div>
+              <span class="pill violet" id="productStatusPill">Waiting</span>
             </div>
-            <div class="step" data-step="quality">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Input Check</span></div>
-              <span>Face/skin signal quality</span>
+            <div class="page-body">
+              <div class="recommend-layout">
+                <div class="side-stack">
+                  <div class="explain-card">
+                    <h3>Detected Concerns</h3>
+                    <div class="badge-row" id="concernBadges"></div>
+                  </div>
+                  <div class="explain-card">
+                    <h3>Skincare Prescription Details</h3>
+                    <div id="selectedProductReason" class="det-meta">Choose a product from the right panel.</div>
+                  </div>
+                </div>
+                <div class="mapping-stage">
+                  <div class="mapping-visuals">
+                    <div class="user-photo-frame" id="recommendPhotoFrame">
+                      <div class="placeholder">Original photo appears here.</div>
+                    </div>
+                    <div class="wireframe-panel">
+                      <svg class="face-map" viewBox="0 0 240 320" role="img" aria-label="Wireframe face concern map">
+                        <image class="hidden-face-model" href="/assets/face-model" x="0" y="0" width="240" height="320" preserveAspectRatio="xMidYMid meet"></image>
+                        <g id="faceMapLandmarks"></g>
+                        <g id="faceHeatmapLayer"></g>
+                        <g id="faceMapPoints"></g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="note" id="mappingExplanation">The hidden face-model image anchors the map. MediaPipe landmarks from the submitted photo are drawn on top, then YOLO concern heat blobs are projected using the same box locations.</div>
+                </div>
+                <div class="product-list" id="userProductList">
+                  <div class="note">Recommendations will appear after analysis finishes.</div>
+                </div>
+              </div>
             </div>
-            <div class="step" data-step="detect">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>YOLO Detects</span></div>
-              <span>Bounding boxes and counts</span>
-            </div>
-            <div class="step" data-step="classify">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>EfficientNet Classifies</span></div>
-              <span>Texture labels and thresholds</span>
-            </div>
-            <div class="step" data-step="answer">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Reviews</span></div>
-              <span>Visual observations</span>
-            </div>
-            <div class="step" data-step="retrieve">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>KB Retrieves</span></div>
-              <span>Matched products</span>
-            </div>
-            <div class="step" data-step="recommend">
-              <div class="step-title"><span class="step-marker" aria-hidden="true"></span><span>Gemma Recommends</span></div>
-              <span>Product reasons</span>
-            </div>
-          </div>
-
-          <div class="trace" id="trace">
-            <div class="note">Run the agent loop to see each step appear here.</div>
-          </div>
-        </div>
-      </section>
+          </article>
+        </section>
+      </div>
     </section>
   </main>
 
@@ -705,6 +993,11 @@
 
   <script>
     const refs = {
+      modeSubtitle: document.getElementById("modeSubtitle"),
+      developerModeButton: document.getElementById("developerModeButton"),
+      userModeButton: document.getElementById("userModeButton"),
+      developerView: document.getElementById("developerView"),
+      userView: document.getElementById("userView"),
       status: document.getElementById("status"),
       webcam: document.getElementById("webcam"),
       previewImage: document.getElementById("previewImage"),
@@ -718,24 +1011,105 @@
       saveCaseButton: document.getElementById("saveCaseButton"),
       queryInput: document.getElementById("queryInput"),
       trace: document.getElementById("trace"),
-      captureCanvas: document.getElementById("captureCanvas")
+      captureCanvas: document.getElementById("captureCanvas"),
+      userFileInput: document.getElementById("userFileInput"),
+      userUploadPreview: document.getElementById("userUploadPreview"),
+      userUploadPlaceholder: document.getElementById("userUploadPlaceholder"),
+      userUseCurrentButton: document.getElementById("userUseCurrentButton"),
+      userQueryInput: document.getElementById("userQueryInput"),
+      userRunButton: document.getElementById("userRunButton"),
+      userSaveCaseButton: document.getElementById("userSaveCaseButton"),
+      prevPageButton: document.getElementById("prevPageButton"),
+      nextPageButton: document.getElementById("nextPageButton"),
+      qualityStatusPill: document.getElementById("qualityStatusPill"),
+      qualityImageFrame: document.getElementById("qualityImageFrame"),
+      qualityMetrics: document.getElementById("qualityMetrics"),
+      qualityWarnings: document.getElementById("qualityWarnings"),
+      detectionStatusPill: document.getElementById("detectionStatusPill"),
+      detectionImageFrame: document.getElementById("detectionImageFrame"),
+      detectionBadges: document.getElementById("detectionBadges"),
+      userDetectionCards: document.getElementById("userDetectionCards"),
+      productStatusPill: document.getElementById("productStatusPill"),
+      concernBadges: document.getElementById("concernBadges"),
+      recommendPhotoFrame: document.getElementById("recommendPhotoFrame"),
+      faceMapLandmarks: document.getElementById("faceMapLandmarks"),
+      faceHeatmapLayer: document.getElementById("faceHeatmapLayer"),
+      faceMapPoints: document.getElementById("faceMapPoints"),
+      userProductList: document.getElementById("userProductList"),
+      selectedProductReason: document.getElementById("selectedProductReason"),
+      mappingExplanation: document.getElementById("mappingExplanation")
     };
 
-    let cameraStream = null;
-    let selectedImageDataUrl = "";
-    let activeSocket = null;
-    let recommendationMarkdown = "";
-    let lastRun = null;
-    let caseSaved = false;
-    let busy = false;
+    const state = {
+      mode: "developer",
+      userPage: 0,
+      cameraStream: null,
+      selectedImageDataUrl: "",
+      activeSocket: null,
+      recommendationMarkdown: "",
+      lastRun: null,
+      caseSaved: false,
+      busy: false,
+      selectedProductIndex: 0,
+      faceLandmarker: null,
+      faceLandmarks: null,
+      modelFaceLandmarks: null,
+      activeIngredientFilter: null,
+      landmarkStatus: "loading"
+    };
 
+    const pageNames = ["upload", "quality", "detect", "products"];
+    const concernColors = {
+      "Acne": "#ef4444",
+      "Blackheads": "#111827",
+      "Whiteheads": "#9ca3af",
+      "Skin-Redness": "#e83e8c",
+      "Oily-Skin": "#22c55e",
+      "Enlarged-Pores": "#0ea5e9",
+      "Dry-Skin": "#f59e0b",
+      "Wrinkles": "#64748b",
+      "Dark-Spots": "#92400e",
+      "Eyebags": "#8b5cf6"
+    };
+
+    const faceContourGroups = [
+      [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10],
+      [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7, 33],
+      [263, 466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249, 263],
+      [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146, 61],
+      [1, 2, 98, 97, 2, 327, 326, 2]
+    ];
+
+    refs.developerModeButton.addEventListener("click", () => setMode("developer"));
+    refs.userModeButton.addEventListener("click", () => setMode("user"));
     refs.openCameraButton.addEventListener("click", openWebcam);
     refs.captureButton.addEventListener("click", captureFrame);
     refs.stopCameraButton.addEventListener("click", stopWebcam);
     refs.clearButton.addEventListener("click", clearInput);
-    refs.runButton.addEventListener("click", runAgentLoop);
+    refs.runButton.addEventListener("click", () => runAgentLoop({ source: "developer" }));
     refs.saveCaseButton.addEventListener("click", saveEvaluationCase);
-    refs.fileInput.addEventListener("change", handleUpload);
+    refs.fileInput.addEventListener("change", handleDeveloperUpload);
+    refs.userFileInput.addEventListener("change", handleUserUpload);
+    refs.userUseCurrentButton.addEventListener("click", useCurrentDeveloperPhoto);
+    refs.userRunButton.addEventListener("click", () => runAgentLoop({ source: "user" }));
+    refs.userSaveCaseButton.addEventListener("click", saveEvaluationCase);
+    refs.prevPageButton.addEventListener("click", () => setUserPage(state.userPage - 1));
+    refs.nextPageButton.addEventListener("click", () => setUserPage(state.userPage + 1));
+    document.querySelectorAll("[data-page]").forEach((button) => {
+      button.addEventListener("click", () => setUserPage(Number(button.dataset.page)));
+    });
+
+    function setMode(mode) {
+      state.mode = mode;
+      refs.developerModeButton.classList.toggle("is-active", mode === "developer");
+      refs.userModeButton.classList.toggle("is-active", mode === "user");
+      refs.developerView.hidden = mode !== "developer";
+      refs.userView.hidden = mode !== "user";
+      refs.modeSubtitle.textContent = mode === "developer"
+        ? "Developer trace for the local CV + RAG recommendation loop."
+        : "Paginated user-study flow for participant testing and satisfaction scoring.";
+      syncUserPreview();
+    }
 
     async function openWebcam() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -743,14 +1117,13 @@
         addTraceNote("This browser cannot open a webcam. Upload an image instead.");
         return;
       }
-
       try {
         stopWebcam();
-        cameraStream = await navigator.mediaDevices.getUserMedia({
+        state.cameraStream = await navigator.mediaDevices.getUserMedia({
           video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
           audio: false
         });
-        refs.webcam.srcObject = cameraStream;
+        refs.webcam.srcObject = state.cameraStream;
         refs.webcam.hidden = false;
         refs.previewImage.hidden = true;
         refs.placeholder.hidden = true;
@@ -766,96 +1139,161 @@
     }
 
     function stopWebcam() {
-      if (cameraStream) {
-        for (const track of cameraStream.getTracks()) {
-          track.stop();
-        }
+      if (state.cameraStream) {
+        for (const track of state.cameraStream.getTracks()) track.stop();
       }
-      cameraStream = null;
+      state.cameraStream = null;
       refs.webcam.srcObject = null;
       refs.webcam.hidden = true;
       refs.captureButton.disabled = true;
       refs.stopCameraButton.disabled = true;
-      refs.openCameraButton.disabled = false;
+      refs.openCameraButton.disabled = state.busy;
+      if (!state.selectedImageDataUrl) refs.placeholder.hidden = false;
     }
 
     function captureFrame() {
-      if (!cameraStream || !refs.webcam.videoWidth || !refs.webcam.videoHeight) {
-        addTraceNote("Webcam is not ready yet.");
-        return;
-      }
+      if (!state.cameraStream || !refs.webcam.videoWidth) return;
       const canvas = refs.captureCanvas;
       canvas.width = refs.webcam.videoWidth;
       canvas.height = refs.webcam.videoHeight;
-      const context = canvas.getContext("2d");
-      context.drawImage(refs.webcam, 0, 0, canvas.width, canvas.height);
-      selectedImageDataUrl = canvas.toDataURL("image/jpeg", 0.9);
-      showPreview(selectedImageDataUrl);
+      canvas.getContext("2d").drawImage(refs.webcam, 0, 0, canvas.width, canvas.height);
+      setSelectedImage(canvas.toDataURL("image/jpeg", 0.88));
+      stopWebcam();
       setStatus("Frame captured");
     }
 
-    function handleUpload() {
-      const file = refs.fileInput.files[0];
-      if (!file) {
+    function handleDeveloperUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      loadImageFile(file);
+    }
+
+    function handleUserUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      loadImageFile(file);
+      setMode("user");
+    }
+
+    function loadImageFile(file) {
+      if (!file.type.startsWith("image/")) {
+        setStatus("Invalid file");
         return;
       }
       const reader = new FileReader();
       reader.onload = () => {
-        selectedImageDataUrl = String(reader.result || "");
-        showPreview(selectedImageDataUrl);
-        setStatus("Image uploaded");
+        setSelectedImage(String(reader.result || ""));
+        setStatus("Image loaded");
       };
-      reader.onerror = () => addTraceNote("Could not read the uploaded image.");
       reader.readAsDataURL(file);
     }
 
-    function showPreview(dataUrl) {
+    function useCurrentDeveloperPhoto() {
+      if (!state.selectedImageDataUrl) {
+        setStatus("No photo selected");
+        return;
+      }
+      syncUserPreview();
+      setStatus("Photo ready");
+    }
+
+    function setSelectedImage(dataUrl) {
+      state.selectedImageDataUrl = dataUrl;
       refs.previewImage.src = dataUrl;
       refs.previewImage.hidden = false;
       refs.placeholder.hidden = true;
-      refs.webcam.hidden = true;
+      syncUserPreview();
+      renderRecommendPhoto();
+      estimateFaceLandmarks(dataUrl);
+    }
+
+    function syncUserPreview() {
+      if (!state.selectedImageDataUrl) {
+        refs.userUploadPreview.hidden = true;
+        refs.userUploadPlaceholder.hidden = false;
+        return;
+      }
+      refs.userUploadPreview.src = state.selectedImageDataUrl;
+      refs.userUploadPreview.hidden = false;
+      refs.userUploadPlaceholder.hidden = true;
     }
 
     function clearInput() {
       closeSocket();
       stopWebcam();
-      selectedImageDataUrl = "";
-      refs.previewImage.src = "";
+      state.selectedImageDataUrl = "";
+      state.recommendationMarkdown = "";
+      state.lastRun = null;
+      state.caseSaved = false;
+      state.selectedProductIndex = 0;
+      state.faceLandmarks = null;
+      state.activeIngredientFilter = null;
+      refs.previewImage.removeAttribute("src");
       refs.previewImage.hidden = true;
       refs.placeholder.hidden = false;
       refs.fileInput.value = "";
+      refs.userFileInput.value = "";
       refs.queryInput.value = "";
-      refs.trace.innerHTML = '<div class="note">Run the agent loop to see each step appear here.</div>';
-      recommendationMarkdown = "";
-      lastRun = null;
-      caseSaved = false;
-      refs.saveCaseButton.disabled = true;
-      setStep("idle");
+      refs.userQueryInput.value = "";
+      refs.trace.innerHTML = '<div class="note">Run the agent loop to see each step here.</div>';
+      resetUserOutputs();
+      setUserPage(0);
       setStatus("Ready");
-      busy = false;
-      setBusy(false);
+      updateSaveCaseButton();
     }
 
-    async function runAgentLoop() {
-      if (busy) {
-        return;
-      }
-      const concern = refs.queryInput.value.trim();
-      if (!selectedImageDataUrl && cameraStream) {
-        captureFrame();
-      }
-      if (!selectedImageDataUrl && !concern) {
-        addTraceNote("Upload an image, capture a webcam frame, or enter a query.");
+    async function runAgentLoop({ source }) {
+      const concern = source === "user" ? refs.userQueryInput.value.trim() : refs.queryInput.value.trim();
+      if (source === "user" && concern) refs.queryInput.value = concern;
+      if (source === "developer" && concern) refs.userQueryInput.value = concern;
+      if (!state.selectedImageDataUrl && !concern) {
+        setStatus("Needs input");
+        addTraceNote("Upload or capture a face image, or write a concern first.");
         return;
       }
 
       closeSocket();
+      resetRunState(concern);
+      resetUserOutputs();
+      setBusy(true);
+      setStatus("Starting");
+      setUserPage(source === "user" ? 1 : state.userPage);
       refs.trace.innerHTML = "";
-      recommendationMarkdown = "";
-      caseSaved = false;
-      refs.saveCaseButton.disabled = true;
-      lastRun = {
-        user_concern: concern,
+      renderRecommendPhoto();
+
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      state.activeSocket = new WebSocket(`${protocol}://${window.location.host}/ws/agentic`);
+
+      state.activeSocket.addEventListener("open", () => {
+        state.activeSocket.send(JSON.stringify({
+          concern,
+          image_base64: state.selectedImageDataUrl ? stripDataUrl(state.selectedImageDataUrl) : null
+        }));
+      });
+
+      state.activeSocket.addEventListener("message", (event) => {
+        const message = JSON.parse(event.data);
+        handleAgentMessage(message);
+      });
+
+      state.activeSocket.addEventListener("error", () => {
+        setStatus("Connection error");
+        setBusy(false);
+      });
+
+      state.activeSocket.addEventListener("close", () => {
+        state.activeSocket = null;
+        setBusy(false);
+        updateSaveCaseButton();
+      });
+    }
+
+    function resetRunState(concern) {
+      state.recommendationMarkdown = "";
+      state.caseSaved = false;
+      state.selectedProductIndex = 0;
+      state.lastRun = {
+        user_concern: concern || "",
         quality: null,
         detections: null,
         texture: null,
@@ -863,367 +1301,788 @@
         retrieval: null,
         assistant_response: ""
       };
-      setBusy(true);
-      setStep("plan");
-      setStatus("Gemma planning");
-
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      activeSocket = new WebSocket(`${protocol}://${window.location.host}/ws/agentic`);
-
-      activeSocket.addEventListener("open", () => {
-        activeSocket.send(JSON.stringify({
-          concern,
-          image_base64: selectedImageDataUrl || null
-        }));
-      });
-
-      activeSocket.addEventListener("message", (event) => {
-        const message = JSON.parse(event.data);
-        if (message.type === "stage") {
-          setStep(message.stage);
-          setStatus(message.message || "Agent running");
-          renderStageSkeleton(message.stage);
-          return;
-        }
-        if (message.type === "plan") {
-          renderPlan(message.plan);
-          return;
-        }
-        if (message.type === "quality") {
-          if (lastRun) {
-            lastRun.quality = message.quality;
-          }
-          renderQuality(message.quality);
-          return;
-        }
-        if (message.type === "detections") {
-          if (lastRun) {
-            lastRun.detections = message.detections;
-          }
-          renderDetections(message.detections);
-          return;
-        }
-        if (message.type === "texture") {
-          if (lastRun) {
-            lastRun.texture = message.texture;
-          }
-          renderTexture(message.texture);
-          return;
-        }
-        if (message.type === "review") {
-          if (lastRun) {
-            lastRun.review = message.review;
-          }
-          renderReview(message.review);
-          return;
-        }
-        if (message.type === "products") {
-          if (lastRun) {
-            lastRun.retrieval = message.retrieval;
-          }
-          renderProducts(message.retrieval);
-          return;
-        }
-        if (message.type === "recommendation_token") {
-          appendRecommendationToken(message.content || "");
-          return;
-        }
-        if (message.type === "done") {
-          setStep("done");
-          setStatus("Done");
-          if (lastRun) {
-            lastRun.assistant_response = recommendationMarkdown;
-          }
-          finishRun();
-          return;
-        }
-        if (message.type === "error") {
-          addTraceNote(message.message || "Agent loop failed.");
-          setStatus("Error");
-          setStep("idle");
-          finishRun();
-        }
-      });
-
-      activeSocket.addEventListener("error", () => {
-        addTraceNote("Agent loop connection was interrupted.");
-        setStatus("Connection error");
-        setStep("idle");
-        finishRun();
-      });
-
-      activeSocket.addEventListener("close", () => {
-        finishRun();
-      });
     }
 
-    function finishRun() {
-      activeSocket = null;
-      setBusy(false);
-      updateSaveCaseButton();
-    }
-
-    function closeSocket() {
-      if (activeSocket) {
-        activeSocket.close();
-        activeSocket = null;
-      }
-    }
-
-    function setBusy(value) {
-      busy = value;
-      refs.runButton.disabled = value;
-      refs.clearButton.disabled = value;
-      refs.openCameraButton.disabled = value || Boolean(cameraStream);
-      refs.fileInput.disabled = value;
-      refs.captureButton.disabled = value || !cameraStream;
-      refs.stopCameraButton.disabled = value || !cameraStream;
-      updateSaveCaseButton();
-    }
-
-    function updateSaveCaseButton() {
-      const ready = Boolean(
-        lastRun &&
-        lastRun.assistant_response &&
-        lastRun.retrieval &&
-        Array.isArray(lastRun.retrieval.products) &&
-        lastRun.retrieval.products.length &&
-        !busy &&
-        !caseSaved
-      );
-      refs.saveCaseButton.disabled = !ready;
-      refs.saveCaseButton.textContent = caseSaved ? "Judge Case Saved" : "Save Judge Case";
-    }
-
-    function setStatus(message) {
-      refs.status.querySelector("span:last-child").textContent = message;
-    }
-
-    function setStep(stage) {
-      const order = ["plan", "quality", "detect", "classify", "answer", "retrieve", "recommend"];
-      document.querySelectorAll(".step").forEach((element) => {
-        const name = element.dataset.step;
-        element.classList.remove("is-active", "is-done");
-        if (stage === "done") {
-          element.classList.add("is-done");
-          return;
-        }
-        const currentIndex = order.indexOf(stage);
-        const elementIndex = order.indexOf(name);
-        if (name === stage) {
-          element.classList.add("is-active");
-        } else if (currentIndex > -1 && elementIndex < currentIndex) {
-          element.classList.add("is-done");
-        }
-      });
-    }
-
-    function renderStageSkeleton(stage) {
-      const id = `stage-${stage}`;
-      if (document.getElementById(id)) {
+    function handleAgentMessage(message) {
+      if (message.type === "stage") {
+        setStatus(message.message || message.stage || "Running");
+        renderStageSkeleton(message.stage);
         return;
       }
-      const title = stage === "plan" ? "Gemma Plan" : stage === "quality" ? "Input Quality Check" : stage === "detect" ? "YOLO11n Detection" : stage === "classify" ? "EfficientNet Texture Classification" : stage === "answer" ? "Gemma Visual Review" : stage === "retrieve" ? "Product Knowledge Base" : "Product Recommendation";
-      const pill = stage === "detect" ? "YOLO11n" : stage === "classify" ? "EfficientNetV2-B0" : stage === "quality" ? "Quality Gate" : stage === "retrieve" ? "ChromaDB" : "Gemma";
-      const pillClass = stage === "detect" ? "amber" : stage === "retrieve" || stage === "recommend" ? "violet" : "green";
-      refs.trace.insertAdjacentHTML("beforeend", `
-        <article class="trace-card" id="${id}">
-          <div class="trace-card-header">
-            <h3>${title}</h3>
-            <span class="pill ${pillClass}">${pill}</span>
-          </div>
-          <div class="trace-card-body">
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-            <div class="skeleton big"></div>
-          </div>
+      if (message.type === "plan") {
+        renderPlan(message.plan);
+        return;
+      }
+      if (message.type === "quality") {
+        state.lastRun.quality = message.quality;
+        renderQuality(message.quality);
+        renderUserQuality(message.quality);
+        return;
+      }
+      if (message.type === "detections") {
+        state.lastRun.detections = message.detections;
+        renderDetections(message.detections);
+        renderUserDetections(message.detections);
+        return;
+      }
+      if (message.type === "texture") {
+        state.lastRun.texture = message.texture;
+        renderTexture(message.texture);
+        return;
+      }
+      if (message.type === "review") {
+        state.lastRun.review = message.review;
+        renderReview(message.review);
+        return;
+      }
+      if (message.type === "products") {
+        state.lastRun.retrieval = message.retrieval;
+        renderProducts(message.retrieval);
+        renderUserProducts(message.retrieval);
+        return;
+      }
+      if (message.type === "recommendation_token") {
+        appendRecommendationToken(message.content || "");
+        return;
+      }
+      if (message.type === "done") {
+        setStatus("Done");
+        setBusy(false);
+        updateSaveCaseButton();
+        return;
+      }
+      if (message.type === "error") {
+        setStatus("Error");
+        addTraceNote(message.message || "The agent loop failed.");
+        setBusy(false);
+      }
+    }
+
+    function resetUserOutputs() {
+      refs.qualityStatusPill.textContent = "Waiting";
+      refs.qualityImageFrame.innerHTML = '<div class="placeholder">Quality preview will appear after analysis starts.</div>';
+      refs.qualityMetrics.innerHTML = `
+        <div class="metric"><strong>-</strong><span>Face signal</span></div>
+        <div class="metric"><strong>-</strong><span>Likely skin area</span></div>
+        <div class="metric"><strong>-</strong><span>Blur score</span></div>
+        <div class="metric"><strong>-</strong><span>Decision</span></div>
+      `;
+      refs.qualityWarnings.textContent = "Run the analysis to view quality feedback.";
+      refs.detectionStatusPill.textContent = "Waiting";
+      refs.detectionImageFrame.innerHTML = '<div class="placeholder">YOLO11n output will appear here.</div>';
+      refs.detectionBadges.innerHTML = "";
+      refs.userDetectionCards.innerHTML = "";
+      refs.productStatusPill.textContent = "Waiting";
+      refs.concernBadges.innerHTML = "";
+      refs.userProductList.innerHTML = '<div class="note">Recommendations will appear after analysis finishes.</div>';
+      refs.selectedProductReason.textContent = "Choose a product from the right panel.";
+      refs.faceMapLandmarks.innerHTML = "";
+      refs.faceHeatmapLayer.innerHTML = "";
+      refs.faceMapPoints.innerHTML = "";
+      refs.mappingExplanation.textContent = "The hidden face-model image anchors the map. MediaPipe landmarks from the submitted photo are drawn on top, then YOLO concern heat blobs are projected using the same box locations.";
+      renderRecommendPhoto();
+      renderLandmarkMesh();
+    }
+
+    function renderUserQuality(summary) {
+      refs.qualityStatusPill.textContent = summary && summary.acceptable ? "Usable" : "Check photo";
+      refs.qualityStatusPill.className = `pill ${summary && summary.acceptable ? "" : "amber"}`;
+      refs.qualityImageFrame.innerHTML = summary && summary.skin_mask_overlay
+        ? `<img src="data:image/jpeg;base64,${summary.skin_mask_overlay}" alt="Skin mask quality overlay">`
+        : userImageHtml();
+      const skinRatio = Number(summary && summary.skin_pixel_ratio ? summary.skin_pixel_ratio : 0);
+      refs.qualityMetrics.innerHTML = `
+        <div class="metric"><strong>${summary && summary.face_detected ? "Yes" : "Weak"}</strong><span>Face signal</span></div>
+        <div class="metric"><strong>${(skinRatio * 100).toFixed(1)}%</strong><span>Likely skin area</span></div>
+        <div class="metric"><strong>${escapeHtml(summary && summary.blur_score ? summary.blur_score : "n/a")}</strong><span>Blur score</span></div>
+        <div class="metric"><strong>${summary && summary.acceptable ? "Pass" : "Low"}</strong><span>Decision</span></div>
+      `;
+      const warnings = Array.isArray(summary && summary.warnings) ? summary.warnings : [];
+      refs.qualityWarnings.innerHTML = warnings.length
+        ? warnings.map(escapeHtml).join("<br>")
+        : "The image has enough visible face and skin signal for analysis.";
+    }
+
+    function renderUserDetections(summary) {
+      const detections = summary && Array.isArray(summary.detections) ? summary.detections : [];
+      const counts = summary && summary.counts ? summary.counts : {};
+      refs.detectionStatusPill.textContent = detections.length ? `${detections.length} findings` : "No boxes";
+      refs.detectionImageFrame.innerHTML = summary && summary.annotated_image
+        ? `<img src="data:image/jpeg;base64,${summary.annotated_image}" alt="YOLO11n annotated detection result">`
+        : userImageHtml();
+      refs.detectionBadges.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `<span class="badge" style="background:${hexToSoft(concernColors[name])};color:${escapeHtml(concernColors[name] || "var(--accent)")};">${escapeHtml(name)}: ${escapeHtml(count)}</span>`)
+        .join("") || '<span class="badge amber">No detections above threshold</span>';
+      refs.userDetectionCards.innerHTML = detections.slice(0, 10).map((detection) => `
+        <article class="det-card">
+          <div class="det-class">${escapeHtml(detection.class || "Detection")}</div>
+          <div class="det-meta">Confidence ${(Number(detection.confidence || 0) * 100).toFixed(1)}%</div>
+          <div class="det-meta">${regionNameForDetection(detection, summary.image_size)}</div>
         </article>
-      `);
+      `).join("");
+      renderConcernBadges();
+      renderFaceMap();
+    }
+
+    function toTitleCase(str) {
+      if (!str) return "Skincare";
+      return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    }
+
+    function getPastelCategoryStyle(category) {
+      const cat = (category || "").toLowerCase();
+      if (cat.includes("serum")) {
+        return { bg: "#ffe4e6", color: "#9f1239" }; // pastel rose
+      } else if (cat.includes("toner") || cat.includes("pad")) {
+        return { bg: "#e0f2fe", color: "#0369a1" }; // pastel blue
+      } else if (cat.includes("cleanser") || cat.includes("wash") || cat.includes("soap") || cat.includes("facial")) {
+        return { bg: "#dcfce7", color: "#15803d" }; // pastel green
+      } else if (cat.includes("moisturizer") || cat.includes("cream") || cat.includes("gel") || cat.includes("moist")) {
+        return { bg: "#f3e8ff", color: "#6b21a8" }; // pastel purple
+      } else if (cat.includes("sunscreen") || cat.includes("sun")) {
+        return { bg: "#fef9c3", color: "#a16207" }; // pastel yellow
+      } else if (cat.includes("mask") || cat.includes("peel")) {
+        return { bg: "#ccfbf1", color: "#0f766e" }; // pastel teal
+      }
+      return { bg: "#f1f5f9", color: "#334155" }; // pastel gray (default)
+    }
+
+    function parseConcerns(concernsString) {
+      if (!concernsString) return { targets: [], benefits: [] };
+      const items = concernsString.split(",").map(i => i.trim()).filter(Boolean);
+      const targets = [];
+      const benefits = [];
+      for (const item of items) {
+        if (item.length < 25) {
+          targets.push(item);
+        } else {
+          benefits.push(item);
+        }
+      }
+      return { targets, benefits };
+    }
+
+    function renderUserProducts(retrieval) {
+      const products = retrieval && Array.isArray(retrieval.products) ? retrieval.products : [];
+      refs.productStatusPill.textContent = products.length ? `${products.length} options` : "No products";
+      if (!products.length) {
+        refs.userProductList.innerHTML = '<div class="note">No product candidates were returned from the knowledge base.</div>';
+        return;
+      }
+      refs.userProductList.innerHTML = products.map((product, index) => {
+        const style = getPastelCategoryStyle(product.category);
+        const titleCategory = toTitleCase(product.category);
+        return `
+          <button class="select-product ${index === state.selectedProductIndex ? "is-selected" : ""}" type="button" data-product-index="${index}">
+            <div class="product-badge-row">
+              <span class="cat-badge" style="background:${style.bg};color:${style.color};">${escapeHtml(titleCategory)}</span>
+              <span class="badge blue" style="margin-left:auto;font-size:0.68rem;padding:2px 6px;">Match ${product.similarity == null ? "n/a" : (Number(product.similarity) * 100).toFixed(0) + "%"}</span>
+            </div>
+            <div>
+              <div class="product-name" style="font-size:0.92rem;line-height:1.25;">${escapeHtml(product.product_name || "Unnamed product")}</div>
+              <div class="product-brand" style="font-size:0.75rem;margin-top:2px;">${escapeHtml(product.brand || "Unknown brand")}</div>
+            </div>
+            <div class="det-meta" style="font-size:0.78rem;font-weight:700;color:var(--muted);">${escapeHtml(product.price || "Price unavailable")}</div>
+          </button>
+        `;
+      }).join("");
+      refs.userProductList.querySelectorAll("[data-product-index]").forEach((button) => {
+        button.addEventListener("click", () => selectProduct(Number(button.dataset.productIndex)));
+      });
+      selectProduct(state.selectedProductIndex);
+    }
+
+    function getConcernsForIngredient(name, func) {
+      const text = `${name} ${func}`.toLowerCase();
+      const mapped = [];
+      if (text.includes("salicylic") || text.includes("bha") || text.includes("acne") || text.includes("jerawat") || text.includes("tea tree") || text.includes("willow bark")) {
+        mapped.push("Acne", "Blackheads", "Whiteheads");
+      }
+      if (text.includes("niacinamide") || text.includes("bright") || text.includes("mencerahkan") || text.includes("vitamin c") || text.includes("dark spot") || text.includes("noda") || text.includes("tranexamic") || text.includes("alpha arbutin") || text.includes("licorice")) {
+        mapped.push("Dark-Spots", "Eyebags");
+      }
+      if (text.includes("centella") || text.includes("soothing") || text.includes("calming") || text.includes("redness") || text.includes("sensi") || text.includes("kemerahan") || text.includes("panthenol") || text.includes("allantoin") || text.includes("cica") || text.includes("madecassoside") || text.includes("mugwort") || text.includes("chamomile")) {
+        mapped.push("Skin-Redness", "Eyebags");
+      }
+      if (text.includes("hyaluronic") || text.includes("hydrat") || text.includes("moist") || text.includes("kering") || text.includes("dry") || text.includes("gliserin") || text.includes("glycerin") || text.includes("ceramide") || text.includes("aloe")) {
+        mapped.push("Dry-Skin");
+      }
+      if (text.includes("retinol") || text.includes("peptide") || text.includes("aging") || text.includes("kerutan") || text.includes("wrinkle") || text.includes("collagen") || text.includes("kolagen") || text.includes("adenosine")) {
+        mapped.push("Wrinkles");
+      }
+      if (text.includes("pore") || text.includes("pori") || text.includes("clay") || text.includes("charcoal") || text.includes("sebum") || text.includes("oil") || text.includes("minyak") || text.includes("zinc") || text.includes("witch hazel")) {
+        mapped.push("Enlarged-Pores", "Oily-Skin", "Blackheads", "Whiteheads");
+      }
+      if (mapped.length === 0) {
+        mapped.push("Acne", "Blackheads", "Whiteheads", "Skin-Redness", "Oily-Skin", "Enlarged-Pores", "Dry-Skin", "Wrinkles", "Dark-Spots", "Eyebags");
+      }
+      return mapped;
+    }
+
+    function selectProduct(index) {
+      const products = state.lastRun && state.lastRun.retrieval && Array.isArray(state.lastRun.retrieval.products)
+        ? state.lastRun.retrieval.products
+        : [];
+      if (!products.length) return;
+      state.selectedProductIndex = Math.max(0, Math.min(index, products.length - 1));
+      refs.userProductList.querySelectorAll(".select-product").forEach((button, idx) => {
+        button.classList.toggle("is-selected", idx === state.selectedProductIndex);
+      });
+      const product = products[state.selectedProductIndex];
+      const matched = matchedDetectionsForProduct(product);
+      const matchedNames = matched.map((item) => item.class).filter(Boolean);
+
+      // Reset filter on product change
+      state.activeIngredientFilter = null;
+      state.activeIngredientFunc = null;
+
+      // Parse details
+      const style = getPastelCategoryStyle(product.category);
+      const titleCategory = toTitleCase(product.category);
+      const concernsData = parseConcerns(product.concerns);
+      
+      // Ingredient parsed functions
+      const ingredients = product.ingredient_functions
+        ? product.ingredient_functions.split(",").map(i => {
+            const parts = i.split("(");
+            const name = parts[0].trim();
+            const func = parts[1] ? parts[1].replace(")", "").trim() : "Active compound";
+            return { name, func };
+          })
+        : [];
+      
+      // Allergen block
+      const allergens = (product.allergen_flag || "").toLowerCase();
+      const hasAllergens = allergens && !allergens.includes("none detected") && !allergens.includes("no ");
+      const allergenClass = hasAllergens ? "warning-box" : "success-box";
+      const allergenContent = hasAllergens
+        ? `Contains potential allergens/irritants: <strong>${escapeHtml(product.allergen_flag)}</strong>. Avoid if you have highly reactive skin.`
+        : `Safe & Gentle: No common allergens or harsh irritants detected in key active listing.`;
+
+      // Safety warnings block
+      let warningsText = "";
+      if (product.ingredient_warnings && product.ingredient_warnings.toLowerCase() !== "none") {
+        warningsText += `<br>Usage note: ${escapeHtml(product.ingredient_warnings)}`;
+      }
+      if (product.pregnancy_safe) {
+        warningsText += `<br>Pregnancy safety status: <strong>${escapeHtml(product.pregnancy_safe)}</strong>`;
+      }
+
+      refs.selectedProductReason.innerHTML = `
+        <div class="prescription-card">
+          <div class="prescription-header">
+            <div class="prescription-title-row">
+              <h4>${escapeHtml(product.product_name)}</h4>
+              <span class="cat-badge" style="background:${style.bg};color:${style.color};font-size:0.75rem;">${escapeHtml(titleCategory)}</span>
+            </div>
+            <div style="font-size:0.8rem;font-weight:900;color:var(--violet);text-transform:uppercase;letter-spacing:0.04em;">${escapeHtml(product.brand)}</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between;">
+              <span>Price: ${escapeHtml(product.price || "n/a")}</span>
+              <span>Skin Type: ${escapeHtml(product.skin_type || "All types")}</span>
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>🎯 Targeted Skin Concerns</h5>
+            <div class="prescription-section-content" style="display:flex;flex-wrap:wrap;gap:4px;background:transparent;border:0;padding:0;">
+              ${concernsData.targets.map(t => `<span class="badge" style="background:var(--accent-soft);color:var(--accent);font-size:0.75rem;">${escapeHtml(t)}</span>`).join("") || `<span class="badge gray">General Care</span>`}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>✨ Key Benefits & Actions</h5>
+            <div class="prescription-section-content">
+              ${concernsData.benefits.join(". ") || "Membantu menutrisi, menyegarkan, dan menjaga kelembaban alami kulit wajah."}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>🧪 Core Ingredients & Benefits <span style="font-size:0.7rem;color:var(--muted);text-transform:none;font-weight:normal;margin-left:auto;">(Click to map)</span></h5>
+            <div class="prescription-section-content ingredient-list-tags">
+              ${ingredients.map(ing => `
+                <div class="ingredient-tag" data-ingredient-name="${escapeHtml(ing.name)}" data-ingredient-func="${escapeHtml(ing.func)}">
+                  <strong>${escapeHtml(ing.name)}</strong>
+                  <span>${escapeHtml(ing.func)}</span>
+                </div>
+              `).join("") || `<div class="det-meta">No specific active ingredient metadata recorded.</div>`}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>⚠️ Safety & Allergen Warnings</h5>
+            <div class="prescription-section-content ${allergenClass}">
+              ${allergenContent}
+              ${warningsText}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Attach click listeners to ingredient tags
+      const tagElements = refs.selectedProductReason.querySelectorAll(".ingredient-tag");
+      tagElements.forEach(tag => {
+        tag.addEventListener("click", () => {
+          const ingName = tag.getAttribute("data-ingredient-name");
+          const ingFunc = tag.getAttribute("data-ingredient-func");
+          
+          if (state.activeIngredientFilter === ingName) {
+            state.activeIngredientFilter = null;
+            state.activeIngredientFunc = null;
+          } else {
+            state.activeIngredientFilter = ingName;
+            state.activeIngredientFunc = ingFunc;
+          }
+          
+          // Update visual states of tags
+          tagElements.forEach(t => {
+            const name = t.getAttribute("data-ingredient-name");
+            t.classList.toggle("is-active-filter", state.activeIngredientFilter === name);
+            t.classList.toggle("is-dimmed", state.activeIngredientFilter !== null && state.activeIngredientFilter !== name);
+          });
+          
+          // Re-render face map
+          renderFaceMap();
+        });
+      });
+
+      renderFaceMap();
+    }
+
+    function renderRecommendPhoto() {
+      refs.recommendPhotoFrame.innerHTML = userImageHtml();
+    }
+
+    function renderConcernBadges() {
+      const counts = state.lastRun && state.lastRun.detections ? state.lastRun.detections.counts || {} : {};
+      refs.concernBadges.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `<span class="badge" style="background:${hexToSoft(concernColors[name])};color:${escapeHtml(concernColors[name] || "var(--accent)")};">${escapeHtml(name)} ${escapeHtml(count)}</span>`)
+        .join("") || '<span class="badge amber">No localized concern boxes yet</span>';
+    }
+
+    function renderFaceMap() {
+      const summary = state.lastRun && state.lastRun.detections ? state.lastRun.detections : {};
+      const detections = Array.isArray(summary.detections) ? summary.detections : [];
+      const products = state.lastRun && state.lastRun.retrieval && Array.isArray(state.lastRun.retrieval.products)
+        ? state.lastRun.retrieval.products
+        : [];
+      const selectedProduct = products[state.selectedProductIndex] || null;
+      const activeSet = new Set(matchedDetectionsForProduct(selectedProduct).map((item) => item.id));
+      const imageSize = summary.image_size || {};
+      renderLandmarkMesh();
+
+      const isFiltering = state.activeIngredientFilter !== null;
+      let allowedConcerns = [];
+      if (isFiltering) {
+        allowedConcerns = getConcernsForIngredient(state.activeIngredientFilter, state.activeIngredientFunc);
+      }
+
+      refs.faceHeatmapLayer.innerHTML = detections.slice(0, 30).map((detection) => {
+        const blob = mapDetectionBoxToFace(detection, imageSize);
+        const color = concernColors[detection.class] || "#168661";
+        const active = activeSet.has(detection.id);
+        
+        let opacity = active ? 0.48 : 0.20;
+        if (isFiltering) {
+          const isTargeted = allowedConcerns.some(c => detection.class && detection.class.toLowerCase().includes(c.toLowerCase()));
+          if (!isTargeted) opacity = 0.02; // extremely dimmed
+        }
+
+        return `
+          <ellipse class="concern-blob" cx="${blob.x.toFixed(1)}" cy="${blob.y.toFixed(1)}" rx="${blob.rx.toFixed(1)}" ry="${blob.ry.toFixed(1)}" fill="${hexToRgba(color, opacity)}"></ellipse>
+        `;
+      }).join("");
+
+      refs.faceMapPoints.innerHTML = detections.slice(0, 30).map((detection) => {
+        const point = mapDetectionToFace(detection, imageSize);
+        const color = concernColors[detection.class] || "#168661";
+        const active = activeSet.has(detection.id);
+        
+        let opacity = active ? 0.95 : 0.32;
+        let r = active ? 9 : 6;
+        if (isFiltering) {
+          const isTargeted = allowedConcerns.some(c => detection.class && detection.class.toLowerCase().includes(c.toLowerCase()));
+          if (!isTargeted) {
+            opacity = 0.04; // extremely dimmed
+            r = 3;
+          }
+        }
+
+        return `
+          <circle class="map-point ${active && !isFiltering ? "is-active" : ""}" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}" fill="${escapeHtml(color)}" opacity="${opacity}"></circle>
+        `;
+      }).join("");
+
+      const matched = selectedProduct ? matchedDetectionsForProduct(selectedProduct) : [];
+      const matchedNames = unique(matched.map((item) => item.class).filter(Boolean));
+      
+      let explanation = "";
+      if (selectedProduct) {
+        explanation = `${selectedProduct.product_name || "This product"} maps to ${matched.length || 0} localized YOLO concern area(s): ${matchedNames.join(", ") || "none matched"}.`;
+        if (isFiltering) {
+          explanation += ` <strong>Showing targets for active compound "${state.activeIngredientFilter}": ${allowedConcerns.join(", ")}.</strong>`;
+        } else {
+          explanation += ` Click any active ingredient tag below to filter which face concerns it targets!`;
+        }
+      } else {
+        explanation = `Select a product to highlight matching detected concerns. Landmark mode: ${state.landmarkStatus}.`;
+      }
+      refs.mappingExplanation.innerHTML = explanation;
+    }
+
+    async function estimateModelFaceLandmarks() {
+      if (!state.faceLandmarker) return;
+      try {
+        const image = await loadImageElement("/assets/face-model");
+        const result = state.faceLandmarker.detect(image);
+        const landmarks = result && result.faceLandmarks && result.faceLandmarks[0] ? result.faceLandmarks[0] : null;
+        state.modelFaceLandmarks = landmarks;
+      } catch (error) {
+        console.error("Failed to estimate model face landmarks:", error);
+        state.modelFaceLandmarks = null;
+      }
+    }
+
+    async function initMediaPipeLandmarker() {
+      try {
+        const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
+        );
+        state.faceLandmarker = await createFaceLandmarker(vision, fileset, "GPU");
+        state.landmarkStatus = "MediaPipe";
+        await estimateModelFaceLandmarks();
+        if (state.selectedImageDataUrl) {
+          estimateFaceLandmarks(state.selectedImageDataUrl);
+        } else {
+          renderLandmarkMesh();
+        }
+      } catch (error) {
+        console.error("MediaPipe initialization failed:", error);
+        state.landmarkStatus = "template fallback";
+        state.faceLandmarker = null;
+        renderLandmarkMesh();
+      }
+    }
+
+    async function createFaceLandmarker(vision, fileset, delegate) {
+      const options = {
+        baseOptions: {
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
+          delegate
+        },
+        runningMode: "IMAGE",
+        numFaces: 1
+      };
+      try {
+        return await vision.FaceLandmarker.createFromOptions(fileset, options);
+      } catch (error) {
+        if (delegate === "GPU") {
+          return await createFaceLandmarker(vision, fileset, "CPU");
+        }
+        throw error;
+      }
+    }
+
+    async function estimateFaceLandmarks(dataUrl) {
+      if (!dataUrl) return;
+      if (!state.faceLandmarker) {
+        state.faceLandmarks = null;
+        renderLandmarkMesh();
+        renderFaceMap();
+        return;
+      }
+      try {
+        const image = await loadImageElement(dataUrl);
+        const result = state.faceLandmarker.detect(image);
+        const landmarks = result && result.faceLandmarks && result.faceLandmarks[0] ? result.faceLandmarks[0] : null;
+        state.faceLandmarks = landmarks;
+        state.landmarkStatus = landmarks ? "MediaPipe" : "template fallback";
+      } catch (error) {
+        state.faceLandmarks = null;
+        state.landmarkStatus = "template fallback";
+      }
+      renderLandmarkMesh();
+      renderFaceMap();
+    }
+
+    function renderLandmarkMesh() {
+      const landmarks = state.modelFaceLandmarks || buildFallbackFaceLandmarks();
+      const lineHtml = faceContourGroups.map((group) => {
+        const points = group
+          .map((index) => landmarks[index] ? landmarkToSvgPoint(landmarks[index]) : null)
+          .filter(Boolean);
+        if (points.length < 2) return "";
+        return `<polyline class="landmark-line" points="${points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ")}"></polyline>`;
+      }).join("");
+      const pointHtml = landmarks
+        .map((point, index) => point && (state.modelFaceLandmarks || index % 6 === 0)
+          ? `<circle class="landmark-point" cx="${landmarkToSvgPoint(point).x.toFixed(1)}" cy="${landmarkToSvgPoint(point).y.toFixed(1)}" r="${state.modelFaceLandmarks ? 1.1 : 1.4}"></circle>`
+          : "")
+        .join("");
+      refs.faceMapLandmarks.innerHTML = `${lineHtml}${pointHtml}`;
+    }
+
+    function buildFallbackFaceLandmarks() {
+      const landmarks = Array.from({ length: 468 }, () => null);
+      const set = (index, x, y) => { landmarks[index] = { x, y, z: 0 }; };
+      const oval = faceContourGroups[0].slice(0, -1);
+      oval.forEach((index, i) => {
+        const angle = (-90 + (360 * i) / oval.length) * Math.PI / 180;
+        set(index, 0.5 + Math.cos(angle) * 0.34, 0.49 + Math.sin(angle) * 0.39);
+      });
+      const leftEye = faceContourGroups[1].slice(0, -1);
+      leftEye.forEach((index, i) => {
+        const angle = (360 * i) / leftEye.length * Math.PI / 180;
+        set(index, 0.38 + Math.cos(angle) * 0.08, 0.39 + Math.sin(angle) * 0.035);
+      });
+      const rightEye = faceContourGroups[2].slice(0, -1);
+      rightEye.forEach((index, i) => {
+        const angle = (360 * i) / rightEye.length * Math.PI / 180;
+        set(index, 0.62 + Math.cos(angle) * 0.08, 0.39 + Math.sin(angle) * 0.035);
+      });
+      const lips = faceContourGroups[3].slice(0, -1);
+      lips.forEach((index, i) => {
+        const angle = (360 * i) / lips.length * Math.PI / 180;
+        set(index, 0.5 + Math.cos(angle) * 0.13, 0.65 + Math.sin(angle) * 0.045);
+      });
+      set(1, 0.5, 0.43);
+      set(2, 0.5, 0.53);
+      set(98, 0.45, 0.56);
+      set(97, 0.48, 0.58);
+      set(327, 0.55, 0.56);
+      set(326, 0.52, 0.58);
+      return landmarks;
+    }
+
+    function landmarkToSvgPoint(landmark) {
+      return {
+        x: 20 + clamp01(Number(landmark.x || 0)) * 200,
+        y: 20 + clamp01(Number(landmark.y || 0)) * 280
+      };
+    }
+
+    function faceLandmarkBounds() {
+      if (!state.faceLandmarks || !state.faceLandmarks.length) return null;
+      const xs = state.faceLandmarks.map((point) => Number(point.x)).filter(Number.isFinite);
+      const ys = state.faceLandmarks.map((point) => Number(point.y)).filter(Number.isFinite);
+      if (!xs.length || !ys.length) return null;
+      return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys)
+      };
+    }
+
+    function loadImageElement(src) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = src;
+      });
+    }
+
+    function matchedDetectionsForProduct(product) {
+      if (!product) return [];
+      const detections = state.lastRun && state.lastRun.detections && Array.isArray(state.lastRun.detections.detections)
+        ? state.lastRun.detections.detections
+        : [];
+      const text = `${product.product_name || ""} ${product.category || ""} ${product.concerns || ""} ${product.skin_type || ""} ${product.ingredient_functions || ""} ${product.ingredient_warnings || ""}`.toLowerCase();
+      return detections.filter((detection) => {
+        const terms = concernTermsForClass(detection.class || "");
+        return terms.some((term) => text.includes(term));
+      });
+    }
+
+    function concernTermsForClass(className) {
+      const name = className.toLowerCase();
+      if (name.includes("acne")) return ["acne", "blemish", "jerawat", "soothing"];
+      if (name.includes("whitehead") || name.includes("blackhead")) return ["pore", "pori", "komedo", "acne", "cleansing"];
+      if (name.includes("redness")) return ["soothing", "sensitive", "redness", "kemerahan", "barrier"];
+      if (name.includes("oily")) return ["oil", "sebum", "oily", "minyak"];
+      if (name.includes("pore")) return ["pore", "pori", "smoothing", "texture"];
+      if (name.includes("dry")) return ["hydrat", "moistur", "barrier", "dry"];
+      if (name.includes("wrinkle")) return ["anti-aging", "aging", "wrinkle", "elasticity"];
+      if (name.includes("dark")) return ["bright", "dark spot", "noda"];
+      if (name.includes("eyebag")) return ["hydrating", "anti-aging", "soothing"];
+      return [name];
+    }
+
+    function customerReason(product, matchedNames) {
+      const concerns = product.concerns || "the product metadata";
+      const matched = matchedNames.length ? unique(matchedNames).join(", ") : "your selected concern profile";
+      return `Recommended because its listed concerns (${escapeHtml(concerns)}) overlap with ${escapeHtml(matched)} detected in the image or stated in your inquiry.`;
+    }
+
+    function mapDetectionToFace(detection, imageSize) {
+      const box = Array.isArray(detection.bbox) ? detection.bbox : [0, 0, 1, 1];
+      const width = Number(imageSize.width || 1);
+      const height = Number(imageSize.height || 1);
+      const cx = ((Number(box[0]) + Number(box[2])) / 2) / width;
+      const cy = ((Number(box[1]) + Number(box[3])) / 2) / height;
+
+      if (state.faceLandmarks && state.faceLandmarks.length) {
+        const modelLandmarks = state.modelFaceLandmarks || buildFallbackFaceLandmarks();
+        let minDist = Infinity;
+        let closestIndex = 1; // Default to nose tip
+        for (let i = 0; i < state.faceLandmarks.length; i++) {
+          const pt = state.faceLandmarks[i];
+          if (pt) {
+            const dx = pt.x - cx;
+            const dy = pt.y - cy;
+            const dist = dx * dx + dy * dy;
+            if (dist < minDist) {
+              minDist = dist;
+              closestIndex = i;
+            }
+          }
+        }
+        if (modelLandmarks[closestIndex]) {
+          return landmarkToSvgPoint(modelLandmarks[closestIndex]);
+        }
+      }
+
+      const bounds = faceLandmarkBounds();
+      if (bounds && bounds.maxX > bounds.minX && bounds.maxY > bounds.minY) {
+        const localX = clamp01((cx - bounds.minX) / (bounds.maxX - bounds.minX));
+        const localY = clamp01((cy - bounds.minY) / (bounds.maxY - bounds.minY));
+        return {
+          x: 45 + localX * 150,
+          y: 55 + localY * 220
+        };
+      }
+      return {
+        x: 45 + clamp01(cx) * 150,
+        y: 55 + clamp01(cy) * 220
+      };
+    }
+
+    function mapDetectionBoxToFace(detection, imageSize) {
+      const box = Array.isArray(detection.bbox) ? detection.bbox : [0, 0, 1, 1];
+      const width = Number(imageSize.width || 1);
+      const height = Number(imageSize.height || 1);
+      const point = mapDetectionToFace(detection, imageSize);
+      const normalizedWidth = Math.abs(Number(box[2]) - Number(box[0])) / width;
+      const normalizedHeight = Math.abs(Number(box[3]) - Number(box[1])) / height;
+      return {
+        x: point.x,
+        y: point.y,
+        rx: Math.max(8, Math.min(30, normalizedWidth * 150 * 0.72)),
+        ry: Math.max(8, Math.min(24, normalizedHeight * 220 * 0.72))
+      };
+    }
+
+    function regionNameForDetection(detection, imageSize) {
+      const point = mapDetectionToFace(detection, imageSize || {});
+      if (point.y < 120) return "Approx. forehead / upper face";
+      if (point.y < 170 && point.x < 100) return "Approx. left cheek / eye area";
+      if (point.y < 170 && point.x > 140) return "Approx. right cheek / eye area";
+      if (point.y < 205) return "Approx. nose / mid-face";
+      return "Approx. lower cheek / chin";
     }
 
     function renderPlan(plan) {
-      const card = ensureCard("stage-plan", "Gemma Plan", "Gemma", "green");
+      const card = ensureCard("stage-plan", "Agent Plan", "Gemma", "");
       const actions = Array.isArray(plan && plan.actions) ? plan.actions : [];
-      const limits = Array.isArray(plan && plan.known_limits) ? plan.known_limits : [];
       card.querySelector(".trace-card-body").innerHTML = `
-        <p>${escapeHtml(plan && plan.summary ? plan.summary : "Gemma selected the agentic YOLO analysis path.")}</p>
-        <div class="badge-row">
-          <span class="badge">Route: ${escapeHtml(plan && plan.route ? plan.route : "agentic")}</span>
-          ${actions.map((action) => `<span class="badge">${escapeHtml(action.tool || "STEP")}: ${escapeHtml(action.reason || "")}</span>`).join("")}
-        </div>
-        ${limits.length ? `<div class="note">${limits.map(escapeHtml).join("<br>")}</div>` : ""}
+        <p>${escapeHtml(plan && plan.summary ? plan.summary : "Using the agentic visual analysis path.")}</p>
+        <div class="badge-row">${actions.map((action) => `<span class="badge">${escapeHtml(action.tool || "STEP")}</span>`).join("")}</div>
       `;
     }
 
     function renderQuality(summary) {
       const card = ensureCard("stage-quality", "Input Quality Check", "Quality Gate", "amber");
       const warnings = Array.isArray(summary && summary.warnings) ? summary.warnings : [];
-      const acceptable = Boolean(summary && summary.acceptable);
       const skinRatio = Number(summary && summary.skin_pixel_ratio ? summary.skin_pixel_ratio : 0);
-      const faceText = summary && summary.face_detected ? "Face detected" : "No frontal face detected";
-      const badgeClass = acceptable ? "green" : "amber";
-
       card.querySelector(".trace-card-body").innerHTML = `
         ${summary && summary.skin_mask_overlay ? `<img class="detection-image" src="data:image/jpeg;base64,${summary.skin_mask_overlay}" alt="Likely skin mask input quality preview">` : ""}
         <div class="badge-row">
-          <span class="badge">${escapeHtml(faceText)}</span>
-          <span class="badge">Likely skin area: ${(skinRatio * 100).toFixed(1)}%</span>
-          <span class="badge">Blur score: ${escapeHtml(summary && summary.blur_score ? summary.blur_score : "n/a")}</span>
-          <span class="badge">Quality: ${acceptable ? "usable" : "weak"}</span>
+          <span class="badge">${summary && summary.face_detected ? "Face detected" : "No frontal face detected"}</span>
+          <span class="badge">Skin area ${(skinRatio * 100).toFixed(1)}%</span>
+          <span class="badge">Blur ${escapeHtml(summary && summary.blur_score ? summary.blur_score : "n/a")}</span>
         </div>
-        <div class="note">
-          ${warnings.length ? warnings.map(escapeHtml).join("<br>") : "The image has enough visible face/skin signal for analysis."}
-        </div>
+        <div class="note">${warnings.length ? warnings.map(escapeHtml).join("<br>") : "Input passed the quality gate."}</div>
       `;
-      card.querySelector(".pill").className = `pill ${badgeClass}`;
     }
 
     function renderDetections(summary) {
       const card = ensureCard("stage-detect", "YOLO11n Detection", "YOLO11n", "amber");
       const detections = summary && Array.isArray(summary.detections) ? summary.detections : [];
       const counts = summary && summary.counts ? summary.counts : {};
-      const annotated = summary && summary.annotated_image ? summary.annotated_image : "";
-      const countBadges = Object.entries(counts)
-        .sort((a, b) => b[1] - a[1])
-        .map(([name, count]) => `<span class="badge">${escapeHtml(name)}: ${escapeHtml(count)}</span>`)
-        .join("");
-
-      if (!detections.length) {
-        card.querySelector(".trace-card-body").innerHTML = '<div class="note">YOLO11n did not return detections above the current confidence threshold.</div>';
-        return;
-      }
-
-      const detectionCards = detections.slice(0, 12).map((detection) => `
-        <article class="det-card">
-          <div class="det-class">${escapeHtml(detection.class || "Detection")}</div>
-          <div class="det-meta">Confidence ${(Number(detection.confidence || 0) * 100).toFixed(1)}%</div>
-          <div class="det-meta">Box: ${escapeHtml((detection.bbox || []).join(", "))}</div>
-          <div class="det-meta">Area: ${escapeHtml(detection.area_px || 0)} px</div>
-        </article>
-      `).join("");
-
       card.querySelector(".trace-card-body").innerHTML = `
-        ${annotated ? `<img class="detection-image" src="data:image/jpeg;base64,${annotated}" alt="YOLO11n annotated detection result">` : ""}
-        <div class="badge-row">${countBadges}</div>
-        <div class="note">Showing top ${Math.min(12, detections.length)} of ${detections.length} detections from the trained Skincaria YOLO11n weights.</div>
-        <div class="detection-grid">${detectionCards}</div>
+        ${summary && summary.annotated_image ? `<img class="detection-image" src="data:image/jpeg;base64,${summary.annotated_image}" alt="YOLO11n annotated detection result">` : ""}
+        <div class="badge-row">${Object.entries(counts).map(([name, count]) => `<span class="badge">${escapeHtml(name)}: ${escapeHtml(count)}</span>`).join("")}</div>
+        <div class="detection-grid">${detections.slice(0, 12).map((d) => `
+          <article class="det-card">
+            <div class="det-class">${escapeHtml(d.class || "Detection")}</div>
+            <div class="det-meta">Confidence ${(Number(d.confidence || 0) * 100).toFixed(1)}%</div>
+            <div class="det-meta">Box ${(d.bbox || []).join(", ")}</div>
+          </article>
+        `).join("")}</div>
       `;
     }
 
     function renderTexture(summary) {
-      const card = ensureCard("stage-classify", "EfficientNet Texture Classification", "EfficientNetV2-B0", "green");
-      const predictions = summary && Array.isArray(summary.predictions) ? summary.predictions : [];
+      const card = ensureCard("stage-classify", "EfficientNet Texture", "EfficientNetV2-B0", "");
       const active = summary && Array.isArray(summary.active_labels) ? summary.active_labels : [];
-      const gradcam = summary && summary.gradcam ? summary.gradcam : null;
-      const preprocessing = summary && summary.preprocessing ? summary.preprocessing : {};
-
-      if (!predictions.length) {
-        card.querySelector(".trace-card-body").innerHTML = '<div class="note">EfficientNet did not return texture-classification outputs.</div>';
-        return;
-      }
-
-      const activeBadges = active.length
-        ? active.map((item) => `<span class="badge">${escapeHtml(item.class)} ${(Number(item.probability || 0) * 100).toFixed(1)}%</span>`).join("")
-        : '<span class="badge">No texture label passed threshold</span>';
-
-      const rows = predictions.map((item) => {
-        const probability = clamp01(Number(item.probability || 0));
-        const threshold = clamp01(Number(item.threshold || 0.5));
-        const activeClass = item.active ? "" : " is-inactive";
-        const status = item.active ? "passed" : "below";
-        return `
-          <article class="texture-row${activeClass}">
-            <div class="texture-topline">
-              <div class="texture-name">${escapeHtml(item.class || "Texture")}</div>
-              <div class="texture-score">${(probability * 100).toFixed(1)}% / threshold ${(threshold * 100).toFixed(0)}% (${status})</div>
-            </div>
-            <div class="texture-bar" aria-hidden="true">
-              <div class="texture-fill" style="width: ${(probability * 100).toFixed(1)}%"></div>
-              <div class="texture-threshold" style="left: ${(threshold * 100).toFixed(1)}%"></div>
-            </div>
-            <div class="det-meta">Margin ${(Number(item.margin || 0) * 100).toFixed(1)} percentage points</div>
-          </article>
-        `;
-      }).join("");
-
+      const predictions = summary && Array.isArray(summary.predictions) ? summary.predictions : [];
       card.querySelector(".trace-card-body").innerHTML = `
-        <div class="note">EfficientNetV2-B0 analyzes ${escapeHtml(preprocessing.input || "the input image")} as image-level texture classification. It does not draw boxes; labels pass only when probability is above the tuned validation threshold.${preprocessing.skin_mask_enabled ? ` Likely skin area: ${(Number(preprocessing.skin_pixel_ratio || 0) * 100).toFixed(1)}%; non-skin pixels are masked before inference and Grad-CAM is gated to likely skin.` : ""}</div>
-        <div class="badge-row">${activeBadges}</div>
-        ${gradcam && gradcam.overlay_image ? `
-          <div class="note">Grad-CAM explanation for ${escapeHtml(gradcam.class)}: brighter warm regions contributed more to this texture label.</div>
-          <img class="detection-image" src="data:image/jpeg;base64,${gradcam.overlay_image}" alt="EfficientNet Grad-CAM explanation for ${escapeHtml(gradcam.class)}">
-        ` : ""}
-        <div class="texture-list">${rows}</div>
+        <div class="note">Texture classifier output is developer-only in this interface. User view intentionally hides Grad-CAM.</div>
+        <div class="badge-row">${active.length ? active.map((item) => `<span class="badge">${escapeHtml(item.class)} ${(Number(item.probability || 0) * 100).toFixed(1)}%</span>`).join("") : '<span class="badge amber">No active texture labels</span>'}</div>
+        <div class="detection-grid">${predictions.map((item) => `
+          <article class="det-card">
+            <div class="det-class">${escapeHtml(item.class || "")}</div>
+            <div class="det-meta">Probability ${(Number(item.probability || 0) * 100).toFixed(1)}%</div>
+            <div class="det-meta">Threshold ${(Number(item.threshold || 0) * 100).toFixed(1)}%</div>
+          </article>
+        `).join("")}</div>
       `;
     }
 
     function renderReview(review) {
-      const card = ensureCard("stage-answer", "Gemma Visual Review", "Gemma", "green");
+      const card = ensureCard("stage-review", "Visual Review", "Gemma", "");
       const observations = Array.isArray(review && review.observations) ? review.observations : [];
       const uncertainties = Array.isArray(review && review.uncertainties) ? review.uncertainties : [];
-      const finalAnswer = review && review.final_answer ? review.final_answer : "Agent loop completed.";
-      const sections = [];
-      if (observations.length) {
-        sections.push("### Observations\n" + observations.map((item) => `- ${item}`).join("\n"));
-      }
-      if (uncertainties.length) {
-        sections.push("### Caveats\n" + uncertainties.map((item) => `- ${item}`).join("\n"));
-      }
-      sections.push("### Answer\n" + finalAnswer);
-      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(sections.join("\n\n"))}</div>`;
+      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown([
+        observations.length ? "### Observations\n" + observations.map((item) => `- ${item}`).join("\n") : "",
+        uncertainties.length ? "### Caveats\n" + uncertainties.map((item) => `- ${item}`).join("\n") : "",
+        "### Answer\n" + (review && review.final_answer ? review.final_answer : "Review completed.")
+      ].filter(Boolean).join("\n\n"))}</div>`;
     }
 
     function renderProducts(retrieval) {
-      const card = ensureCard("stage-retrieve", "Product Knowledge Base", "ChromaDB", "violet");
+      const card = ensureCard("stage-products", "Product Knowledge Base", "ChromaDB", "violet");
       const products = retrieval && Array.isArray(retrieval.products) ? retrieval.products : [];
-      const query = retrieval && retrieval.query ? retrieval.query : "";
-
-      if (!products.length) {
-        card.querySelector(".trace-card-body").innerHTML = `
-          <div class="note">No products were found in the skincare knowledge base.</div>
-          ${query ? `<div class="note">${escapeHtml(query)}</div>` : ""}
-        `;
-        return;
-      }
-
-      const productCards = products.map((product) => `
-        <article class="product-card">
-          <div>
+      card.querySelector(".trace-card-body").innerHTML = products.length ? `
+        <div class="product-grid">${products.map((product) => `
+          <article class="product-card">
             <div class="product-name">${escapeHtml(product.product_name || "Unnamed product")}</div>
             <div class="product-brand">${escapeHtml(product.brand || "Unknown brand")}</div>
-          </div>
-          <div class="det-meta">${escapeHtml(product.category || "Category unavailable")}</div>
-          <div class="det-meta">${escapeHtml(product.price || "Price unavailable")}</div>
-          <div class="det-meta">Concerns: ${escapeHtml(product.concerns || "not specified")}</div>
-          <div class="det-meta">Skin: ${escapeHtml(product.skin_type || "not specified")}</div>
-          <div class="det-meta">Similarity: ${product.similarity == null ? "n/a" : (Number(product.similarity) * 100).toFixed(1) + "%"}</div>
-        </article>
-      `).join("");
-
-      card.querySelector(".trace-card-body").innerHTML = `
-        <div class="note">Top ${products.length} product candidates retrieved from the local skincare knowledge base. Gemma will use these only, then explain why each recommendation fits this customer.</div>
-        <div class="product-grid">${productCards}</div>
-      `;
+            <div class="det-meta">${escapeHtml(product.category || "")} · ${escapeHtml(product.price || "")}</div>
+            <div class="det-meta">Concerns: ${escapeHtml(product.concerns || "not specified")}</div>
+          </article>
+        `).join("")}</div>
+      ` : '<div class="note">No products were found in the knowledge base.</div>';
     }
 
     function appendRecommendationToken(token) {
-      recommendationMarkdown += token;
-      if (lastRun) {
-        lastRun.assistant_response = recommendationMarkdown;
-      }
-      const card = ensureCard("stage-recommend", "Product Recommendation", "Gemma", "violet");
-      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(recommendationMarkdown || "Preparing recommendation...")}</div>`;
+      state.recommendationMarkdown += token;
+      if (state.lastRun) state.lastRun.assistant_response = state.recommendationMarkdown;
+      const card = ensureCard("stage-recommend", "Product Recommendation", "Grounded Template", "violet");
+      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(state.recommendationMarkdown || "Preparing recommendation...")}</div>`;
     }
 
     async function saveEvaluationCase() {
-      if (!lastRun || !lastRun.assistant_response || !lastRun.retrieval) {
-        addTraceNote("Run analysis first, then save the completed case.");
+      if (!state.lastRun || !state.lastRun.assistant_response || !state.lastRun.retrieval) {
+        setStatus("Run first");
         return;
       }
-
       refs.saveCaseButton.disabled = true;
-      refs.saveCaseButton.textContent = "Saving...";
-      const payload = buildEvaluationPayload(lastRun);
+      refs.userSaveCaseButton.disabled = true;
+      const payload = buildEvaluationPayload(state.lastRun);
       try {
         const response = await fetch("/evaluation/cases", {
           method: "POST",
@@ -1231,22 +2090,13 @@
           body: JSON.stringify(payload)
         });
         const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.detail || "Could not save evaluation case.");
-        }
-        caseSaved = true;
+        if (!response.ok) throw new Error(result.detail || "Could not save evaluation case.");
+        state.caseSaved = true;
         setStatus(`Saved ${result.id}`);
-        ensureCard("stage-save", "Evaluation Case", "Dataset", "violet")
-          .querySelector(".trace-card-body").innerHTML = `
-            <div class="note">Saved judge case <strong>${escapeHtml(result.id)}</strong> to ${escapeHtml(result.path)}. Raw face image was not saved.</div>
-          `;
       } catch (error) {
         setStatus("Save failed");
-        refs.saveCaseButton.disabled = false;
-        refs.saveCaseButton.textContent = "Save Judge Case";
-        ensureCard("stage-save", "Evaluation Case", "Dataset", "violet")
-          .querySelector(".trace-card-body").innerHTML = `<div class="note">${escapeHtml(error.message || "Could not save evaluation case.")}</div>`;
-        return;
+        ensureCard("stage-save", "Evaluation Case", "Dataset", "violet").querySelector(".trace-card-body").innerHTML =
+          `<div class="note">${escapeHtml(error.message || "Could not save evaluation case.")}</div>`;
       }
       updateSaveCaseButton();
     }
@@ -1257,35 +2107,14 @@
       const review = run.review || {};
       const retrieval = run.retrieval || {};
       const products = Array.isArray(retrieval.products) ? retrieval.products : [];
-      const activeTextures = Array.isArray(texture.active_labels)
-        ? texture.active_labels.map((item) => ({
-            class: item.class || "",
-            probability: item.probability,
-            threshold: item.threshold
-          }))
-        : [];
-      const topDetections = Array.isArray(detections.detections)
-        ? detections.detections.slice(0, 20).map((item) => ({
-            class: item.class || "",
-            confidence: item.confidence,
-            bbox: item.bbox,
-            area_px: item.area_px
-          }))
-        : [];
-
       return {
         user_concern: run.user_concern || "",
         visual_evidence: {
           quality: run.quality || {},
           yolo_counts: detections.counts || {},
-          yolo_top_detections: topDetections,
-          efficientnet_active: activeTextures,
-          efficientnet_preprocessing: texture.preprocessing || {},
-          visual_review: {
-            observations: Array.isArray(review.observations) ? review.observations : [],
-            uncertainties: Array.isArray(review.uncertainties) ? review.uncertainties : [],
-            final_answer: review.final_answer || ""
-          }
+          yolo_top_detections: Array.isArray(detections.detections) ? detections.detections.slice(0, 20) : [],
+          efficientnet_active: Array.isArray(texture.active_labels) ? texture.active_labels : [],
+          visual_review: review || {}
         },
         retrieved_products: products.map((product) => ({
           brand: product.brand || "",
@@ -1304,16 +2133,30 @@
       };
     }
 
+    function renderStageSkeleton(stage) {
+      const titles = {
+        plan: "Agent Plan",
+        quality: "Input Quality Check",
+        detect: "YOLO11n Detection",
+        classify: "EfficientNet Texture",
+        answer: "Visual Review",
+        retrieve: "Product Knowledge Base",
+        recommend: "Product Recommendation"
+      };
+      const id = `stage-${stage}`;
+      if (document.getElementById(id)) return;
+      const card = ensureCard(id, titles[stage] || stage || "Stage", stage === "retrieve" || stage === "recommend" ? "RAG" : "Running", stage === "detect" ? "amber" : stage === "retrieve" || stage === "recommend" ? "violet" : "");
+      card.querySelector(".trace-card-body").innerHTML = '<div class="skeleton"></div><div class="skeleton big"></div>';
+    }
+
     function ensureCard(id, title, pill, pillClass) {
       let card = document.getElementById(id);
-      if (card) {
-        return card;
-      }
+      if (card) return card;
       refs.trace.insertAdjacentHTML("beforeend", `
         <article class="trace-card" id="${id}">
           <div class="trace-card-header">
             <h3>${escapeHtml(title)}</h3>
-            <span class="pill ${escapeHtml(pillClass)}">${escapeHtml(pill)}</span>
+            <span class="pill ${escapeHtml(pillClass || "")}">${escapeHtml(pill)}</span>
           </div>
           <div class="trace-card-body"></div>
         </article>
@@ -1321,8 +2164,68 @@
       return document.getElementById(id);
     }
 
+    function setUserPage(index) {
+      state.userPage = Math.max(0, Math.min(index, pageNames.length - 1));
+      document.querySelectorAll("[data-user-page]").forEach((page) => {
+        page.classList.toggle("is-active", Number(page.dataset.userPage) === state.userPage);
+      });
+      document.querySelectorAll("[data-page]").forEach((step) => {
+        const stepIndex = Number(step.dataset.page);
+        step.classList.toggle("is-active", stepIndex === state.userPage);
+        step.classList.toggle("is-done", stepIndex < state.userPage);
+      });
+      refs.prevPageButton.disabled = state.userPage === 0;
+      refs.nextPageButton.disabled = state.userPage === pageNames.length - 1;
+    }
+
+    function closeSocket() {
+      if (state.activeSocket) {
+        state.activeSocket.close();
+        state.activeSocket = null;
+      }
+    }
+
+    function setBusy(value) {
+      state.busy = value;
+      refs.runButton.disabled = value;
+      refs.userRunButton.disabled = value;
+      refs.clearButton.disabled = value;
+      refs.fileInput.disabled = value;
+      refs.userFileInput.disabled = value;
+      refs.captureButton.disabled = value || !state.cameraStream;
+      refs.stopCameraButton.disabled = value || !state.cameraStream;
+      refs.openCameraButton.disabled = value || Boolean(state.cameraStream);
+      updateSaveCaseButton();
+    }
+
+    function updateSaveCaseButton() {
+      const ready = Boolean(
+        state.lastRun &&
+        state.lastRun.assistant_response &&
+        state.lastRun.retrieval &&
+        Array.isArray(state.lastRun.retrieval.products) &&
+        state.lastRun.retrieval.products.length &&
+        !state.busy &&
+        !state.caseSaved
+      );
+      refs.saveCaseButton.disabled = !ready;
+      refs.userSaveCaseButton.disabled = !ready;
+      refs.saveCaseButton.textContent = state.caseSaved ? "Judge Case Saved" : "Save Judge Case";
+      refs.userSaveCaseButton.textContent = state.caseSaved ? "Judge Case Saved" : "Save Judge Case";
+    }
+
+    function setStatus(message) {
+      refs.status.querySelector("span:last-child").textContent = message;
+    }
+
     function addTraceNote(message) {
       refs.trace.innerHTML = `<div class="note">${escapeHtml(message)}</div>`;
+    }
+
+    function userImageHtml() {
+      return state.selectedImageDataUrl
+        ? `<img src="${escapeHtml(state.selectedImageDataUrl)}" alt="Selected face photo">`
+        : '<div class="placeholder">No photo selected.</div>';
     }
 
     function renderMarkdown(source) {
@@ -1332,37 +2235,21 @@
       for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line) {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
+          if (inList) { html += "</ul>"; inList = false; }
           continue;
         }
         if (line.startsWith("### ")) {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
+          if (inList) { html += "</ul>"; inList = false; }
           html += `<h3>${inlineMarkdown(line.slice(4))}</h3>`;
-          continue;
-        }
-        if (line.startsWith("- ") || line.startsWith("* ")) {
-          if (!inList) {
-            html += "<ul>";
-            inList = true;
-          }
+        } else if (line.startsWith("- ") || line.startsWith("* ")) {
+          if (!inList) { html += "<ul>"; inList = true; }
           html += `<li>${inlineMarkdown(line.slice(2))}</li>`;
-          continue;
+        } else {
+          if (inList) { html += "</ul>"; inList = false; }
+          html += `<p>${inlineMarkdown(line)}</p>`;
         }
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
-        html += `<p>${inlineMarkdown(line)}</p>`;
       }
-      if (inList) {
-        html += "</ul>";
-      }
+      if (inList) html += "</ul>";
       return html;
     }
 
@@ -1372,8 +2259,12 @@
         .replace(/\*(.*?)\*/g, "<em>$1</em>");
     }
 
+    function stripDataUrl(value) {
+      return value.includes(",") && value.startsWith("data:") ? value.split(",", 2)[1] : value;
+    }
+
     function escapeHtml(value) {
-      return String(value)
+      return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -1382,11 +2273,46 @@
     }
 
     function clamp01(value) {
-      if (!Number.isFinite(value)) {
-        return 0;
-      }
+      if (!Number.isFinite(value)) return 0;
       return Math.max(0, Math.min(1, value));
     }
+
+    function unique(values) {
+      const seen = new Set();
+      const result = [];
+      for (const value of values) {
+        const key = String(value).toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        result.push(value);
+      }
+      return result;
+    }
+
+    function hexToSoft(hex) {
+      if (!hex || !hex.startsWith("#")) return "var(--accent-soft)";
+      const raw = hex.slice(1);
+      const bigint = parseInt(raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r}, ${g}, ${b}, 0.13)`;
+    }
+
+    function hexToRgba(hex, alpha) {
+      if (!hex || !hex.startsWith("#")) return `rgba(22, 134, 97, ${alpha})`;
+      const raw = hex.slice(1);
+      const bigint = parseInt(raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    setUserPage(0);
+    renderLandmarkMesh();
+    initMediaPipeLandmarker();
+    updateSaveCaseButton();
   </script>
 </body>
 </html>
