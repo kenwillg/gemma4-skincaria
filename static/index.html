@@ -440,10 +440,23 @@
     }
 
     .user-photo-frame img {
-      max-width: 100%;
-      max-height: 100%;
+      position: absolute;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       display: block;
+    }
+
+    .upload-layout .user-photo-frame,
+    .quality-layout .user-photo-frame,
+    .detect-layout .user-photo-frame {
+      max-width: 50vw;
+      max-height: 100vh;
+      aspect-ratio: 4 / 3;
+      align-self: center;
+      margin: 0 auto;
+      width: 100%;
+      height: auto;
     }
 
     .metric-grid {
@@ -591,6 +604,82 @@
       color: #065f46;
     }
 
+    /* Premium Safety & Allergen Table Styles */
+    .safety-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.8rem;
+      margin-top: 8px;
+      background: var(--surface-soft);
+      backdrop-filter: blur(8px);
+    }
+    
+    .safety-table th, 
+    .safety-table td {
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: middle;
+      line-height: 1.45;
+    }
+    
+    .safety-table th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .safety-table td {
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+    }
+    
+    .safety-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .safety-table tr td:first-child {
+      font-weight: 600;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    
+    /* Rows contextual colors matching the premium theme */
+    .safety-row-danger {
+      background: rgba(220, 38, 38, 0.04);
+    }
+    .safety-row-danger td:first-child {
+      color: #dc2626;
+    }
+    
+    .safety-row-success {
+      background: rgba(22, 163, 74, 0.04);
+    }
+    .safety-row-success td:first-child {
+      color: #16a34a;
+    }
+    
+    .safety-row-warning {
+      background: rgba(217, 119, 6, 0.04);
+    }
+    .safety-row-warning td:first-child {
+      color: #d97706;
+    }
+    
+    .safety-row-info {
+      background: rgba(37, 99, 235, 0.04);
+    }
+    .safety-row-info td:first-child {
+      color: #2563eb;
+    }
+
     .ingredient-list-tags {
       display: flex;
       flex-wrap: wrap;
@@ -600,21 +689,93 @@
     .ingredient-tag {
       background: var(--surface);
       border: 1px solid var(--line);
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 0.8rem;
       display: flex;
       flex-direction: column;
       gap: 2px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      position: relative;
     }
 
-    .ingredient-tag strong {
-      color: var(--text);
+    /* Premium Custom Tooltip */
+    .ingredient-tag::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: rgba(16, 21, 19, 0.96);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      white-space: normal;
+      width: max-content;
+      max-width: 250px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 100;
+      text-align: center;
+      line-height: 1.35;
+      font-weight: 550;
     }
 
-    .ingredient-tag span {
-      font-size: 0.7rem;
-      color: var(--muted);
+    .ingredient-tag::before {
+      content: "";
+      position: absolute;
+      bottom: 112%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: rgba(16, 21, 19, 0.96) transparent transparent transparent;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+
+    .ingredient-tag:hover::after,
+    .ingredient-tag:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .ingredient-tag:hover {
+      border-color: var(--accent);
+      background: var(--surface-soft);
+      transform: translateY(-1px);
+    }
+
+    .ingredient-tag.is-active-filter {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(22, 134, 97, 0.1);
+    }
+
+    .ingredient-tag.is-active-filter strong {
+      color: var(--accent);
+    }
+
+    .ingredient-tag.is-active-filter span {
+      color: var(--accent);
+      opacity: 0.85;
+    }
+
+    .ingredient-tag.is-dimmed {
+      opacity: 0.45;
+      transform: scale(0.96);
     }
 
     .mapping-stage {
@@ -777,6 +938,151 @@
       .topbar { align-items: flex-start; flex-direction: column; }
       .progress-strip { grid-template-columns: 1fr; }
       .metric-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Premium Glassmorphic Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(23, 33, 29, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) * 1.5);
+      box-shadow: 0 24px 64px rgba(24, 38, 32, 0.18);
+      width: 90%;
+      max-width: 440px;
+      overflow: hidden;
+      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 1.15rem;
+      font-weight: 850;
+      color: var(--text);
+    }
+
+    .close-modal-btn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .close-modal-btn:hover {
+      color: var(--danger);
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.88rem;
+      font-weight: 850;
+      color: var(--muted);
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-group input[type="text"]:focus {
+      border-color: var(--violet);
+      box-shadow: 0 0 0 3px var(--violet-soft);
+    }
+
+    .gender-selection {
+      display: flex;
+      gap: 12px;
+    }
+
+    .gender-option {
+      flex: 1;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .gender-option input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .gender-option span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      font-weight: 750;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .gender-option input:checked + span {
+      background: var(--violet-soft);
+      border-color: var(--violet);
+      color: var(--violet);
+      box-shadow: 0 4px 12px rgba(109, 75, 216, 0.08);
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: var(--surface-soft);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
@@ -991,6 +1297,39 @@
 
   <canvas id="captureCanvas" hidden></canvas>
 
+  <!-- Premium Save Judge Case Modal Overlay -->
+  <div id="saveCaseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Tag Judge Case</h3>
+        <button class="close-modal-btn" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="casePersonName">Person's Name</label>
+          <input type="text" id="casePersonName" placeholder="Enter name (e.g. rosa)">
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <div class="gender-selection">
+            <label class="gender-option">
+              <input type="radio" name="casePersonGender" value="female" checked>
+              <span>Female</span>
+            </label>
+            <label class="gender-option">
+              <input type="radio" name="casePersonGender" value="male">
+              <span>Male</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="button" id="cancelSaveCaseBtn">Cancel</button>
+        <button class="button violet" id="confirmSaveCaseBtn">Confirm & Save</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const refs = {
       modeSubtitle: document.getElementById("modeSubtitle"),
@@ -1045,6 +1384,7 @@
       userPage: 0,
       cameraStream: null,
       selectedImageDataUrl: "",
+      uploadedFileName: "",
       activeSocket: null,
       recommendationMarkdown: "",
       lastRun: null,
@@ -1055,6 +1395,9 @@
       faceLandmarks: null,
       modelFaceLandmarks: null,
       activeIngredientFilter: null,
+      activeIngredientFunc: null,
+      hoveredIngredientFilter: null,
+      hoveredIngredientFunc: null,
       landmarkStatus: "loading"
     };
 
@@ -1098,6 +1441,10 @@
     document.querySelectorAll("[data-page]").forEach((button) => {
       button.addEventListener("click", () => setUserPage(Number(button.dataset.page)));
     });
+
+    document.getElementById("closeModalBtn").addEventListener("click", closeSaveCaseModal);
+    document.getElementById("cancelSaveCaseBtn").addEventListener("click", closeSaveCaseModal);
+    document.getElementById("confirmSaveCaseBtn").addEventListener("click", confirmSaveEvaluationCase);
 
     function setMode(mode) {
       state.mode = mode;
@@ -1157,6 +1504,7 @@
       canvas.width = refs.webcam.videoWidth;
       canvas.height = refs.webcam.videoHeight;
       canvas.getContext("2d").drawImage(refs.webcam, 0, 0, canvas.width, canvas.height);
+      state.uploadedFileName = "camera_capture";
       setSelectedImage(canvas.toDataURL("image/jpeg", 0.88));
       stopWebcam();
       setStatus("Frame captured");
@@ -1180,6 +1528,10 @@
         setStatus("Invalid file");
         return;
       }
+      const dotIndex = file.name.lastIndexOf('.');
+      const baseName = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
+      state.uploadedFileName = baseName;
+
       const reader = new FileReader();
       reader.onload = () => {
         setSelectedImage(String(reader.result || ""));
@@ -1228,6 +1580,9 @@
       state.selectedProductIndex = 0;
       state.faceLandmarks = null;
       state.activeIngredientFilter = null;
+      state.activeIngredientFunc = null;
+      state.hoveredIngredientFilter = null;
+      state.hoveredIngredientFunc = null;
       refs.previewImage.removeAttribute("src");
       refs.previewImage.hidden = true;
       refs.placeholder.hidden = false;
@@ -1267,7 +1622,8 @@
       state.activeSocket.addEventListener("open", () => {
         state.activeSocket.send(JSON.stringify({
           concern,
-          image_base64: state.selectedImageDataUrl ? stripDataUrl(state.selectedImageDataUrl) : null
+          image_base64: state.selectedImageDataUrl ? stripDataUrl(state.selectedImageDataUrl) : null,
+          face_landmarks: state.faceLandmarks
         }));
       });
 
@@ -1352,7 +1708,7 @@
         return;
       }
       if (message.type === "error") {
-        setStatus("Error");
+        setStatus("Error: " + (message.message || "The agent loop failed."));
         addTraceNote(message.message || "The agent loop failed.");
         setBusy(false);
       }
@@ -1520,6 +1876,75 @@
       return mapped;
     }
 
+    function getAllIngredientsForFunction(funcName, ingredientsStr) {
+      if (!ingredientsStr) return [];
+      const normalizedFunc = funcName.toLowerCase();
+      const allIngredients = ingredientsStr.split(",").map(i => i.trim()).filter(Boolean);
+      
+      const funcToKeywords = {
+        solvent: ["aqua", "water", "butylene glycol", "1,2-hexanediol", "propanediol", "pentylene glycol", "alcohol", "propylene glycol", "ethanol", "glycerin", "hexane"],
+        humectant: ["butylene glycol", "glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "beta-glucan", "trehalose", "sorbitol", "tremella", "yeast", "mushroom"],
+        soothing: ["centella", "cica", "mugwort", "chamomile", "allantoin", "panthenol", "bisabolol", "calendula", "green tea", "camellia sinensis", "madecassoside", "licorice", "glycyrrhizate", "artemisia", "aloe", "willow bark", "salix alba"],
+        antioxidant: ["vitamin c", "ascorbic", "tocopherol", "vitamin e", "niacinamide", "green tea", "centella", "resveratrol", "ubiquinone", "yeast", "extract"],
+        brightening: ["niacinamide", "vitamin c", "ascorbic", "arbutin", "kojic", "tranexamic", "licorice", "glycyrrhizate", "ascorbyl glucoside"],
+        exfoliant: ["salicylic", "glycolic", "lactic", "mandelic", "bha", "aha", "pha", "gluconolactone", "citric acid", "willow bark", "salix alba"],
+        "anti-aging": ["retinol", "retinoid", "peptide", "adenosine", "collagen", "ceramide", "tocopherol"],
+        aging: ["retinol", "retinoid", "peptide", "adenosine", "collagen", "ceramide"],
+        wrinkle: ["retinol", "retinoid", "peptide", "adenosine", "collagen"],
+        acne: ["salicylic", "zinc", "tea tree", "melaleuca", "witch hazel", "clay", "kaolin", "bentonite", "niacinamide", "bha", "willow bark", "salix alba"],
+        pore: ["salicylic", "zinc", "clay", "kaolin", "witch hazel", "niacinamide", "bha", "willow bark", "salix alba"],
+        sebum: ["salicylic", "zinc", "clay", "witch hazel", "niacinamide", "bha"],
+        barrier: ["ceramide", "cholesterol", "phytosphingosine", "squalane", "niacinamide", "centella", "panthenol", "lecithin", "phytosterols"],
+        "ph adjuster": ["hydroxide", "tromethamine", "citric acid", "phosphate", "sodium hydroxide"],
+        "viscosity": ["cellulose", "hydroxyethylcellulose", "gum", "carbomer", "gel", "copolymer"],
+        surfactant: ["polysorbate", "lecithin", "peg-", "lauryl", "sulfate", "glucoside", "cocamidopropyl"],
+        emulsifier: ["polysorbate", "lecithin", "hydrogenated lecithin", "cetearyl", "stearate"],
+        chelating: ["edta", "disodium edta"],
+        preservative: ["phenoxyethanol", "ethylhexylglycerin", "paraben", "benzoate", "salicylate"],
+        "skin conditioning": ["niacinamide", "centella", "panthenol", "allantoin", "extract", "tocopherol", "ceramide", "yeast", "hyaluronate", "glycerin", "lecithin", "phytosterols", "protein", "glycol", "propanediol", "aloe", "salicylic", "willow bark", "salix alba", "butylene glycol", "1,2-hexanediol"],
+        conditioning: ["niacinamide", "centella", "panthenol", "allantoin", "extract", "tocopherol", "ceramide", "yeast", "hyaluronate", "glycerin", "lecithin", "phytosterols", "protein", "glycol", "propanediol", "aloe", "salicylic"],
+        "skin protectant": ["allantoin", "centella", "panthenol", "ceramide", "aloe", "tocopherol"],
+        protectant: ["allantoin", "centella", "panthenol", "ceramide", "aloe", "tocopherol"],
+        moisturizer: ["glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "ceramide", "squalane", "lecithin", "oil", "butter", "cholesterol", "phytosterols"],
+        moisturizing: ["glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "ceramide", "squalane", "lecithin", "oil", "butter", "cholesterol", "phytosterols"],
+        emollient: ["glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "ceramide", "squalane", "lecithin", "oil", "butter", "cholesterol", "phytosterols"],
+        buffering: ["phosphate", "citric acid", "sodium phosphate", "disodium phosphate"],
+        buffer: ["phosphate", "citric acid", "sodium phosphate", "disodium phosphate"]
+      };
+
+      const matches = [];
+      for (const [key, keywords] of Object.entries(funcToKeywords)) {
+        if (normalizedFunc.includes(key) || key.includes(normalizedFunc)) {
+          for (const ing of allIngredients) {
+            const lowerIng = ing.toLowerCase();
+            if (keywords.some(kw => lowerIng.includes(kw))) {
+              matches.push(ing);
+            }
+          }
+        }
+      }
+
+      if (matches.length === 0) {
+        for (const ing of allIngredients) {
+          const lowerIng = ing.toLowerCase();
+          const cleanIngName = lowerIng.split(" ")[0].replace(/[^a-z]/g, "");
+          if (cleanIngName.length > 3 && normalizedFunc.includes(cleanIngName)) {
+            matches.push(ing);
+          }
+        }
+      }
+
+      return Array.from(new Set(matches));
+    }
+
+    function getIngredientsForFunction(funcName, ingredientsStr) {
+      const matches = getAllIngredientsForFunction(funcName, ingredientsStr);
+      if (matches.length > 0) {
+        return matches.slice(0, 2).join(", ");
+      }
+      return "Active compound";
+    }
+
     function selectProduct(index) {
       const products = state.lastRun && state.lastRun.retrieval && Array.isArray(state.lastRun.retrieval.products)
         ? state.lastRun.retrieval.products
@@ -1536,6 +1961,8 @@
       // Reset filter on product change
       state.activeIngredientFilter = null;
       state.activeIngredientFunc = null;
+      state.hoveredIngredientFilter = null;
+      state.hoveredIngredientFunc = null;
 
       // Parse details
       const style = getPastelCategoryStyle(product.category);
@@ -1544,29 +1971,71 @@
       
       // Ingredient parsed functions
       const ingredients = product.ingredient_functions
-        ? product.ingredient_functions.split(",").map(i => {
-            const parts = i.split("(");
-            const name = parts[0].trim();
-            const func = parts[1] ? parts[1].replace(")", "").trim() : "Active compound";
-            return { name, func };
+        ? product.ingredient_functions.split(",").map(i => i.trim()).filter(Boolean).map(funcName => {
+            const chemicalMatch = getIngredientsForFunction(funcName, product.ingredients);
+            const allChemicals = getAllIngredientsForFunction(funcName, product.ingredients).join(", ");
+            return { name: funcName, func: chemicalMatch, allChemicals: allChemicals || "Active compound" };
           })
         : [];
       
       // Allergen block
       const allergens = (product.allergen_flag || "").toLowerCase();
       const hasAllergens = allergens && !allergens.includes("none detected") && !allergens.includes("no ");
-      const allergenClass = hasAllergens ? "warning-box" : "success-box";
+      const allergenRowClass = hasAllergens ? "safety-row-danger" : "safety-row-success";
+      const allergenBadge = hasAllergens
+        ? `<span class="badge" style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Potential Irritant</span>`
+        : `<span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✅ Safe & Gentle</span>`;
       const allergenContent = hasAllergens
         ? `Contains potential allergens/irritants: <strong>${escapeHtml(product.allergen_flag)}</strong>. Avoid if you have highly reactive skin.`
-        : `Safe & Gentle: No common allergens or harsh irritants detected in key active listing.`;
+        : `No common allergens or harsh irritants detected in key active listing.`;
 
-      // Safety warnings block
-      let warningsText = "";
+      // Usage warnings block
+      let usageWarningsRow = "";
       if (product.ingredient_warnings && product.ingredient_warnings.toLowerCase() !== "none") {
-        warningsText += `<br>Usage note: ${escapeHtml(product.ingredient_warnings)}`;
+        usageWarningsRow = `
+          <tr class="safety-row-warning">
+            <td>Usage Caution</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Special Note</span>
+              </div>
+              <div style="font-size:0.8rem;">${escapeHtml(product.ingredient_warnings)}</div>
+            </td>
+          </tr>
+        `;
       }
+
+      // Pregnancy safety block
+      let pregnancyRow = "";
       if (product.pregnancy_safe) {
-        warningsText += `<br>Pregnancy safety status: <strong>${escapeHtml(product.pregnancy_safe)}</strong>`;
+        const pregSafeLower = product.pregnancy_safe.toLowerCase();
+        let pregRowClass = "safety-row-info";
+        let pregBadge = `<span class="badge" style="background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.7rem;padding:2px 6px;font-weight:600;">ℹ️ Info</span>`;
+        if (pregSafeLower.includes("avoid")) {
+          pregRowClass = "safety-row-danger";
+          pregBadge = `<span class="badge" style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.7rem;padding:2px 6px;font-weight:600;">❌ Avoid</span>`;
+        } else if (pregSafeLower.includes("unknown overall")) {
+          pregRowClass = "safety-row-warning";
+          pregBadge = `<span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Ingredients Match</span>`;
+        } else if (pregSafeLower.includes("claimed pregnancy safe") || pregSafeLower.includes("aman") || pregSafeLower.includes("pregnancy safe")) {
+          pregRowClass = "safety-row-success";
+          pregBadge = `<span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✅ Claimed Safe</span>`;
+        } else if (pregSafeLower === "unknown") {
+          pregRowClass = "safety-row-info";
+          pregBadge = `<span class="badge" style="background:rgba(100,116,139,0.1);color:#64748b;font-size:0.7rem;padding:2px 6px;font-weight:600;">❓ Unknown</span>`;
+        }
+        
+        pregnancyRow = `
+          <tr class="${pregRowClass}">
+            <td>Pregnancy Safety</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                ${pregBadge}
+              </div>
+              <div style="font-size:0.8rem;">${escapeHtml(product.pregnancy_safe)}</div>
+            </td>
+          </tr>
+        `;
       }
 
       refs.selectedProductReason.innerHTML = `
@@ -1601,7 +2070,7 @@
             <h5>🧪 Core Ingredients & Benefits <span style="font-size:0.7rem;color:var(--muted);text-transform:none;font-weight:normal;margin-left:auto;">(Click to map)</span></h5>
             <div class="prescription-section-content ingredient-list-tags">
               ${ingredients.map(ing => `
-                <div class="ingredient-tag" data-ingredient-name="${escapeHtml(ing.name)}" data-ingredient-func="${escapeHtml(ing.func)}">
+                <div class="ingredient-tag" data-ingredient-name="${escapeHtml(ing.name)}" data-ingredient-func="${escapeHtml(ing.func)}" data-tooltip="${escapeHtml(ing.allChemicals)}">
                   <strong>${escapeHtml(ing.name)}</strong>
                   <span>${escapeHtml(ing.func)}</span>
                 </div>
@@ -1611,21 +2080,62 @@
 
           <div class="prescription-section">
             <h5>⚠️ Safety & Allergen Warnings</h5>
-            <div class="prescription-section-content ${allergenClass}">
-              ${allergenContent}
-              ${warningsText}
-            </div>
+            <table class="safety-table">
+              <thead>
+                <tr>
+                  <th style="width: 32%;">Category</th>
+                  <th>Analysis & Guidelines</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="${allergenRowClass}">
+                  <td>Allergens / Irritants</td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                      ${allergenBadge}
+                    </div>
+                    <div style="font-size:0.8rem;">${allergenContent}</div>
+                  </td>
+                </tr>
+                ${usageWarningsRow}
+                ${pregnancyRow}
+              </tbody>
+            </table>
           </div>
         </div>
       `;
 
-      // Attach click listeners to ingredient tags
+      // Attach hover and click listeners to ingredient tags
       const tagElements = refs.selectedProductReason.querySelectorAll(".ingredient-tag");
+      
+      function updateTagVisuals() {
+        const currentActive = state.hoveredIngredientFilter || state.activeIngredientFilter;
+        tagElements.forEach(t => {
+          const name = t.getAttribute("data-ingredient-name");
+          t.classList.toggle("is-active-filter", currentActive === name);
+          t.classList.toggle("is-dimmed", currentActive !== null && currentActive !== name);
+        });
+      }
+
       tagElements.forEach(tag => {
+        const ingName = tag.getAttribute("data-ingredient-name");
+        const ingFunc = tag.getAttribute("data-ingredient-func");
+
+        tag.addEventListener("mouseenter", () => {
+          state.hoveredIngredientFilter = ingName;
+          state.hoveredIngredientFunc = ingFunc;
+          updateTagVisuals();
+          renderFaceMap();
+        });
+
+        tag.addEventListener("mouseleave", () => {
+          state.hoveredIngredientFilter = null;
+          state.hoveredIngredientFunc = null;
+          updateTagVisuals();
+          renderFaceMap();
+        });
+
         tag.addEventListener("click", () => {
-          const ingName = tag.getAttribute("data-ingredient-name");
-          const ingFunc = tag.getAttribute("data-ingredient-func");
-          
           if (state.activeIngredientFilter === ingName) {
             state.activeIngredientFilter = null;
             state.activeIngredientFunc = null;
@@ -1633,15 +2143,7 @@
             state.activeIngredientFilter = ingName;
             state.activeIngredientFunc = ingFunc;
           }
-          
-          // Update visual states of tags
-          tagElements.forEach(t => {
-            const name = t.getAttribute("data-ingredient-name");
-            t.classList.toggle("is-active-filter", state.activeIngredientFilter === name);
-            t.classList.toggle("is-dimmed", state.activeIngredientFilter !== null && state.activeIngredientFilter !== name);
-          });
-          
-          // Re-render face map
+          updateTagVisuals();
           renderFaceMap();
         });
       });
@@ -1672,10 +2174,13 @@
       const imageSize = summary.image_size || {};
       renderLandmarkMesh();
 
-      const isFiltering = state.activeIngredientFilter !== null;
+      const filterName = state.hoveredIngredientFilter || state.activeIngredientFilter;
+      const filterFunc = state.hoveredIngredientFunc || state.activeIngredientFunc;
+      const isFiltering = filterName !== null;
+      
       let allowedConcerns = [];
       if (isFiltering) {
-        allowedConcerns = getConcernsForIngredient(state.activeIngredientFilter, state.activeIngredientFunc);
+        allowedConcerns = getConcernsForIngredient(filterName, filterFunc);
       }
 
       refs.faceHeatmapLayer.innerHTML = detections.slice(0, 30).map((detection) => {
@@ -1721,9 +2226,9 @@
       if (selectedProduct) {
         explanation = `${selectedProduct.product_name || "This product"} maps to ${matched.length || 0} localized YOLO concern area(s): ${matchedNames.join(", ") || "none matched"}.`;
         if (isFiltering) {
-          explanation += ` <strong>Showing targets for active compound "${state.activeIngredientFilter}": ${allowedConcerns.join(", ")}.</strong>`;
+          explanation += ` <strong>Showing targets for active compound "${filterName}": ${allowedConcerns.join(", ")}.</strong>`;
         } else {
-          explanation += ` Click any active ingredient tag below to filter which face concerns it targets!`;
+          explanation += ` Click or hover any active ingredient tag below to filter which face concerns it targets!`;
         }
       } else {
         explanation = `Select a product to highlight matching detected concerns. Landmark mode: ${state.landmarkStatus}.`;
@@ -2080,9 +2585,33 @@
         setStatus("Run first");
         return;
       }
+      openSaveCaseModal();
+    }
+
+    function openSaveCaseModal() {
+      const nameInput = document.getElementById("casePersonName");
+      nameInput.value = state.uploadedFileName || "";
+      document.querySelector('input[name="casePersonGender"][value="female"]').checked = true;
+      document.getElementById("saveCaseModal").style.display = "flex";
+    }
+
+    function closeSaveCaseModal() {
+      document.getElementById("saveCaseModal").style.display = "none";
+    }
+
+    async function confirmSaveEvaluationCase() {
+      closeSaveCaseModal();
+      
       refs.saveCaseButton.disabled = true;
       refs.userSaveCaseButton.disabled = true;
+      
+      const name = document.getElementById("casePersonName").value.trim();
+      const gender = document.querySelector('input[name="casePersonGender"]:checked').value;
+      
       const payload = buildEvaluationPayload(state.lastRun);
+      payload.name = name;
+      payload.gender = gender;
+      
       try {
         const response = await fetch("/evaluation/cases", {
           method: "POST",

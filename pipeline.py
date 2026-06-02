@@ -382,6 +382,7 @@ class SkincariaPipeline:
                     "concerns": meta.get("concerns", ""),
                     "allergen_flag": meta.get("allergen_flag", ""),
                     "pregnancy_safe": meta.get("pregnancy_safe", ""),
+                    "ingredients": meta.get("ingredients", ""),
                     "ingredient_functions": meta.get("ingredient_functions", ""),
                     "ingredient_warnings": meta.get("ingredient_warnings", ""),
                     "similarity": product.get("similarity"),

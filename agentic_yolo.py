@@ -140,11 +140,11 @@ class AgenticYoloPipeline:
     async def detect(self, image_base64: str) -> dict[str, Any]:
         return await asyncio.to_thread(self._detect_sync, image_base64)
 
-    async def assess_input(self, image_base64: str) -> dict[str, Any]:
-        return await asyncio.to_thread(self._assess_input_sync, image_base64)
-
-    async def classify_texture(self, image_base64: str) -> dict[str, Any]:
-        return await asyncio.to_thread(self._classify_texture_sync, image_base64)
+    async def assess_input(self, image_base64: str, face_landmarks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+        return await asyncio.to_thread(self._assess_input_sync, image_base64, face_landmarks)
+ 
+    async def classify_texture(self, image_base64: str, face_landmarks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+        return await asyncio.to_thread(self._classify_texture_sync, image_base64, face_landmarks)
 
     async def review(
         self,
@@ -273,14 +273,14 @@ class AgenticYoloPipeline:
             "annotated_image": encode_image(draw_detections(image, detections)),
         }
 
-    def _assess_input_sync(self, image_base64: str) -> dict[str, Any]:
+    def _assess_input_sync(self, image_base64: str, face_landmarks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         image = decode_base64_image(image_base64)
-        return assess_input_image(image)
+        return assess_input_image(image, face_landmarks)
 
-    def _classify_texture_sync(self, image_base64: str) -> dict[str, Any]:
+    def _classify_texture_sync(self, image_base64: str, face_landmarks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         image = decode_base64_image(image_base64)
         classifier = self._load_efficientnet()
-        return classifier.predict(image)
+        return classifier.predict(image, face_landmarks)
 
     def _load_model(self) -> Any:
         if self._model is not None:
@@ -340,7 +340,7 @@ class EfficientNetTextureClassifier:
         )
         self.thresholds = self._load_thresholds(thresholds_path)
 
-    def predict(self, image: Image.Image) -> dict[str, Any]:
+    def predict(self, image: Image.Image, face_landmarks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         image = image.convert("RGB")
         model_image = image
         skin_mask = None
@@ -352,6 +352,7 @@ class EfficientNetTextureClassifier:
             model_image, skin_mask, skin_ratio = mask_non_skin_for_texture(
                 image,
                 background=self.mask_background,
+                face_landmarks=face_landmarks,
             )
             preprocessing = {
                 "skin_mask_enabled": True,
@@ -585,12 +586,12 @@ def draw_gradcam_label(
     return annotated
 
 
-def assess_input_image(image: Image.Image) -> dict[str, Any]:
+def assess_input_image(image: Image.Image, face_landmarks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     import cv2
     import numpy as np
 
     rgb = np.asarray(image.convert("RGB"))
-    skin_mask = likely_skin_mask(image)
+    skin_mask = likely_skin_mask(image, face_landmarks)
     skin_ratio = float((skin_mask > 0).mean())
 
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
@@ -623,6 +624,10 @@ def assess_input_image(image: Image.Image) -> dict[str, Any]:
     alpha = (skin_mask.astype(np.float32) / 255.0)[:, :, None] * 0.35
     mask_overlay = np.clip(mask_overlay * (1.0 - alpha) + green * alpha, 0, 255).astype(np.uint8)
 
+    method = "OpenCV Haar face check + HSL likely-skin mask"
+    if face_landmarks:
+        method = "OpenCV Haar face check + MediaPipe-assisted Hybrid skin mask"
+
     return {
         "image_size": {"width": image.width, "height": image.height},
         "face_detected": face_bbox is not None,
@@ -633,11 +638,11 @@ def assess_input_image(image: Image.Image) -> dict[str, Any]:
         "acceptable": acceptable,
         "warnings": warnings,
         "skin_mask_overlay": encode_image(Image.fromarray(mask_overlay, mode="RGB")),
-        "method": "OpenCV Haar face check + HSL likely-skin mask",
+        "method": method,
     }
 
 
-def likely_skin_mask(image: Image.Image) -> Any:
+def likely_skin_mask(image: Image.Image, face_landmarks: list[dict[str, Any]] | None = None) -> Any:
     import cv2
     import numpy as np
 
@@ -647,12 +652,50 @@ def likely_skin_mask(image: Image.Image) -> Any:
     l = hls[:, :, 1].astype(np.float32)
     s = hls[:, :, 2].astype(np.float32)
     ls_ratio = l / np.maximum(s, 1.0)
-    skin_mask = (
+    
+    base_skin = (
         (s >= 35.0)
         & (ls_ratio > 0.45)
         & (ls_ratio < 3.2)
         & ((h <= 18.0) | (h >= 160.0))
-    ).astype(np.uint8) * 255
+    )
+    
+    if face_landmarks:
+        height, width = rgb.shape[:2]
+        face_mask = np.zeros((height, width), dtype=np.uint8)
+        outer_indices = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10]
+        left_eye_indices = [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7, 33]
+        right_eye_indices = [263, 466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249, 263]
+        lips_indices = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146, 61]
+
+        def draw_poly(indices, value):
+            pts = []
+            for idx in indices:
+                if idx < len(face_landmarks):
+                    pt = face_landmarks[idx]
+                    px = int(float(pt.get("x", 0)) * width)
+                    py = int(float(pt.get("y", 0)) * height)
+                    pts.append([px, py])
+            if pts:
+                pts_arr = np.array(pts, dtype=np.int32)
+                cv2.fillPoly(face_mask, [pts_arr], value)
+
+        draw_poly(outer_indices, 255)
+        draw_poly(left_eye_indices, 0)
+        draw_poly(right_eye_indices, 0)
+        draw_poly(lips_indices, 0)
+        
+        specular_skin = (
+            (face_mask > 0)
+            & ((h <= 22.0) | (h >= 155.0))
+            & (l >= 40.0)
+            & ((s < 35.0) | (ls_ratio >= 3.2))
+        )
+        
+        skin_mask = (base_skin | specular_skin).astype(np.uint8) * 255
+    else:
+        skin_mask = base_skin.astype(np.uint8) * 255
+
     kernel = np.ones((5, 5), dtype=np.uint8)
     skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_OPEN, kernel)
     skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel)
@@ -663,12 +706,13 @@ def mask_non_skin_for_texture(
     image: Image.Image,
     *,
     background: str,
+    face_landmarks: list[dict[str, Any]] | None = None,
 ) -> tuple[Image.Image, Any, float]:
     import cv2
     import numpy as np
 
     rgb = np.asarray(image.convert("RGB")).copy()
-    skin_mask = likely_skin_mask(image)
+    skin_mask = likely_skin_mask(image, face_landmarks)
     skin_ratio = float((skin_mask > 0).mean())
     alpha = cv2.GaussianBlur(skin_mask, (9, 9), 0).astype(np.float32) / 255.0
     alpha = alpha[:, :, None]

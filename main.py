@@ -91,6 +91,8 @@ async def save_evaluation_case(request: Request):
     assistant_response = str(payload.get("assistant_response") or "").strip()
     retrieved_products = payload.get("retrieved_products") or []
     visual_evidence = payload.get("visual_evidence") or {}
+    name = str(payload.get("name") or "").strip()
+    gender = str(payload.get("gender") or "").strip()
 
     if not user_concern and not visual_evidence:
         raise HTTPException(status_code=400, detail="Evaluation case needs a concern or visual evidence.")
@@ -104,6 +106,8 @@ async def save_evaluation_case(request: Request):
     row = {
         "id": payload.get("id") or f"case_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}",
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "name": name,
+        "gender": gender,
         "user_concern": user_concern,
         "visual_evidence": visual_evidence,
         "retrieved_products": retrieved_products,
@@ -228,6 +232,7 @@ async def agentic_analysis(websocket: WebSocket):
         payload = await websocket.receive_json()
         concern = (payload.get("concern") or "").strip()
         image_base64 = payload.get("image_base64")
+        face_landmarks = payload.get("face_landmarks")
 
         if not image_base64 and not concern:
             await websocket.send_json(
@@ -260,7 +265,7 @@ async def agentic_analysis(websocket: WebSocket):
                     "message": "Checking whether the image contains enough face/skin signal.",
                 }
             )
-            quality = await agent.assess_input(image_base64)
+            quality = await agent.assess_input(image_base64, face_landmarks)
             await websocket.send_json({"type": "quality", "quality": quality})
 
             await websocket.send_json(
@@ -280,7 +285,7 @@ async def agentic_analysis(websocket: WebSocket):
                     "message": "EfficientNetV2-B0 is classifying image-level texture labels.",
                 }
             )
-            texture = await agent.classify_texture(image_base64)
+            texture = await agent.classify_texture(image_base64, face_landmarks)
             await websocket.send_json({"type": "texture", "texture": texture})
 
         await websocket.send_json(
@@ -516,7 +521,7 @@ def main() -> None:
     print(f"Skincaria agent loop: http://localhost:{PORT}")
     print(f"Skincaria agent loop di HP: http://{lan_ip}:{PORT}")
     print(f"Image caption tester: http://localhost:{PORT}/image-test")
-    uvicorn.run(app, host=HOST, port=PORT)
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
 
 if __name__ == "__main__":
