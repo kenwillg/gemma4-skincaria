@@ -199,6 +199,88 @@ async def image_caption(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+PREGNANCY_CHECK_CACHE = {}
+
+
+@app.post("/pregnancy-check")
+async def pregnancy_check(request: Request):
+    payload = await request.json()
+    product_name = payload.get("product_name", "")
+    brand = payload.get("brand", "")
+    ingredients = payload.get("ingredients", "")
+    
+    if not product_name or not ingredients:
+        raise HTTPException(status_code=400, detail="Missing product name or ingredients.")
+        
+    cache_key = f"{brand.lower()}|{product_name.lower()}"
+    if cache_key in PREGNANCY_CHECK_CACHE:
+        return PREGNANCY_CHECK_CACHE[cache_key]
+    
+    client = get_ollama_client()
+    import re
+    
+    prompt = f"""You are a professional pregnancy skincare safety analyzer. 
+Analyze the safety of the following product during pregnancy based strictly on its ingredients list.
+
+Product: {product_name} by {brand}
+Ingredients: {ingredients}
+
+Identify if there are any ingredients that present specific contraindications, systemic absorption hazards, or developmental risks during pregnancy (such as Retinoids/Retinol, high BHA/Salicylic Acid, Hydroquinone, Alpha-Arbutin, Wintergreen/Methyl Salicylate, or certain essential oils).
+
+CRITICAL RULES:
+1. Focus EXCLUSIVELY on pregnancy-specific concerns (e.g. fetal safety, systemic risk).
+2. Do NOT mention general cosmetic skin irritation, comedogenicity (pore-clogging), or standard allergens, as these are already displayed in other sections.
+3. Keep your verdict strictly to a single, direct, concise sentence in Indonesian (maximum 15-20 words).
+
+Respond in JSON format with exactly these fields:
+{{
+  "status": "safe|caution|avoid",
+  "gemma_verdict": "A single extremely concise sentence in Indonesian focusing ONLY on pregnancy safety."
+}}
+Do not include markdown wrappers or any explanation outside of the JSON."""
+
+    try:
+        messages = [
+            {"role": "system", "content": "You are a professional skincare safety analyzer. Respond in JSON only."},
+            {"role": "user", "content": prompt}
+        ]
+        raw = await client.chat(messages, json_mode=True, temperature=0.1)
+        
+        # Parse JSON
+        try:
+            data = json.loads(raw)
+        except Exception:
+            # Fallback if parsing fails
+            match = re.search(r"\{.*\}", raw, flags=re.DOTALL)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                raise ValueError("Invalid JSON response from LLM")
+        
+        if not isinstance(data, dict):
+            data = {}
+            
+        status = str(data.get("status") or "caution").strip().lower()
+        if status not in {"safe", "caution", "avoid"}:
+            status = "caution"
+            
+        verdict = str(data.get("gemma_verdict") or "").strip()
+        if not verdict:
+            verdict = "Analisis ingredients selesai dilakukan oleh sistem safety net Gemma."
+            
+        result = {
+            "status": status,
+            "gemma_verdict": verdict
+        }
+        PREGNANCY_CHECK_CACHE[cache_key] = result
+        return result
+    except Exception as exc:
+        return {
+            "status": "caution",
+            "gemma_verdict": f"Gemma tidak dapat memvalidasi saat ini: {str(exc)}. Konsultasikan dengan dokter kandungan Anda."
+        }
+
+
 @app.websocket("/ws/recommend")
 async def recommend(websocket: WebSocket):
     await websocket.accept()

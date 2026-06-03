@@ -385,6 +385,7 @@ class SkincariaPipeline:
                     "ingredients": meta.get("ingredients", ""),
                     "ingredient_functions": meta.get("ingredient_functions", ""),
                     "ingredient_warnings": meta.get("ingredient_warnings", ""),
+                    "product_url": meta.get("product_url", ""),
                     "similarity": product.get("similarity"),
                 }
             )

@@ -680,6 +680,57 @@
       color: #2563eb;
     }
 
+    /* Premium Sociolla Link Button and Mini Spinner Styles */
+    .sociolla-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e11d48; /* Sociolla Brand Red/Rose */
+      color: #ffffff !important;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      transition: all 0.2s ease-in-out;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(225, 29, 72, 0.15);
+      margin-left: 8px;
+    }
+    .sociolla-btn:hover {
+      background: #be123c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+    }
+    .sociolla-link-icon {
+      transition: all 0.2s ease-in-out;
+    }
+    .sociolla-link-icon:hover {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner-mini {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 2px solid rgba(100, 116, 139, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
     .ingredient-list-tags {
       display: flex;
       flex-wrap: wrap;
@@ -1839,7 +1890,14 @@
               <div class="product-name" style="font-size:0.92rem;line-height:1.25;">${escapeHtml(product.product_name || "Unnamed product")}</div>
               <div class="product-brand" style="font-size:0.75rem;margin-top:2px;">${escapeHtml(product.brand || "Unknown brand")}</div>
             </div>
-            <div class="det-meta" style="font-size:0.78rem;font-weight:700;color:var(--muted);">${escapeHtml(product.price || "Price unavailable")}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span class="det-meta" style="font-size:0.78rem;font-weight:700;color:var(--muted);">${escapeHtml(product.price || "Price unavailable")}</span>
+              ${product.product_url ? `
+                <a href="${escapeHtml(product.product_url)}" target="_blank" class="sociolla-link-icon" style="padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; background: rgba(3, 105, 161, 0.08); color: #0369a1; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" onclick="event.stopPropagation();">
+                  🛍️ Shop →
+                </a>
+              ` : ''}
+            </div>
           </button>
         `;
       }).join("");
@@ -1945,6 +2003,170 @@
       return "Active compound";
     }
 
+    function parseAndGroupWarnings(warningStr) {
+      if (!warningStr) return [];
+      let cleanStr = warningStr.replace(/^yes:\s*/i, "");
+      const parts = cleanStr.split(";").map(p => p.trim()).filter(Boolean);
+      const grouped = new Map();
+      
+      for (const part of parts) {
+        const match = part.match(/^([^:]+):\s*(.*)$/);
+        if (match) {
+          const ing = match[1].trim();
+          const warns = match[2].split(",").map(w => w.trim()).filter(Boolean);
+          if (!grouped.has(ing)) {
+            grouped.set(ing, new Set());
+          }
+          const warnSet = grouped.get(ing);
+          warns.forEach(w => warnSet.add(w));
+        } else {
+          const general = part.trim();
+          if (!grouped.has(general)) {
+            grouped.set(general, new Set());
+          }
+        }
+      }
+      
+      const result = [];
+      grouped.forEach((warnSet, ing) => {
+        result.push({
+          ingredient: ing,
+          warnings: Array.from(warnSet)
+        });
+      });
+      return result;
+    }
+
+    function categorizeSafetyWarnings(allergenStr, warningStr) {
+      const allWarnings = parseAndGroupWarnings(allergenStr).concat(parseAndGroupWarnings(warningStr));
+      const grouped = new Map();
+      
+      for (const item of allWarnings) {
+        if (!grouped.has(item.ingredient)) {
+          grouped.set(item.ingredient, new Set());
+        }
+        const set = grouped.get(item.ingredient);
+        item.warnings.forEach(w => set.add(w));
+      }
+      
+      const allergens = [];
+      const comedogenic = [];
+      const others = [];
+      
+      grouped.forEach((warnSet, ingredient) => {
+        const warnList = Array.from(warnSet);
+        const cleanWarns = warnList.filter(w => !w.toLowerCase().includes("pregnancy"));
+        if (cleanWarns.length === 0) return;
+        
+        const isAllergen = cleanWarns.some(w => {
+          const l = w.toLowerCase();
+          return l.includes("allergen") || l.includes("irritant") || l.includes("sensitizer") || l.includes("allergy");
+        });
+        
+        const isComedogenic = cleanWarns.some(w => w.toLowerCase().includes("comedogenic"));
+        
+        const otherWarns = cleanWarns.filter(w => {
+          const l = w.toLowerCase();
+          return !l.includes("allergen") && !l.includes("irritant") && !l.includes("sensitizer") && !l.includes("allergy") && !l.includes("comedogenic");
+        });
+        
+        if (isAllergen) {
+          const allergenWarns = cleanWarns.filter(w => {
+            const l = w.toLowerCase();
+            return l.includes("allergen") || l.includes("irritant") || l.includes("sensitizer") || l.includes("allergy");
+          });
+          allergens.push({ ingredient, warnings: allergenWarns });
+        }
+        
+        if (isComedogenic) {
+          comedogenic.push({ ingredient, warnings: ["Pore-clogging potential"] });
+        }
+        
+        if (otherWarns.length > 0) {
+          others.push({ ingredient, warnings: otherWarns });
+        }
+      });
+      
+      return { allergens, comedogenic, others };
+    }
+
+    async function triggerGemmaPregnancyCheck(productName, brand, ingredients, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+      
+      try {
+        const response = await fetch('/pregnancy-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            product_name: productName,
+            brand: brand,
+            ingredients: ingredients
+          })
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error('Validasi gagal');
+        
+        const result = await response.json();
+        const status = result.status || 'caution';
+        const verdict = result.gemma_verdict || '';
+        
+        let rowClass = 'safety-row-info';
+        let badgeColor = '#2563eb';
+        let badgeBg = 'rgba(37,99,235,0.1)';
+        let badgeText = 'ℹ️ Gemma Verified';
+        
+        if (status === 'safe') {
+          rowClass = 'safety-row-success';
+          badgeColor = '#16a34a';
+          badgeBg = 'rgba(22,163,74,0.1)';
+          badgeText = '✅ Gemma: Safe';
+        } else if (status === 'avoid') {
+          rowClass = 'safety-row-danger';
+          badgeColor = '#dc2626';
+          badgeBg = 'rgba(220,38,38,0.1)';
+          badgeText = '❌ Gemma: Avoid';
+        } else {
+          rowClass = 'safety-row-warning';
+          badgeColor = '#d97706';
+          badgeBg = 'rgba(217,119,6,0.1)';
+          badgeText = '⚠️ Gemma: Caution';
+        }
+        
+        const td = container.closest('td');
+        const tr = container.closest('tr');
+        if (td) {
+          td.innerHTML = `
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px; animation: fadeIn 0.3s ease;">
+              <span class="badge" style="background:${badgeBg};color:${badgeColor};font-size:0.7rem;padding:2px 6px;font-weight:600;">${badgeText}</span>
+            </div>
+            <div style="font-size:0.8rem; animation: fadeIn 0.3s ease;">${escapeHtml(verdict)}</div>
+          `;
+        }
+        if (tr) {
+          tr.className = rowClass;
+        }
+      } catch (error) {
+        clearTimeout(timeoutId);
+        let errorMsg = error.message;
+        if (error.name === 'AbortError') {
+          errorMsg = 'Koneksi ke Gemma AI melebihi batas waktu (timeout). Hubungi dokter Anda untuk keamanan maksimal.';
+        }
+        container.innerHTML = `
+          <div style="margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 6px; font-size: 0.72rem; color: var(--muted); animation: fadeIn 0.3s ease;">
+            <span class="badge" style="background:rgba(100,116,139,0.1);color:#64748b;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Local Verification</span>
+            <div style="margin-top:4px; font-size:0.78rem; font-style: italic;">${escapeHtml(errorMsg)}</div>
+          </div>
+        `;
+      }
+    }
+
     function selectProduct(index) {
       const products = state.lastRun && state.lastRun.retrieval && Array.isArray(state.lastRun.retrieval.products)
         ? state.lastRun.retrieval.products
@@ -1978,51 +2200,122 @@
           })
         : [];
       
-      // Allergen block
-      const allergens = (product.allergen_flag || "").toLowerCase();
-      const hasAllergens = allergens && !allergens.includes("none detected") && !allergens.includes("no ");
+      // Get categorized warnings from the backend strings
+      const categorized = categorizeSafetyWarnings(product.allergen_flag, product.ingredient_warnings);
+      
+      // 1. Allergens / Irritants Row
+      const hasAllergens = categorized.allergens.length > 0;
       const allergenRowClass = hasAllergens ? "safety-row-danger" : "safety-row-success";
       const allergenBadge = hasAllergens
         ? `<span class="badge" style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Potential Irritant</span>`
         : `<span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✅ Safe & Gentle</span>`;
-      const allergenContent = hasAllergens
-        ? `Contains potential allergens/irritants: <strong>${escapeHtml(product.allergen_flag)}</strong>. Avoid if you have highly reactive skin.`
-        : `No common allergens or harsh irritants detected in key active listing.`;
 
-      // Usage warnings block
-      let usageWarningsRow = "";
-      if (product.ingredient_warnings && product.ingredient_warnings.toLowerCase() !== "none") {
-        usageWarningsRow = `
+      let allergenContent = "";
+      if (hasAllergens) {
+        allergenContent = `
+          <div style="font-size:0.8rem;">Contains potential allergens/irritants. Avoid if you have highly reactive skin:</div>
+          <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+            ${categorized.allergens.map(item => `
+              <li><strong>${escapeHtml(item.ingredient)}</strong>: <span style="font-weight: 500; color: var(--muted);">${escapeHtml(item.warnings.join(", "))}</span></li>
+            `).join("")}
+          </ul>
+        `;
+      } else {
+        allergenContent = `<div style="font-size:0.8rem;">No common allergens or harsh irritants detected in key active listing.</div>`;
+      }
+
+      // 2. Comedogenic Row
+      let comedogenicRow = "";
+      if (categorized.comedogenic.length > 0) {
+        comedogenicRow = `
+          <tr class="safety-row-warning">
+            <td>Pore-Clogging</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Comedogenic Actives</span>
+              </div>
+              <div style="font-size:0.8rem;">These ingredients have comedogenic potential (may clog pores):</div>
+              <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+                ${categorized.comedogenic.map(item => `
+                  <li><strong>${escapeHtml(item.ingredient)}</strong></li>
+                `).join("")}
+              </ul>
+            </td>
+          </tr>
+        `;
+      }
+
+      // 3. Other Usage Cautions Row
+      let otherCautionsRow = "";
+      if (categorized.others.length > 0) {
+        otherCautionsRow = `
           <tr class="safety-row-warning">
             <td>Usage Caution</td>
             <td>
               <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
                 <span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Special Note</span>
               </div>
-              <div style="font-size:0.8rem;">${escapeHtml(product.ingredient_warnings)}</div>
+              <div style="font-size:0.8rem;">Potential ingredient warnings and usage alerts detected:</div>
+              <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+                ${categorized.others.map(item => `
+                  <li><strong>${escapeHtml(item.ingredient)}</strong>: <span style="font-weight: 500; color: var(--muted);">${escapeHtml(item.warnings.join(", "))}</span></li>
+                `).join("")}
+              </ul>
             </td>
           </tr>
         `;
       }
 
-      // Pregnancy safety block
+      // 4. Pregnancy Safety & Friendly Actives splitting
       let pregnancyRow = "";
+      let friendlyRow = "";
+      let isPregnancyUnknown = false;
+      let cleanPregSafe = "";
+
       if (product.pregnancy_safe) {
-        const pregSafeLower = product.pregnancy_safe.toLowerCase();
+        let pregSafe = product.pregnancy_safe;
+        let friendlyList = [];
+        cleanPregSafe = pregSafe;
+        
+        if (pregSafe.toLowerCase().includes("matched pregnancy-friendly ingredients:")) {
+          const splitParts = pregSafe.split(/matched pregnancy-friendly ingredients:/i);
+          cleanPregSafe = splitParts[0].replace(/;\s*$/, "").trim(); // E.g., "unknown overall"
+          friendlyList = splitParts[1].split(",").map(i => i.trim()).filter(Boolean); // E.g., ["Allantoin", "Trehalose", "Lactic Acid"]
+        }
+
+        const pregSafeLower = cleanPregSafe.toLowerCase();
         let pregRowClass = "safety-row-info";
         let pregBadge = `<span class="badge" style="background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.7rem;padding:2px 6px;font-weight:600;">ℹ️ Info</span>`;
-        if (pregSafeLower.includes("avoid")) {
+        
+        const unsafeIngredients = ["salicylic acid", "retinol", "retinoid", "retinyl", "tretinoin", "hydroquinone", "alpha-arbutin", "arbutin", "wintergreen", "methyl salicylate", "bha"];
+        const isUnsafe = pregSafeLower.includes("avoid") || unsafeIngredients.some(ing => pregSafeLower.includes(ing));
+
+        if (isUnsafe) {
           pregRowClass = "safety-row-danger";
           pregBadge = `<span class="badge" style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.7rem;padding:2px 6px;font-weight:600;">❌ Avoid</span>`;
-        } else if (pregSafeLower.includes("unknown overall")) {
+        } else if (pregSafeLower.includes("unknown overall") || pregSafeLower === "unknown") {
           pregRowClass = "safety-row-warning";
-          pregBadge = `<span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Ingredients Match</span>`;
+          pregBadge = `<span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Verification Needed</span>`;
+          isPregnancyUnknown = true;
         } else if (pregSafeLower.includes("claimed pregnancy safe") || pregSafeLower.includes("aman") || pregSafeLower.includes("pregnancy safe")) {
           pregRowClass = "safety-row-success";
           pregBadge = `<span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✅ Claimed Safe</span>`;
-        } else if (pregSafeLower === "unknown") {
-          pregRowClass = "safety-row-info";
-          pregBadge = `<span class="badge" style="background:rgba(100,116,139,0.1);color:#64748b;font-size:0.7rem;padding:2px 6px;font-weight:600;">❓ Unknown</span>`;
+        }
+
+        // Clean out redundant prefixes
+        cleanPregSafe = cleanPregSafe.replace(/^avoid during pregnancy:\s*/i, "");
+        cleanPregSafe = cleanPregSafe.replace(/^claimed pregnancy safe on source page/i, "Claimed safe on source page");
+        cleanPregSafe = cleanPregSafe.replace(/^pregnancy mentioned;\s*/i, "");
+        
+        let gemmaCheckContainer = "";
+        if (isPregnancyUnknown) {
+          gemmaCheckContainer = `
+            <div id="gemma-safety-check" style="margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 6px;">
+              <span style="font-size: 0.72rem; color: var(--muted); display: inline-flex; align-items: center;">
+                <span class="spinner-mini"></span> Verifikasi keamanan kehamilan via Gemma AI...
+              </span>
+            </div>
+          `;
         }
         
         pregnancyRow = `
@@ -2032,10 +2325,28 @@
               <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
                 ${pregBadge}
               </div>
-              <div style="font-size:0.8rem;">${escapeHtml(product.pregnancy_safe)}</div>
+              <div style="font-size:0.8rem;">${escapeHtml(cleanPregSafe)}</div>
+              ${gemmaCheckContainer}
             </td>
           </tr>
         `;
+
+        if (friendlyList.length > 0) {
+          friendlyRow = `
+            <tr class="safety-row-success">
+              <td>Pregnancy Friendly</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                  <span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✨ Pregnancy Safe Actives</span>
+                </div>
+                <div style="font-size:0.8rem;">Matched pregnancy-friendly ingredients found in this product:</div>
+                <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+                  ${friendlyList.map(item => `<li><strong>${escapeHtml(item)}</strong></li>`).join("")}
+                </ul>
+              </td>
+            </tr>
+          `;
+        }
       }
 
       refs.selectedProductReason.innerHTML = `
@@ -2046,9 +2357,14 @@
               <span class="cat-badge" style="background:${style.bg};color:${style.color};font-size:0.75rem;">${escapeHtml(titleCategory)}</span>
             </div>
             <div style="font-size:0.8rem;font-weight:900;color:var(--violet);text-transform:uppercase;letter-spacing:0.04em;">${escapeHtml(product.brand)}</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between;">
-              <span>Price: ${escapeHtml(product.price || "n/a")}</span>
-              <span>Skin Type: ${escapeHtml(product.skin_type || "All types")}</span>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span>Price: <strong>${escapeHtml(product.price || "n/a")}</strong></span>
+              <span>Skin Type: <strong>${escapeHtml(product.skin_type || "All types")}</strong></span>
+              ${product.product_url ? `
+                <a href="${escapeHtml(product.product_url)}" target="_blank" class="sociolla-btn">
+                  🛍️ Shop on Sociolla
+                </a>
+              ` : ''}
             </div>
           </div>
 
@@ -2094,16 +2410,22 @@
                     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
                       ${allergenBadge}
                     </div>
-                    <div style="font-size:0.8rem;">${allergenContent}</div>
+                    ${allergenContent}
                   </td>
                 </tr>
-                ${usageWarningsRow}
+                ${comedogenicRow}
+                ${otherCautionsRow}
                 ${pregnancyRow}
+                ${friendlyRow}
               </tbody>
             </table>
           </div>
         </div>
       `;
+
+      if (isPregnancyUnknown) {
+        triggerGemmaPregnancyCheck(product.product_name, product.brand, product.ingredients, "gemma-safety-check");
+      }
 
       // Attach hover and click listeners to ingredient tags
       const tagElements = refs.selectedProductReason.querySelectorAll(".ingredient-tag");
