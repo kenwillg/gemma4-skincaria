@@ -1,1636 +1,3106 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Skincaria</title>
   <style>
     :root {
-      --bg: #eef5f0;
-      --phone: #101413;
+      --bg: #eef3ef;
       --surface: #ffffff;
-      --surface-soft: #f4f7f5;
-      --glass: rgba(255, 255, 255, 0.12);
-      --text: #19211f;
-      --muted: #6b7672;
-      --line: #dde7e1;
-      --accent: #2fb884;
-      --accent-strong: #0d8f61;
-      --rose: #ef6f91;
-      --danger: #f05252;
-      --warning: #c37a1f;
-      --shadow: 0 18px 45px rgba(20, 34, 29, 0.16);
+      --surface-soft: #f7faf7;
+      --text: #17211d;
+      --muted: #66746e;
+      --line: #d9e4dd;
+      --accent: #168661;
+      --accent-soft: rgba(22, 134, 97, 0.12);
+      --blue: #2563eb;
+      --blue-soft: rgba(37, 99, 235, 0.11);
+      --amber: #b7791f;
+      --amber-soft: rgba(183, 121, 31, 0.13);
+      --danger: #d84d4d;
+      --pink: #e83e8c;
+      --violet: #6d4bd8;
+      --violet-soft: rgba(109, 75, 216, 0.11);
+      --shadow: 0 18px 42px rgba(24, 38, 32, 0.1);
       --radius: 8px;
     }
 
-    [data-theme="dark"] {
-      --bg: #0e1211;
-      --phone: #080a0a;
-      --surface: #171d1b;
-      --surface-soft: #202724;
-      --glass: rgba(255, 255, 255, 0.1);
-      --text: #eef5f1;
-      --muted: #a7b2ad;
-      --line: #303a35;
-      --accent: #46d49a;
-      --accent-strong: #6fe6b2;
-      --rose: #ff8daa;
-      --danger: #ff6d6d;
-      --warning: #f3b75d;
-      --shadow: 0 18px 45px rgba(0, 0, 0, 0.34);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      min-height: 100%;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
+      min-height: 100vh;
       background: var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.45;
-    }
-
-    button,
-    textarea,
-    input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin: 0;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    .phone-shell {
-      width: min(430px, 100%);
-      min-height: 100svh;
-      margin: 0 auto;
-      background: var(--phone);
-      position: relative;
       overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 30px 90px rgba(0, 0, 0, 0.25);
     }
 
-    .welcome-screen,
-    .call-screen {
-      min-height: 100svh;
-      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
-    }
+    button, textarea, input { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    h1, h2, h3, p { margin: 0; }
+    [hidden] { display: none !important; }
 
-    .welcome-screen {
+    .app {
+      height: 100vh;
       display: grid;
-      place-items: center;
-      background:
-        linear-gradient(180deg, rgba(47, 184, 132, 0.18), transparent 38%),
-        radial-gradient(circle at 50% 22%, rgba(239, 111, 145, 0.16), transparent 32%),
-        var(--surface);
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      padding: 16px;
+      overflow: hidden;
     }
 
-    .welcome-actions {
-      position: absolute;
-      right: 16px;
-      top: max(16px, env(safe-area-inset-top));
-    }
-
-    .welcome-content {
-      width: 100%;
-      display: grid;
-      justify-items: center;
-      gap: 18px;
-      text-align: center;
-      padding: 12vh 0;
-    }
-
-    .brand-badge {
-      width: 74px;
-      height: 74px;
-      border-radius: 24px;
-      background:
-        radial-gradient(circle at 67% 28%, #dff8eb 0 14%, transparent 15%),
-        linear-gradient(135deg, var(--rose), #f8b7c7 48%, var(--accent));
-      box-shadow: var(--shadow);
-      position: relative;
-    }
-
-    .brand-badge::after {
-      content: "";
-      position: absolute;
-      inset: 20px 19px 18px;
-      border: 3px solid rgba(255, 255, 255, 0.88);
-      border-top-color: transparent;
-      border-radius: 50%;
-      transform: rotate(-22deg);
-    }
-
-    .welcome-title {
-      max-width: 300px;
-      font-size: 2rem;
-      line-height: 1.05;
-      letter-spacing: 0;
-      color: var(--text);
-    }
-
-    .welcome-copy {
-      max-width: 310px;
-      color: var(--muted);
-      font-size: 0.98rem;
-    }
-
-    .call-button,
-    .scan-button {
-      min-height: 54px;
-      border-radius: 999px;
-      background: var(--accent);
-      color: #ffffff;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 16px 34px rgba(47, 184, 132, 0.32);
-      transition: transform 160ms ease, opacity 160ms ease;
-    }
-
-    .call-button {
-      min-width: 190px;
-      padding: 0 24px;
-    }
-
-    .scan-button {
-      width: 100%;
-      margin-top: 12px;
-    }
-
-    .call-button:hover,
-    .scan-button:hover,
-    .icon-button:hover,
-    .control-button:hover {
-      transform: translateY(-1px);
-    }
-
-    .call-button:disabled,
-    .scan-button:disabled,
-    .icon-button:disabled,
-    .control-button:disabled,
-    .control-label.is-disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-      transform: none;
-    }
-
-    .call-screen {
-      display: grid;
-      grid-template-rows: auto auto auto auto 1fr;
-      gap: 12px;
-      background: var(--phone);
-      color: #ffffff;
-    }
-
-    .call-top {
+    .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-    }
-
-    .call-brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .call-brand .brand-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      box-shadow: none;
-    }
-
-    .call-brand .brand-badge::after {
-      inset: 11px 10px 10px;
-      border-width: 2px;
-    }
-
-    .call-name {
-      font-weight: 850;
-      line-height: 1.1;
-    }
-
-    .call-status {
-      color: rgba(255, 255, 255, 0.72);
-      font-size: 0.82rem;
-    }
-
-    .status-pill {
-      min-height: 32px;
-      border-radius: 999px;
-      background: var(--glass);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      padding: 0 10px;
-      font-size: 0.8rem;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      white-space: nowrap;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 0 rgba(47, 184, 132, 0.68);
-      animation: pulse 1.45s infinite;
-    }
-
-    @keyframes pulse {
-      70% {
-        box-shadow: 0 0 0 8px rgba(47, 184, 132, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(47, 184, 132, 0);
-      }
-    }
-
-    .video-stage {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 9 / 14;
-      min-height: 430px;
-      max-height: 60svh;
-      border-radius: 28px;
-      overflow: hidden;
-      background: #060707;
-      box-shadow: 0 22px 54px rgba(0, 0, 0, 0.38);
-      isolation: isolate;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      background: #060707;
-    }
-
-    video.mirror {
-      transform: scaleX(-1);
-    }
-
-    .video-placeholder {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      padding: 34px;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.76);
-      background:
-        linear-gradient(180deg, rgba(47, 184, 132, 0.22), transparent),
-        #0e1110;
-      z-index: 1;
-    }
-
-    .video-stage.is-live .video-placeholder {
-      display: none;
-    }
-
-    .face-mask {
-      position: absolute;
-      left: 50%;
-      top: 46%;
-      width: min(70%, 250px);
-      aspect-ratio: 0.76;
-      border: 2px solid rgba(255, 255, 255, 0.72);
-      border-radius: 50% / 56%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.32), inset 0 0 28px rgba(47, 184, 132, 0.18);
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .face-mask::before,
-    .face-mask::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      width: 22%;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.58);
-      transform: translateX(-50%);
-    }
-
-    .face-mask::before {
-      top: 34%;
-    }
-
-    .face-mask::after {
-      bottom: 30%;
-    }
-
-    .mask-caption {
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      bottom: 14px;
-      z-index: 3;
-      min-height: 38px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.46);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 14px;
-      font-size: 0.86rem;
-      font-weight: 750;
-      text-align: center;
-    }
-
-    .notice {
-      padding: 11px 12px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(243, 183, 93, 0.34);
-      color: #ffe2ad;
-      background: rgba(195, 122, 31, 0.14);
-      font-size: 0.88rem;
-    }
-
-    .personal-panel {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 18px;
-      padding: 12px;
-    }
-
-    .personal-label {
-      display: block;
-      font-weight: 800;
-      color: #ffffff;
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 76px;
-      resize: vertical;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      background: rgba(0, 0, 0, 0.2);
-      color: #ffffff;
-      padding: 12px;
-      outline: none;
-    }
-
-    textarea::placeholder {
-      color: rgba(255, 255, 255, 0.52);
-    }
-
-    textarea:focus {
-      border-color: rgba(47, 184, 132, 0.88);
-      box-shadow: 0 0 0 3px rgba(47, 184, 132, 0.16);
-    }
-
-    .control-dock {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      align-items: center;
-      padding: 4px 6px 8px;
-    }
-
-    .control-button,
-    .control-label,
-    .icon-button {
-      min-height: 52px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
-    }
-
-    .control-button,
-    .control-label {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-
-    .control-button.is-active {
-      background: #ffffff;
-      color: #111615;
-    }
-
-    .control-button.is-muted {
-      background: rgba(239, 111, 145, 0.2);
-      color: #ffc7d4;
-      border-color: rgba(239, 111, 145, 0.34);
-    }
-
-    .end-button {
-      background: var(--danger);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    .icon-button {
-      width: 42px;
-      min-height: 42px;
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .theme-icon,
-    .video-icon,
-    .gallery-icon,
-    .mic-icon,
-    .phone-icon {
-      width: 21px;
-      height: 21px;
-      position: relative;
-      display: inline-block;
-      flex: 0 0 auto;
-    }
-
-    .theme-icon::before {
-      content: "";
-      position: absolute;
-      width: 17px;
-      height: 17px;
-      right: 0;
-      top: 1px;
-      border-radius: 50%;
-      box-shadow: -6px 0 0 0 currentColor;
-    }
-
-    .video-icon::before {
-      content: "";
-      position: absolute;
-      left: 1px;
-      top: 5px;
-      width: 13px;
-      height: 10px;
-      border: 2px solid currentColor;
-      border-radius: 4px;
-    }
-
-    .video-icon::after {
-      content: "";
-      position: absolute;
-      right: 1px;
-      top: 7px;
-      border-top: 4px solid transparent;
-      border-bottom: 4px solid transparent;
-      border-left: 7px solid currentColor;
-    }
-
-    .gallery-icon::before {
-      content: "";
-      position: absolute;
-      inset: 3px 2px;
-      border: 2px solid currentColor;
-      border-radius: 4px;
-    }
-
-    .gallery-icon::after {
-      content: "";
-      position: absolute;
-      left: 6px;
-      bottom: 6px;
-      width: 10px;
-      height: 7px;
-      border-left: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      transform: skew(-18deg);
-    }
-
-    .mic-icon::before {
-      content: "";
-      position: absolute;
-      inset: 1px 6px 7px;
-      border: 2px solid currentColor;
-      border-radius: 9px;
-    }
-
-    .mic-icon::after {
-      content: "";
-      position: absolute;
-      left: 9px;
-      bottom: 1px;
-      width: 2px;
-      height: 7px;
-      background: currentColor;
-      box-shadow: -5px -3px 0 -1px currentColor, 5px -3px 0 -1px currentColor;
-    }
-
-    .control-button.is-muted .mic-icon {
-      transform: rotate(-18deg);
-    }
-
-    .phone-icon::before {
-      content: "";
-      position: absolute;
-      left: 3px;
-      top: 6px;
-      width: 15px;
-      height: 9px;
-      border: 3px solid currentColor;
-      border-top: 0;
-      border-radius: 0 0 14px 14px;
-      transform: rotate(180deg);
-    }
-
-    .results-sheet {
-      display: grid;
-      gap: 12px;
-      color: var(--text);
-      padding-bottom: 6px;
-    }
-
-    .stepper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 7px;
+      gap: 16px;
+      min-height: 74px;
+      padding: 14px 16px;
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 8px;
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
-    .step {
-      min-height: 54px;
-      border-radius: 13px;
+    .brand { display: grid; gap: 3px; min-width: 0; }
+    .brand h1 { font-size: 1.18rem; letter-spacing: 0; }
+    .brand p { color: var(--muted); font-size: 0.9rem; }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 4px;
+      border: 1px solid var(--line);
       background: var(--surface-soft);
-      padding: 8px;
-      display: grid;
-      align-content: center;
-      gap: 5px;
+      border-radius: var(--radius);
+      gap: 4px;
+    }
+
+    .segmented button {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: transparent;
       color: var(--muted);
-      font-size: 0.73rem;
-      font-weight: 800;
+      font-weight: 850;
     }
 
-    .step-marker {
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      border: 2px solid var(--muted);
-    }
-
-    .step.is-active {
-      color: var(--accent-strong);
-      background: rgba(47, 184, 132, 0.12);
-    }
-
-    .step.is-active .step-marker {
-      border-color: var(--accent);
-      border-top-color: transparent;
-      animation: spin 800ms linear infinite;
-    }
-
-    .step.is-done {
-      color: var(--accent-strong);
-      background: rgba(47, 184, 132, 0.16);
-    }
-
-    .step.is-done .step-marker {
-      border-color: var(--accent);
+    .segmented button.is-active {
+      color: #fff;
       background: var(--accent);
-      box-shadow: inset 0 0 0 3px var(--surface);
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .status {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 900;
+      white-space: nowrap;
+      font-size: 0.86rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .view {
+      min-height: 0;
+      overflow: hidden;
     }
 
     .panel {
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
+      min-height: 0;
       overflow: hidden;
     }
 
-    .panel-title {
+    .panel-header {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 { font-size: 0.98rem; }
+
+    .panel-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .button {
+      min-height: 40px;
+      border-radius: var(--radius);
+      padding: 0 14px;
+      font-weight: 850;
+      background: var(--surface-soft);
+      color: var(--text);
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .button.blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .button.violet { background: var(--violet); border-color: var(--violet); color: #fff; }
+    .button.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .button.ghost { background: transparent; }
+    .file-input { display: none; }
+    label.button { cursor: pointer; }
+
+    textarea {
+      width: 100%;
+      min-height: 92px;
+      resize: none;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      padding: 11px;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .note {
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 11px;
+      font-size: 0.88rem;
+    }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 9px; }
+
+    .preview-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #101513;
+      border: 1px solid #111a17;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    video, .preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #101513;
+    }
+
+    .preview-image { position: absolute; inset: 0; }
+
+    .placeholder {
+      max-width: 420px;
+      padding: 24px;
+      color: rgba(255, 255, 255, 0.76);
+      text-align: center;
+      font-weight: 750;
+    }
+
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .badge, .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      min-height: 26px;
+      padding: 0 9px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .pill.blue, .badge.blue { background: var(--blue-soft); color: var(--blue); }
+    .pill.amber, .badge.amber { background: var(--amber-soft); color: var(--amber); }
+    .pill.violet, .badge.violet { background: var(--violet-soft); color: var(--violet); }
+    .pill.danger, .badge.danger { background: rgba(216, 77, 77, 0.12); color: var(--danger); }
+
+    .developer-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(340px, 0.8fr) minmax(520px, 1.4fr);
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .trace {
+      display: grid;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .trace-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .trace-card-header {
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 13px 14px;
+      padding: 10px 12px;
+      background: var(--surface-soft);
       border-bottom: 1px solid var(--line);
     }
 
-    .panel-title h2 {
-      font-size: 0.96rem;
-      letter-spacing: 0;
+    .trace-card-header h3 { font-size: 0.92rem; }
+
+    .trace-card-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
     }
 
-    .panel-body {
-      padding: 14px;
-    }
-
-    .empty-state {
-      color: var(--muted);
+    .detection-image {
+      width: 100%;
+      max-height: 520px;
+      object-fit: contain;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
       background: var(--surface-soft);
-      border-radius: 13px;
-      padding: 13px;
-      font-size: 0.92rem;
     }
 
-    .badge-grid {
-      display: flex;
-      flex-wrap: wrap;
+    .detection-grid, .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 9px;
+    }
+
+    .det-card, .product-card {
+      display: grid;
+      gap: 5px;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      min-height: 106px;
+    }
+
+    .det-class, .product-name { font-weight: 950; color: var(--text); }
+    .product-brand { font-weight: 900; color: var(--violet); font-size: 0.84rem; }
+    .det-meta { color: var(--muted); font-size: 0.82rem; overflow-wrap: anywhere; }
+
+    .markdown { color: var(--text); overflow-wrap: anywhere; font-size: 0.94rem; }
+    .markdown h3 { font-size: 1rem; margin: 8px 0 6px; }
+    .markdown p { margin: 0 0 9px; }
+    .markdown ul { margin: 0 0 10px 18px; padding: 0; }
+    .markdown li { margin: 4px 0; }
+
+    .user-shell {
+      height: 100%;
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .progress-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
     }
 
-    .badge {
-      border-radius: 999px;
-      background: rgba(47, 184, 132, 0.12);
-      color: var(--accent-strong);
-      padding: 7px 10px;
-      font-size: 0.82rem;
-      font-weight: 850;
-    }
-
-    .products-row {
+    .progress-step {
+      min-height: 58px;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface);
       display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(156px, 72%);
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-      scroll-snap-type: x proximity;
+      align-content: center;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
     }
 
-    .product-card {
-      min-height: 112px;
-      border-radius: 14px;
+    .progress-step strong { color: var(--text); font-size: 0.9rem; }
+    .progress-step.is-active { border-color: rgba(22, 134, 97, 0.45); background: var(--accent-soft); color: var(--accent); }
+    .progress-step.is-done { border-color: rgba(37, 99, 235, 0.28); background: var(--blue-soft); }
+
+    .user-page {
+      min-height: 0;
+      display: none;
+    }
+
+    .user-page.is-active { display: grid; }
+
+    .page-card {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .page-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-title { display: grid; gap: 3px; }
+    .page-title h2 { font-size: 1.12rem; }
+    .page-title p { color: var(--muted); font-size: 0.9rem; }
+
+    .page-body {
+      min-height: 0;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .upload-layout {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(360px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 16px;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    .quality-layout, .detect-layout {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(390px, 1fr) minmax(320px, 0.7fr);
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .recommend-layout {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(280px, 0.7fr) minmax(440px, 1.25fr) minmax(300px, 0.8fr);
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .user-photo-frame {
+      position: relative;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      background: #101513;
+      border: 1px solid #111a17;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .user-photo-frame img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .upload-layout .user-photo-frame,
+    .quality-layout .user-photo-frame,
+    .detect-layout .user-photo-frame {
+      max-width: 50vw;
+      max-height: 100vh;
+      aspect-ratio: 4 / 3;
+      align-self: center;
+      margin: 0 auto;
+      width: 100%;
+      height: auto;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 90px;
+      padding: 11px;
       border: 1px solid var(--line);
       background: var(--surface-soft);
-      padding: 11px;
+      border-radius: var(--radius);
       display: grid;
+      align-content: center;
       gap: 5px;
-      align-content: start;
-      scroll-snap-align: start;
     }
 
-    .product-brand {
-      color: var(--accent-strong);
-      font-weight: 850;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      overflow-wrap: anywhere;
-    }
+    .metric strong { font-size: 1.25rem; }
+    .metric span { color: var(--muted); font-size: 0.84rem; font-weight: 750; }
 
-    .product-name {
-      font-weight: 850;
-      line-height: 1.25;
-      overflow-wrap: anywhere;
-    }
-
-    .product-meta {
-      color: var(--muted);
-      font-size: 0.8rem;
-      overflow-wrap: anywhere;
-    }
-
-    .markdown {
-      min-height: 210px;
-      color: var(--text);
-      overflow-wrap: anywhere;
-      font-size: 0.94rem;
-    }
-
-    .markdown h2,
-    .markdown h3 {
-      font-size: 1rem;
-      margin: 14px 0 6px;
-    }
-
-    .markdown p {
-      margin: 0 0 10px;
-    }
-
-    .markdown ul {
-      margin: 0 0 12px 18px;
-      padding: 0;
-    }
-
-    .markdown li {
-      margin: 4px 0;
-    }
-
-    .skeleton-group {
+    .side-stack {
+      min-height: 0;
+      overflow: auto;
       display: grid;
-      gap: 10px;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .product-list {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 9px;
+      align-content: start;
+    }
+
+    .select-product {
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .select-product:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(24, 38, 32, 0.05);
+    }
+
+    .select-product.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      background: var(--surface-soft);
+    }
+
+    .product-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .prescription-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .prescription-header {
+      border-bottom: 2px dashed var(--line);
+      padding-bottom: 10px;
+      margin-bottom: 2px;
+    }
+
+    .prescription-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .prescription-title-row h4 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 950;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .prescription-section {
+      display: grid;
+      gap: 4px;
+    }
+
+    .prescription-section h5 {
+      margin: 0;
+      font-size: 0.78rem;
+      font-weight: 950;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prescription-section-content {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .prescription-section-content.warning-box {
+      background: rgba(216, 77, 77, 0.04);
+      border-color: rgba(216, 77, 77, 0.14);
+      color: #991b1b;
+    }
+
+    .prescription-section-content.success-box {
+      background: rgba(22, 134, 97, 0.03);
+      border-color: rgba(22, 134, 97, 0.12);
+      color: #065f46;
+    }
+
+    /* Premium Safety & Allergen Table Styles */
+    .safety-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.8rem;
+      margin-top: 8px;
+      background: var(--surface-soft);
+      backdrop-filter: blur(8px);
+    }
+    
+    .safety-table th, 
+    .safety-table td {
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: middle;
+      line-height: 1.45;
+    }
+    
+    .safety-table th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .safety-table td {
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+    }
+    
+    .safety-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .safety-table tr td:first-child {
+      font-weight: 600;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    
+    /* Rows contextual colors matching the premium theme */
+    .safety-row-danger {
+      background: rgba(220, 38, 38, 0.04);
+    }
+    .safety-row-danger td:first-child {
+      color: #dc2626;
+    }
+    
+    .safety-row-success {
+      background: rgba(22, 163, 74, 0.04);
+    }
+    .safety-row-success td:first-child {
+      color: #16a34a;
+    }
+    
+    .safety-row-warning {
+      background: rgba(217, 119, 6, 0.04);
+    }
+    .safety-row-warning td:first-child {
+      color: #d97706;
+    }
+    
+    .safety-row-info {
+      background: rgba(37, 99, 235, 0.04);
+    }
+    .safety-row-info td:first-child {
+      color: #2563eb;
+    }
+
+    /* Premium Sociolla Link Button and Mini Spinner Styles */
+    .sociolla-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e11d48; /* Sociolla Brand Red/Rose */
+      color: #ffffff !important;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      transition: all 0.2s ease-in-out;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(225, 29, 72, 0.15);
+      margin-left: 8px;
+    }
+    .sociolla-btn:hover {
+      background: #be123c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+    }
+    .sociolla-link-icon {
+      transition: all 0.2s ease-in-out;
+    }
+    .sociolla-link-icon:hover {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner-mini {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 2px solid rgba(100, 116, 139, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
+    .ingredient-list-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ingredient-tag {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      position: relative;
+    }
+
+    /* Premium Custom Tooltip */
+    .ingredient-tag::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: rgba(16, 21, 19, 0.96);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      white-space: normal;
+      width: max-content;
+      max-width: 250px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 100;
+      text-align: center;
+      line-height: 1.35;
+      font-weight: 550;
+    }
+
+    .ingredient-tag::before {
+      content: "";
+      position: absolute;
+      bottom: 112%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: rgba(16, 21, 19, 0.96) transparent transparent transparent;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+
+    .ingredient-tag:hover::after,
+    .ingredient-tag:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .ingredient-tag:hover {
+      border-color: var(--accent);
+      background: var(--surface-soft);
+      transform: translateY(-1px);
+    }
+
+    .ingredient-tag.is-active-filter {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(22, 134, 97, 0.1);
+    }
+
+    .ingredient-tag.is-active-filter strong {
+      color: var(--accent);
+    }
+
+    .ingredient-tag.is-active-filter span {
+      color: var(--accent);
+      opacity: 0.85;
+    }
+
+    .ingredient-tag.is-dimmed {
+      opacity: 0.45;
+      transform: scale(0.96);
+    }
+
+    .mapping-stage {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 12px;
+    }
+
+    .mapping-visuals {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .wireframe-panel {
+      position: relative;
+      min-height: 0;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .face-map {
+      width: min(100%, 360px);
+      height: min(100%, 480px);
+      display: block;
+    }
+
+    .hidden-face-model {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .face-line {
+      fill: none;
+      stroke: #30443b;
+      stroke-width: 2.2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .face-soft {
+      fill: rgba(22, 134, 97, 0.06);
+      stroke: rgba(48, 68, 59, 0.42);
+      stroke-width: 1.4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .map-point {
+      stroke: #fff;
+      stroke-width: 2;
+      opacity: 0.32;
+    }
+
+    .map-point.is-active {
+      opacity: 0.95;
+      r: 9;
+    }
+
+    .landmark-point {
+      fill: rgba(48, 68, 59, 0.62);
+    }
+
+    .landmark-line {
+      fill: none;
+      stroke: rgba(48, 68, 59, 0.38);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .concern-blob {
+      stroke: rgba(255, 255, 255, 0.85);
+      stroke-width: 1.5;
+      mix-blend-mode: multiply;
+    }
+
+    .map-label {
+      display: none;
+    }
+
+    .explain-card {
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-button {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      transition: all 0.2s ease;
+      opacity: 0.8;
+    }
+
+    .nav-button:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.75);
+      opacity: 1;
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .nav-button:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    .nav-button.prev { left: 24px; }
+    .nav-button.next { right: 24px; }
+
+    .nav-button span {
+      display: none;
     }
 
     .skeleton {
-      min-height: 18px;
+      min-height: 17px;
       border-radius: 7px;
-      background: linear-gradient(90deg, var(--surface-soft), rgba(47, 184, 132, 0.14), var(--surface-soft));
+      background: linear-gradient(90deg, var(--surface-soft), rgba(22, 134, 97, 0.14), var(--surface-soft));
       background-size: 220% 100%;
       animation: shimmer 1.2s infinite;
     }
 
-    .skeleton.big {
-      min-height: 76px;
+    .skeleton.big { min-height: 86px; }
+    @keyframes shimmer { to { background-position: -220% 0; } }
+
+    @media (max-width: 1080px) {
+      body { overflow: auto; }
+      .app { height: auto; min-height: 100vh; overflow: visible; }
+      .view { overflow: visible; }
+      .developer-grid, .upload-layout, .quality-layout, .detect-layout, .recommend-layout, .mapping-visuals {
+        grid-template-columns: 1fr;
+      }
+      .nav-button { display: none; }
+      .page-body { overflow: auto; }
+      .progress-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    @keyframes shimmer {
-      to {
-        background-position: -220% 0;
-      }
+    @media (max-width: 720px) {
+      .app { padding: 10px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .progress-strip { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: 1fr; }
     }
 
-    @media (min-width: 720px) {
-      body {
-        padding: 22px 0;
-      }
-
-      .phone-shell {
-        min-height: calc(100svh - 44px);
-        border-radius: 32px;
-      }
-
-      .welcome-screen,
-      .call-screen {
-        min-height: calc(100svh - 44px);
-      }
+    /* Premium Glassmorphic Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(23, 33, 29, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.25s ease-out;
     }
 
-    @media (max-width: 380px) {
-      .welcome-screen,
-      .call-screen {
-        padding-left: 12px;
-        padding-right: 12px;
-      }
+    .modal-content {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) * 1.5);
+      box-shadow: 0 24px 64px rgba(24, 38, 32, 0.18);
+      width: 90%;
+      max-width: 440px;
+      overflow: hidden;
+      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-      .video-stage {
-        min-height: 390px;
-      }
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-      .control-dock {
-        gap: 8px;
-      }
+    .modal-header h3 {
+      font-size: 1.15rem;
+      font-weight: 850;
+      color: var(--text);
+    }
+
+    .close-modal-btn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .close-modal-btn:hover {
+      color: var(--danger);
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.88rem;
+      font-weight: 850;
+      color: var(--muted);
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-group input[type="text"]:focus {
+      border-color: var(--violet);
+      box-shadow: 0 0 0 3px var(--violet-soft);
+    }
+
+    .gender-selection {
+      display: flex;
+      gap: 12px;
+    }
+
+    .gender-option {
+      flex: 1;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .gender-option input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .gender-option span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      font-weight: 750;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .gender-option input:checked + span {
+      background: var(--violet-soft);
+      border-color: var(--violet);
+      color: var(--violet);
+      box-shadow: 0 4px 12px rgba(109, 75, 216, 0.08);
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: var(--surface-soft);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <div class="phone-shell">
-    <section class="welcome-screen" id="welcomeScreen" aria-label="Mulai panggilan Skincaria">
-      <div class="welcome-actions">
-        <button class="icon-button" id="themeToggle" type="button" aria-label="Ganti mode warna">
-          <span class="theme-icon" aria-hidden="true"></span>
-        </button>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Skincaria</h1>
+        <p id="modeSubtitle">Developer trace for the local CV + RAG recommendation loop.</p>
       </div>
-      <div class="welcome-content">
-        <div class="brand-badge" aria-hidden="true"></div>
-        <h1 class="welcome-title">Skincaria's Here for You</h1>
-        <p class="welcome-copy">A calm skin check-in with camera, photo upload, and personal product recommendations.</p>
-        <button class="call-button" id="callButton" type="button">Call Skincaria</button>
+      <div class="top-actions">
+        <div class="segmented" aria-label="View mode">
+          <button id="developerModeButton" class="is-active" type="button">Developer</button>
+          <button id="userModeButton" type="button">User</button>
+        </div>
+        <div class="status" id="status"><span class="status-dot" aria-hidden="true"></span><span>Ready</span></div>
+      </div>
+    </header>
+
+    <section class="view" id="developerView">
+      <div class="developer-grid">
+        <section class="panel" aria-label="Developer input">
+          <div class="panel-header">
+            <h2>Input</h2>
+            <button class="button danger" id="clearButton" type="button">Clear</button>
+          </div>
+          <div class="panel-body">
+            <div class="preview-stage">
+              <video id="webcam" autoplay muted playsinline hidden></video>
+              <img id="previewImage" class="preview-image" alt="Selected skin image preview" hidden>
+              <div class="placeholder" id="placeholder">Open the webcam, capture a frame, or upload a face image.</div>
+            </div>
+            <div class="toolbar">
+              <button class="button" id="openCameraButton" type="button">Open Webcam</button>
+              <button class="button blue" id="captureButton" type="button" disabled>Capture</button>
+              <button class="button" id="stopCameraButton" type="button" disabled>Stop</button>
+              <label class="button" for="fileInput">Upload Image</label>
+              <input class="file-input" id="fileInput" type="file" accept="image/*">
+            </div>
+            <textarea id="queryInput" placeholder="Tell Skincaria what you want checked. Example: I want acne and redness recommendations."></textarea>
+            <div class="toolbar">
+              <button class="button primary" id="runButton" type="button">Analyze and Recommend</button>
+              <button class="button violet" id="saveCaseButton" type="button" disabled>Save Judge Case</button>
+            </div>
+            <div class="note">Developer view keeps the full trace, including texture classification. User view hides Grad-CAM and presents a guided flow.</div>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Developer trace">
+          <div class="panel-header">
+            <h2>Agent Trace</h2>
+            <span class="pill">YOLO11n + RAG</span>
+          </div>
+          <div class="panel-body">
+            <div class="trace" id="trace">
+              <div class="note">Run the agent loop to see each step here.</div>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
-    <section class="call-screen" id="callScreen" aria-label="Live Skincaria" hidden>
-      <header class="call-top">
-        <div class="call-brand">
-          <div class="brand-badge" aria-hidden="true"></div>
-          <div>
-            <div class="call-name">Skincaria</div>
-            <div class="call-status" id="callStatus">Ready when you are</div>
-          </div>
-        </div>
-        <div class="status-pill"><span class="status-dot" aria-hidden="true"></span><span>LIVE</span></div>
-      </header>
+    <section class="view" id="userView" hidden>
+      <button class="nav-button prev" id="prevPageButton" type="button" aria-label="Previous stage">‹<span>Previous</span></button>
+      <button class="nav-button next" id="nextPageButton" type="button" aria-label="Next stage">›<span>Next</span></button>
 
-      <div class="video-stage" id="videoStage">
-        <video id="cameraVideo" class="mirror" autoplay muted playsinline></video>
-        <div class="video-placeholder" id="videoPlaceholder">Skincaria will look for your face inside the mask area.</div>
-        <div class="face-mask" aria-hidden="true"></div>
-        <div class="mask-caption" id="maskStatus">Face mask ready</div>
-      </div>
-
-      <div class="notice" id="cameraNotice" hidden></div>
-      <input id="fallbackFile" type="file" accept="image/*" capture="user" hidden>
-
-      <div class="personal-panel">
-        <label class="personal-label" for="personalConcern">Tell Skincaria what feels different today</label>
-        <textarea id="personalConcern" placeholder="Example: oily T-zone, redness after serum, dry cheeks, or acne around the jaw."></textarea>
-        <button class="scan-button" id="scanButton" type="button">Talk to Skincaria</button>
-      </div>
-
-      <nav class="control-dock" aria-label="Kontrol panggilan">
-        <button class="control-button is-active" id="videoToggle" type="button" aria-label="Nyalakan atau matikan video">
-          <span class="video-icon" aria-hidden="true"></span>
-        </button>
-        <label class="control-label" id="galleryButton" for="fallbackFile" aria-label="Unggah foto dari galeri">
-          <span class="gallery-icon" aria-hidden="true"></span>
-        </label>
-        <button class="control-button" id="muteButton" type="button" aria-label="Mute">
-          <span class="mic-icon" aria-hidden="true"></span>
-        </button>
-        <button class="control-button end-button" id="endCallButton" type="button" aria-label="Akhiri panggilan">
-          <span class="phone-icon" aria-hidden="true"></span>
-        </button>
-      </nav>
-
-      <section class="results-sheet" aria-label="Hasil rekomendasi">
-        <div class="stepper" aria-label="Progres">
-          <div class="step" data-step="analyze">
-            <span class="step-marker" aria-hidden="true"></span>
-            <span>Menganalisis</span>
-          </div>
-          <div class="step" data-step="retrieve">
-            <span class="step-marker" aria-hidden="true"></span>
-            <span>Mencari produk</span>
-          </div>
-          <div class="step" data-step="generate">
-            <span class="step-marker" aria-hidden="true"></span>
-            <span>Rekomendasi</span>
-          </div>
+      <div class="user-shell">
+        <div class="progress-strip" id="userProgress">
+          <button class="progress-step is-active" data-page="0" type="button"><strong>1. Upload</strong><span>Photo and inquiry</span></button>
+          <button class="progress-step" data-page="1" type="button"><strong>2. Quality</strong><span>Input gate</span></button>
+          <button class="progress-step" data-page="2" type="button"><strong>3. Detection</strong><span>YOLO11n boxes</span></button>
+          <button class="progress-step" data-page="3" type="button"><strong>4. Products</strong><span>Mapped reasons</span></button>
         </div>
 
-        <section class="panel" aria-label="Analisis kulit">
-          <div class="panel-title">
-            <h2>Personal Skin Read</h2>
-          </div>
-          <div class="panel-body">
-            <div id="analysisEmpty" class="empty-state">Your skin labels will appear after Skincaria checks the frame.</div>
-            <div id="analysisSkeleton" class="skeleton-group" hidden>
-              <div class="skeleton"></div>
-              <div class="skeleton"></div>
-              <div class="skeleton"></div>
+        <section class="user-page is-active" data-user-page="0">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>Upload Your Skin Photo</h2>
+                <p>Use one clear face photo and write what you want help with.</p>
+              </div>
+              <span class="pill blue">Step 1</span>
             </div>
-            <div id="badges" class="badge-grid" hidden></div>
-          </div>
+            <div class="page-body">
+              <div class="upload-layout">
+                <div class="user-photo-frame">
+                  <img id="userUploadPreview" alt="Uploaded face preview" hidden>
+                  <div class="placeholder" id="userUploadPlaceholder">Upload or capture a face photo to begin.</div>
+                </div>
+                <div class="side-stack">
+                  <div class="explain-card">
+                    <h3>Photo Input</h3>
+                    <div class="toolbar">
+                      <label class="button" for="userFileInput">Upload Photo</label>
+                      <input class="file-input" id="userFileInput" type="file" accept="image/*">
+                      <button class="button" id="userUseCurrentButton" type="button">Use Current Developer Photo</button>
+                    </div>
+                    <div class="note">Raw face photos are used for the live analysis session. The judge-case saver stores structured outputs only, not the image.</div>
+                  </div>
+                  <div class="explain-card">
+                    <h3>Your Inquiry</h3>
+                    <textarea id="userQueryInput" placeholder="Example: I want help choosing products for acne, redness, oily skin, and visible pores."></textarea>
+                  </div>
+                  <div class="toolbar">
+                    <button class="button primary" id="userRunButton" type="button">Start Analysis</button>
+                    <button class="button violet" id="userSaveCaseButton" type="button" disabled>Save Judge Case</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
         </section>
 
-        <section class="panel" aria-label="Produk terambil">
-          <div class="panel-title">
-            <h2>Matched Products</h2>
-          </div>
-          <div class="panel-body">
-            <div id="productsEmpty" class="empty-state">Products will appear once Skincaria understands your concern.</div>
-            <div id="productsSkeleton" class="skeleton-group" hidden>
-              <div class="skeleton big"></div>
-              <div class="skeleton big"></div>
+        <section class="user-page" data-user-page="1">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>Input Quality Check</h2>
+                <p>Skincaria checks whether the image has enough visible face and skin signal.</p>
+              </div>
+              <span class="pill amber" id="qualityStatusPill">Waiting</span>
             </div>
-            <div id="productsRow" class="products-row" hidden></div>
-          </div>
+            <div class="page-body">
+              <div class="quality-layout">
+                <div class="user-photo-frame" id="qualityImageFrame">
+                  <div class="placeholder">Quality preview will appear after analysis starts.</div>
+                </div>
+                <div class="side-stack">
+                  <div class="metric-grid" id="qualityMetrics">
+                    <div class="metric"><strong>-</strong><span>Face signal</span></div>
+                    <div class="metric"><strong>-</strong><span>Likely skin area</span></div>
+                    <div class="metric"><strong>-</strong><span>Blur score</span></div>
+                    <div class="metric"><strong>-</strong><span>Decision</span></div>
+                  </div>
+                  <div class="note" id="qualityWarnings">Run the analysis to view quality feedback.</div>
+                </div>
+              </div>
+            </div>
+          </article>
         </section>
 
-        <section class="panel" aria-label="Rekomendasi">
-          <div class="panel-title">
-            <h2>Skincaria Says</h2>
-          </div>
-          <div class="panel-body">
-            <div id="outputEmpty" class="empty-state">Your recommendation will stream here.</div>
-            <div id="outputSkeleton" class="skeleton-group" hidden>
-              <div class="skeleton"></div>
-              <div class="skeleton"></div>
-              <div class="skeleton big"></div>
+        <section class="user-page" data-user-page="2">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>YOLO11n Detection</h2>
+                <p>Localized detections are shown as bounding boxes. These are model signals, not medical diagnosis.</p>
+              </div>
+              <span class="pill amber" id="detectionStatusPill">Waiting</span>
             </div>
-            <div id="recommendationOutput" class="markdown" hidden></div>
-          </div>
+            <div class="page-body">
+              <div class="detect-layout">
+                <div class="user-photo-frame" id="detectionImageFrame">
+                  <div class="placeholder">YOLO11n output will appear here.</div>
+                </div>
+                <div class="side-stack">
+                  <div class="badge-row" id="detectionBadges"></div>
+                  <div class="detection-grid" id="userDetectionCards"></div>
+                </div>
+              </div>
+            </div>
+          </article>
         </section>
-      </section>
+
+        <section class="user-page" data-user-page="3">
+          <article class="page-card">
+            <div class="page-head">
+              <div class="page-title">
+                <h2>Product Knowledge Base</h2>
+                <p>Select a recommended product to see which detected concerns it addresses.</p>
+              </div>
+              <span class="pill violet" id="productStatusPill">Waiting</span>
+            </div>
+            <div class="page-body">
+              <div class="recommend-layout">
+                <div class="side-stack">
+                  <div class="explain-card">
+                    <h3>Detected Concerns</h3>
+                    <div class="badge-row" id="concernBadges"></div>
+                  </div>
+                  <div class="explain-card">
+                    <h3>Skincare Prescription Details</h3>
+                    <div id="selectedProductReason" class="det-meta">Choose a product from the right panel.</div>
+                  </div>
+                </div>
+                <div class="mapping-stage">
+                  <div class="mapping-visuals">
+                    <div class="user-photo-frame" id="recommendPhotoFrame">
+                      <div class="placeholder">Original photo appears here.</div>
+                    </div>
+                    <div class="wireframe-panel">
+                      <svg class="face-map" viewBox="0 0 240 320" role="img" aria-label="Wireframe face concern map">
+                        <image class="hidden-face-model" href="/assets/face-model" x="0" y="0" width="240" height="320" preserveAspectRatio="xMidYMid meet"></image>
+                        <g id="faceMapLandmarks"></g>
+                        <g id="faceHeatmapLayer"></g>
+                        <g id="faceMapPoints"></g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="note" id="mappingExplanation">The hidden face-model image anchors the map. MediaPipe landmarks from the submitted photo are drawn on top, then YOLO concern heat blobs are projected using the same box locations.</div>
+                </div>
+                <div class="product-list" id="userProductList">
+                  <div class="note">Recommendations will appear after analysis finishes.</div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
     </section>
+  </main>
+
+  <canvas id="captureCanvas" hidden></canvas>
+
+  <!-- Premium Save Judge Case Modal Overlay -->
+  <div id="saveCaseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Tag Judge Case</h3>
+        <button class="close-modal-btn" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="casePersonName">Person's Name</label>
+          <input type="text" id="casePersonName" placeholder="Enter name (e.g. rosa)">
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <div class="gender-selection">
+            <label class="gender-option">
+              <input type="radio" name="casePersonGender" value="female" checked>
+              <span>Female</span>
+            </label>
+            <label class="gender-option">
+              <input type="radio" name="casePersonGender" value="male">
+              <span>Male</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="button" id="cancelSaveCaseBtn">Cancel</button>
+        <button class="button violet" id="confirmSaveCaseBtn">Confirm & Save</button>
+      </div>
+    </div>
   </div>
-
-  <canvas id="captureCanvas" width="768" height="1024" hidden></canvas>
 
   <script>
     const refs = {
-      html: document.documentElement,
-      welcomeScreen: document.getElementById("welcomeScreen"),
-      callScreen: document.getElementById("callScreen"),
-      callButton: document.getElementById("callButton"),
-      callStatus: document.getElementById("callStatus"),
-      cameraVideo: document.getElementById("cameraVideo"),
-      videoStage: document.getElementById("videoStage"),
-      videoPlaceholder: document.getElementById("videoPlaceholder"),
-      maskStatus: document.getElementById("maskStatus"),
+      modeSubtitle: document.getElementById("modeSubtitle"),
+      developerModeButton: document.getElementById("developerModeButton"),
+      userModeButton: document.getElementById("userModeButton"),
+      developerView: document.getElementById("developerView"),
+      userView: document.getElementById("userView"),
+      status: document.getElementById("status"),
+      webcam: document.getElementById("webcam"),
+      previewImage: document.getElementById("previewImage"),
+      placeholder: document.getElementById("placeholder"),
+      fileInput: document.getElementById("fileInput"),
+      openCameraButton: document.getElementById("openCameraButton"),
+      captureButton: document.getElementById("captureButton"),
+      stopCameraButton: document.getElementById("stopCameraButton"),
+      clearButton: document.getElementById("clearButton"),
+      runButton: document.getElementById("runButton"),
+      saveCaseButton: document.getElementById("saveCaseButton"),
+      queryInput: document.getElementById("queryInput"),
+      trace: document.getElementById("trace"),
       captureCanvas: document.getElementById("captureCanvas"),
-      cameraNotice: document.getElementById("cameraNotice"),
-      fallbackFile: document.getElementById("fallbackFile"),
-      galleryButton: document.getElementById("galleryButton"),
-      personalConcern: document.getElementById("personalConcern"),
-      scanButton: document.getElementById("scanButton"),
-      videoToggle: document.getElementById("videoToggle"),
-      muteButton: document.getElementById("muteButton"),
-      endCallButton: document.getElementById("endCallButton"),
-      themeToggle: document.getElementById("themeToggle"),
-      analysisEmpty: document.getElementById("analysisEmpty"),
-      analysisSkeleton: document.getElementById("analysisSkeleton"),
-      badges: document.getElementById("badges"),
-      productsEmpty: document.getElementById("productsEmpty"),
-      productsSkeleton: document.getElementById("productsSkeleton"),
-      productsRow: document.getElementById("productsRow"),
-      outputEmpty: document.getElementById("outputEmpty"),
-      outputSkeleton: document.getElementById("outputSkeleton"),
-      recommendationOutput: document.getElementById("recommendationOutput")
+      userFileInput: document.getElementById("userFileInput"),
+      userUploadPreview: document.getElementById("userUploadPreview"),
+      userUploadPlaceholder: document.getElementById("userUploadPlaceholder"),
+      userUseCurrentButton: document.getElementById("userUseCurrentButton"),
+      userQueryInput: document.getElementById("userQueryInput"),
+      userRunButton: document.getElementById("userRunButton"),
+      userSaveCaseButton: document.getElementById("userSaveCaseButton"),
+      prevPageButton: document.getElementById("prevPageButton"),
+      nextPageButton: document.getElementById("nextPageButton"),
+      qualityStatusPill: document.getElementById("qualityStatusPill"),
+      qualityImageFrame: document.getElementById("qualityImageFrame"),
+      qualityMetrics: document.getElementById("qualityMetrics"),
+      qualityWarnings: document.getElementById("qualityWarnings"),
+      detectionStatusPill: document.getElementById("detectionStatusPill"),
+      detectionImageFrame: document.getElementById("detectionImageFrame"),
+      detectionBadges: document.getElementById("detectionBadges"),
+      userDetectionCards: document.getElementById("userDetectionCards"),
+      productStatusPill: document.getElementById("productStatusPill"),
+      concernBadges: document.getElementById("concernBadges"),
+      recommendPhotoFrame: document.getElementById("recommendPhotoFrame"),
+      faceMapLandmarks: document.getElementById("faceMapLandmarks"),
+      faceHeatmapLayer: document.getElementById("faceHeatmapLayer"),
+      faceMapPoints: document.getElementById("faceMapPoints"),
+      userProductList: document.getElementById("userProductList"),
+      selectedProductReason: document.getElementById("selectedProductReason"),
+      mappingExplanation: document.getElementById("mappingExplanation")
     };
 
-    const labelMap = {
-      skin_type: {
-        title: "Skin",
-        values: { oily: "Oily", dry: "Dry", combination: "Combination", normal: "Normal" }
-      },
-      acne_severity: {
-        title: "Acne",
-        values: { none: "None", mild: "Mild", moderate: "Moderate", severe: "Severe" }
-      },
-      redness: {
-        title: "Redness",
-        values: { none: "None", mild: "Mild", moderate: "Moderate", severe: "Severe" }
-      },
-      pore_condition: {
-        title: "Pores",
-        values: { normal: "Normal", enlarged: "Enlarged", clogged: "Clogged" }
-      },
-      dehydration: {
-        title: "Dehydration",
-        values: { none: "None", mild: "Mild", severe: "Severe" }
-      }
+    const state = {
+      mode: "developer",
+      userPage: 0,
+      cameraStream: null,
+      selectedImageDataUrl: "",
+      uploadedFileName: "",
+      activeSocket: null,
+      recommendationMarkdown: "",
+      lastRun: null,
+      caseSaved: false,
+      busy: false,
+      selectedProductIndex: 0,
+      faceLandmarker: null,
+      faceLandmarks: null,
+      modelFaceLandmarks: null,
+      activeIngredientFilter: null,
+      activeIngredientFunc: null,
+      hoveredIngredientFilter: null,
+      hoveredIngredientFunc: null,
+      landmarkStatus: "loading"
     };
 
-    const FACE_OVAL_LANDMARKS = [
-      10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
-      397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
-      172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
+    const pageNames = ["upload", "quality", "detect", "products"];
+    const concernColors = {
+      "Acne": "#ef4444",
+      "Blackheads": "#111827",
+      "Whiteheads": "#9ca3af",
+      "Skin-Redness": "#e83e8c",
+      "Oily-Skin": "#22c55e",
+      "Enlarged-Pores": "#0ea5e9",
+      "Dry-Skin": "#f59e0b",
+      "Wrinkles": "#64748b",
+      "Dark-Spots": "#92400e",
+      "Eyebags": "#8b5cf6"
+    };
+
+    const faceContourGroups = [
+      [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10],
+      [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7, 33],
+      [263, 466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249, 263],
+      [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146, 61],
+      [1, 2, 98, 97, 2, 327, 326, 2]
     ];
-    const MEDIAPIPE_PACKAGE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
-    const MEDIAPIPE_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm";
-    const FACE_LANDMARKER_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task";
 
-    let cameraStream = null;
-    let facingMode = "user";
-    let activeSocket = null;
-    let recommendationText = "";
-    let busy = false;
-    let muted = false;
-    let pendingRetrieveTimer = null;
-    let faceLandmarker = null;
-    let faceLandmarkerPromise = null;
-    let faceLandmarkerAvailable = false;
+    refs.developerModeButton.addEventListener("click", () => setMode("developer"));
+    refs.userModeButton.addEventListener("click", () => setMode("user"));
+    refs.openCameraButton.addEventListener("click", openWebcam);
+    refs.captureButton.addEventListener("click", captureFrame);
+    refs.stopCameraButton.addEventListener("click", stopWebcam);
+    refs.clearButton.addEventListener("click", clearInput);
+    refs.runButton.addEventListener("click", () => runAgentLoop({ source: "developer" }));
+    refs.saveCaseButton.addEventListener("click", saveEvaluationCase);
+    refs.fileInput.addEventListener("change", handleDeveloperUpload);
+    refs.userFileInput.addEventListener("change", handleUserUpload);
+    refs.userUseCurrentButton.addEventListener("click", useCurrentDeveloperPhoto);
+    refs.userRunButton.addEventListener("click", () => runAgentLoop({ source: "user" }));
+    refs.userSaveCaseButton.addEventListener("click", saveEvaluationCase);
+    refs.prevPageButton.addEventListener("click", () => setUserPage(state.userPage - 1));
+    refs.nextPageButton.addEventListener("click", () => setUserPage(state.userPage + 1));
+    document.querySelectorAll("[data-page]").forEach((button) => {
+      button.addEventListener("click", () => setUserPage(Number(button.dataset.page)));
+    });
 
-    init();
+    document.getElementById("closeModalBtn").addEventListener("click", closeSaveCaseModal);
+    document.getElementById("cancelSaveCaseBtn").addEventListener("click", closeSaveCaseModal);
+    document.getElementById("confirmSaveCaseBtn").addEventListener("click", confirmSaveEvaluationCase);
 
-    function init() {
-      applySavedTheme();
-      bindEvents();
-      setStep("idle");
+    function setMode(mode) {
+      state.mode = mode;
+      refs.developerModeButton.classList.toggle("is-active", mode === "developer");
+      refs.userModeButton.classList.toggle("is-active", mode === "user");
+      refs.developerView.hidden = mode !== "developer";
+      refs.userView.hidden = mode !== "user";
+      refs.modeSubtitle.textContent = mode === "developer"
+        ? "Developer trace for the local CV + RAG recommendation loop."
+        : "Paginated user-study flow for participant testing and satisfaction scoring.";
+      syncUserPreview();
     }
 
-    function bindEvents() {
-      refs.themeToggle.addEventListener("click", toggleTheme);
-      refs.callButton.addEventListener("click", startCall);
-      refs.videoToggle.addEventListener("click", toggleVideo);
-      refs.muteButton.addEventListener("click", toggleMute);
-      refs.endCallButton.addEventListener("click", endCall);
-      refs.scanButton.addEventListener("click", analyzeFromCamera);
-      refs.fallbackFile.addEventListener("change", analyzeFromGallery);
-    }
-
-    function applySavedTheme() {
-      const saved = localStorage.getItem("skincaria-theme");
-      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      refs.html.dataset.theme = saved || (prefersDark ? "dark" : "light");
-    }
-
-    function toggleTheme() {
-      const next = refs.html.dataset.theme === "dark" ? "light" : "dark";
-      refs.html.dataset.theme = next;
-      localStorage.setItem("skincaria-theme", next);
-    }
-
-    async function startCall() {
-      refs.welcomeScreen.hidden = true;
-      refs.callScreen.hidden = false;
-      resetResults();
-      setStep("idle");
-      setCallStatus("Finding your camera");
-      loadFaceLandmarker();
-      await startCamera();
-    }
-
-    function endCall() {
-      closeActiveSocket();
-      stopCamera();
-      busy = false;
-      setButtonsDisabled(false);
-      refs.personalConcern.value = "";
-      refs.fallbackFile.value = "";
-      refs.callScreen.hidden = true;
-      refs.welcomeScreen.hidden = false;
-      setCallStatus("Ready when you are");
-      resetResults();
-    }
-
-    async function toggleVideo() {
-      if (busy) {
-        return;
-      }
-      if (cameraStream) {
-        stopCamera();
-        refs.videoToggle.classList.remove("is-active");
-        refs.videoStage.classList.remove("is-live");
-        refs.maskStatus.textContent = "Video off";
-        setCallStatus("Video paused");
-        return;
-      }
-      refs.videoToggle.classList.add("is-active");
-      await startCamera();
-    }
-
-    function toggleMute() {
-      muted = !muted;
-      refs.muteButton.classList.toggle("is-muted", muted);
-      setCallStatus(muted ? "Muted" : "Listening to your note");
-    }
-
-    async function startCamera() {
+    async function openWebcam() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showCameraFallback("Camera is unavailable in this browser. Use the gallery button.");
+        setStatus("Webcam unavailable");
+        addTraceNote("This browser cannot open a webcam. Upload an image instead.");
         return;
       }
-
       try {
-        stopCamera();
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode,
-            width: { ideal: 1280 },
-            height: { ideal: 1600 }
-          },
+        stopWebcam();
+        state.cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
           audio: false
         });
-        refs.cameraVideo.srcObject = cameraStream;
-        refs.cameraVideo.classList.toggle("mirror", facingMode === "user");
-        refs.videoStage.classList.add("is-live");
-        refs.cameraNotice.hidden = true;
-        refs.videoToggle.classList.add("is-active");
-        refs.maskStatus.textContent = faceLandmarkerAvailable
-          ? "Face mesh ready"
-          : "Loading face mesh";
-        setCallStatus("Video on");
-        await refs.cameraVideo.play();
+        refs.webcam.srcObject = state.cameraStream;
+        refs.webcam.hidden = false;
+        refs.previewImage.hidden = true;
+        refs.placeholder.hidden = true;
+        refs.captureButton.disabled = false;
+        refs.stopCameraButton.disabled = false;
+        refs.openCameraButton.disabled = true;
+        await refs.webcam.play();
+        setStatus("Webcam open");
       } catch (error) {
-        showCameraFallback("Camera permission was denied or unavailable. Use the gallery button.");
+        setStatus("Webcam blocked");
+        addTraceNote("Camera permission was denied or the webcam is unavailable.");
       }
     }
 
-    function stopCamera() {
-      if (!cameraStream) {
-        return;
+    function stopWebcam() {
+      if (state.cameraStream) {
+        for (const track of state.cameraStream.getTracks()) track.stop();
       }
-      for (const track of cameraStream.getTracks()) {
-        track.stop();
-      }
-      cameraStream = null;
-      refs.cameraVideo.srcObject = null;
+      state.cameraStream = null;
+      refs.webcam.srcObject = null;
+      refs.webcam.hidden = true;
+      refs.captureButton.disabled = true;
+      refs.stopCameraButton.disabled = true;
+      refs.openCameraButton.disabled = state.busy;
+      if (!state.selectedImageDataUrl) refs.placeholder.hidden = false;
     }
 
-    function showCameraFallback(message) {
-      refs.cameraNotice.textContent = message;
-      refs.cameraNotice.hidden = false;
-      refs.videoStage.classList.remove("is-live");
-      refs.videoToggle.classList.remove("is-active");
-      refs.maskStatus.textContent = "Upload a face photo from gallery";
-      setCallStatus("Gallery mode");
-    }
-
-    async function analyzeFromCamera() {
-      if (busy) {
-        return;
-      }
-      const concern = refs.personalConcern.value.trim();
-      const form = new FormData();
-      form.append("concern", concern);
-
-      try {
-        if (cameraStream && refs.cameraVideo.readyState >= 2) {
-          const blob = await captureMaskedFrame();
-          form.append("image", blob, "skincaria-face-mask.jpg");
-        } else if (refs.fallbackFile.files[0]) {
-          const blob = await maskUploadedImage(refs.fallbackFile.files[0]);
-          form.append("image", blob, "skincaria-gallery-mask.jpg");
-        } else if (!concern) {
-          showInlineMessage("Please turn video on, upload a photo, or tell Skincaria what changed.");
-          return;
-        }
-        await submitAnalysis(form, concern);
-      } catch (error) {
-        showInlineMessage(error.message || "Could not capture the frame.");
-      }
-    }
-
-    async function analyzeFromGallery() {
-      if (busy || !refs.fallbackFile.files[0]) {
-        return;
-      }
-      const concern = refs.personalConcern.value.trim();
-      const form = new FormData();
-      form.append("concern", concern);
-      const blob = await maskUploadedImage(refs.fallbackFile.files[0]);
-      form.append("image", blob, "skincaria-gallery-mask.jpg");
-      await submitAnalysis(form, concern);
-    }
-
-    async function loadFaceLandmarker() {
-      if (faceLandmarkerPromise) {
-        return faceLandmarkerPromise;
-      }
-
-      refs.maskStatus.textContent = "Loading face mesh";
-      faceLandmarkerPromise = import(MEDIAPIPE_PACKAGE_URL)
-        .then(async ({ FaceLandmarker, FilesetResolver }) => {
-          const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
-          faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath: FACE_LANDMARKER_MODEL_URL,
-              delegate: "GPU"
-            },
-            runningMode: "IMAGE",
-            numFaces: 1,
-            minFaceDetectionConfidence: 0.45,
-            minFacePresenceConfidence: 0.45,
-            minTrackingConfidence: 0.45
-          });
-          faceLandmarkerAvailable = true;
-          refs.maskStatus.textContent = "Face mesh ready";
-          return faceLandmarker;
-        })
-        .catch((error) => {
-          console.warn("MediaPipe Face Landmarker unavailable; using oval fallback.", error);
-          faceLandmarker = null;
-          faceLandmarkerAvailable = false;
-          refs.maskStatus.textContent = "Using oval fallback";
-          return null;
-        });
-
-      return faceLandmarkerPromise;
-    }
-
-    function detectFaceLandmarks(source) {
-      if (!faceLandmarker) {
-        return null;
-      }
-      try {
-        const result = faceLandmarker.detect(source);
-        const landmarks = result.faceLandmarks && result.faceLandmarks[0];
-        return landmarks || null;
-      } catch (error) {
-        console.warn("Face mesh detection failed; using oval fallback.", error);
-        return null;
-      }
-    }
-
-    async function waitForFaceLandmarker(maxWaitMs = 1800) {
-      if (!faceLandmarkerPromise || faceLandmarkerAvailable) {
-        return faceLandmarker;
-      }
-      const timeout = new Promise((resolve) => {
-        window.setTimeout(() => resolve(null), maxWaitMs);
-      });
-      await Promise.race([faceLandmarkerPromise, timeout]);
-      return faceLandmarker;
-    }
-
-    async function captureMaskedFrame() {
-      const video = refs.cameraVideo;
-      if (!video.videoWidth || !video.videoHeight) {
-        throw new Error("Camera is not ready yet.");
-      }
-      await waitForFaceLandmarker();
+    function captureFrame() {
+      if (!state.cameraStream || !refs.webcam.videoWidth) return;
       const canvas = refs.captureCanvas;
-      const context = canvas.getContext("2d");
-      canvas.width = 768;
-      canvas.height = 1024;
-      drawCoverImage(context, video, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
-      drawFaceMask(context, canvas, canvas.width, canvas.height);
-      return canvasToJpegBlob(canvas, "Could not create a masked frame.");
+      canvas.width = refs.webcam.videoWidth;
+      canvas.height = refs.webcam.videoHeight;
+      canvas.getContext("2d").drawImage(refs.webcam, 0, 0, canvas.width, canvas.height);
+      state.uploadedFileName = "camera_capture";
+      setSelectedImage(canvas.toDataURL("image/jpeg", 0.88));
+      stopWebcam();
+      setStatus("Frame captured");
     }
 
-    function maskUploadedImage(file) {
-      return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = async () => {
-          await waitForFaceLandmarker();
-          const canvas = refs.captureCanvas;
-          const context = canvas.getContext("2d");
-          canvas.width = 768;
-          canvas.height = 1024;
-          drawCoverImage(context, image, image.naturalWidth, image.naturalHeight, canvas.width, canvas.height);
-          drawFaceMask(context, canvas, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              reject(new Error("Could not prepare the uploaded photo."));
-              return;
-            }
-            resolve(blob);
-          }, "image/jpeg", 0.9);
-          URL.revokeObjectURL(image.src);
-        };
-        image.onerror = () => reject(new Error("Could not read the uploaded photo."));
-        image.src = URL.createObjectURL(file);
-      });
+    function handleDeveloperUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      loadImageFile(file);
     }
 
-    function canvasToJpegBlob(canvas, errorMessage) {
-      return new Promise((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            reject(new Error(errorMessage));
-            return;
-          }
-          resolve(blob);
-        }, "image/jpeg", 0.9);
-      });
+    function handleUserUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      loadImageFile(file);
+      setMode("user");
     }
 
-    function drawCoverImage(context, source, sourceWidth, sourceHeight, targetWidth, targetHeight) {
-      const scale = Math.max(targetWidth / sourceWidth, targetHeight / sourceHeight);
-      const width = sourceWidth * scale;
-      const height = sourceHeight * scale;
-      const x = (targetWidth - width) / 2;
-      const y = (targetHeight - height) / 2;
-      context.clearRect(0, 0, targetWidth, targetHeight);
-      context.drawImage(source, x, y, width, height);
-    }
-
-    function drawFaceMask(context, source, width, height) {
-      const landmarks = detectFaceLandmarks(source);
-      if (landmarks) {
-        drawMeshFaceMask(context, landmarks, width, height);
-        refs.maskStatus.textContent = "Face mesh mask captured";
+    function loadImageFile(file) {
+      if (!file.type.startsWith("image/")) {
+        setStatus("Invalid file");
         return;
       }
-      drawOvalFallbackMask(context, width, height);
-      refs.maskStatus.textContent = "Oval fallback mask captured";
+      const dotIndex = file.name.lastIndexOf('.');
+      const baseName = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
+      state.uploadedFileName = baseName;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(String(reader.result || ""));
+        setStatus("Image loaded");
+      };
+      reader.readAsDataURL(file);
     }
 
-    function drawMeshFaceMask(context, landmarks, width, height) {
-      const path = new Path2D();
-      let started = false;
-      for (const index of FACE_OVAL_LANDMARKS) {
-        const point = landmarks[index];
-        if (!point) {
-          continue;
-        }
-        const x = point.x * width;
-        const y = point.y * height;
-        if (!started) {
-          path.moveTo(x, y);
-          started = true;
+    function useCurrentDeveloperPhoto() {
+      if (!state.selectedImageDataUrl) {
+        setStatus("No photo selected");
+        return;
+      }
+      syncUserPreview();
+      setStatus("Photo ready");
+    }
+
+    function setSelectedImage(dataUrl) {
+      state.selectedImageDataUrl = dataUrl;
+      refs.previewImage.src = dataUrl;
+      refs.previewImage.hidden = false;
+      refs.placeholder.hidden = true;
+      syncUserPreview();
+      renderRecommendPhoto();
+      estimateFaceLandmarks(dataUrl);
+    }
+
+    function syncUserPreview() {
+      if (!state.selectedImageDataUrl) {
+        refs.userUploadPreview.hidden = true;
+        refs.userUploadPlaceholder.hidden = false;
+        return;
+      }
+      refs.userUploadPreview.src = state.selectedImageDataUrl;
+      refs.userUploadPreview.hidden = false;
+      refs.userUploadPlaceholder.hidden = true;
+    }
+
+    function clearInput() {
+      closeSocket();
+      stopWebcam();
+      state.selectedImageDataUrl = "";
+      state.recommendationMarkdown = "";
+      state.lastRun = null;
+      state.caseSaved = false;
+      state.selectedProductIndex = 0;
+      state.faceLandmarks = null;
+      state.activeIngredientFilter = null;
+      state.activeIngredientFunc = null;
+      state.hoveredIngredientFilter = null;
+      state.hoveredIngredientFunc = null;
+      refs.previewImage.removeAttribute("src");
+      refs.previewImage.hidden = true;
+      refs.placeholder.hidden = false;
+      refs.fileInput.value = "";
+      refs.userFileInput.value = "";
+      refs.queryInput.value = "";
+      refs.userQueryInput.value = "";
+      refs.trace.innerHTML = '<div class="note">Run the agent loop to see each step here.</div>';
+      resetUserOutputs();
+      setUserPage(0);
+      setStatus("Ready");
+      updateSaveCaseButton();
+    }
+
+    async function runAgentLoop({ source }) {
+      const concern = source === "user" ? refs.userQueryInput.value.trim() : refs.queryInput.value.trim();
+      if (source === "user" && concern) refs.queryInput.value = concern;
+      if (source === "developer" && concern) refs.userQueryInput.value = concern;
+      if (!state.selectedImageDataUrl && !concern) {
+        setStatus("Needs input");
+        addTraceNote("Upload or capture a face image, or write a concern first.");
+        return;
+      }
+
+      closeSocket();
+      resetRunState(concern);
+      resetUserOutputs();
+      setBusy(true);
+      setStatus("Starting");
+      setUserPage(source === "user" ? 1 : state.userPage);
+      refs.trace.innerHTML = "";
+      renderRecommendPhoto();
+
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      state.activeSocket = new WebSocket(`${protocol}://${window.location.host}/ws/agentic`);
+
+      state.activeSocket.addEventListener("open", () => {
+        state.activeSocket.send(JSON.stringify({
+          concern,
+          image_base64: state.selectedImageDataUrl ? stripDataUrl(state.selectedImageDataUrl) : null,
+          face_landmarks: state.faceLandmarks
+        }));
+      });
+
+      state.activeSocket.addEventListener("message", (event) => {
+        const message = JSON.parse(event.data);
+        handleAgentMessage(message);
+      });
+
+      state.activeSocket.addEventListener("error", () => {
+        setStatus("Connection error");
+        setBusy(false);
+      });
+
+      state.activeSocket.addEventListener("close", () => {
+        state.activeSocket = null;
+        setBusy(false);
+        updateSaveCaseButton();
+      });
+    }
+
+    function resetRunState(concern) {
+      state.recommendationMarkdown = "";
+      state.caseSaved = false;
+      state.selectedProductIndex = 0;
+      state.lastRun = {
+        user_concern: concern || "",
+        quality: null,
+        detections: null,
+        texture: null,
+        review: null,
+        retrieval: null,
+        assistant_response: ""
+      };
+    }
+
+    function handleAgentMessage(message) {
+      if (message.type === "stage") {
+        setStatus(message.message || message.stage || "Running");
+        renderStageSkeleton(message.stage);
+        return;
+      }
+      if (message.type === "plan") {
+        renderPlan(message.plan);
+        return;
+      }
+      if (message.type === "quality") {
+        state.lastRun.quality = message.quality;
+        renderQuality(message.quality);
+        renderUserQuality(message.quality);
+        return;
+      }
+      if (message.type === "detections") {
+        state.lastRun.detections = message.detections;
+        renderDetections(message.detections);
+        renderUserDetections(message.detections);
+        return;
+      }
+      if (message.type === "texture") {
+        state.lastRun.texture = message.texture;
+        renderTexture(message.texture);
+        return;
+      }
+      if (message.type === "review") {
+        state.lastRun.review = message.review;
+        renderReview(message.review);
+        return;
+      }
+      if (message.type === "products") {
+        state.lastRun.retrieval = message.retrieval;
+        renderProducts(message.retrieval);
+        renderUserProducts(message.retrieval);
+        return;
+      }
+      if (message.type === "recommendation_token") {
+        appendRecommendationToken(message.content || "");
+        return;
+      }
+      if (message.type === "done") {
+        setStatus("Done");
+        setBusy(false);
+        updateSaveCaseButton();
+        return;
+      }
+      if (message.type === "error") {
+        setStatus("Error: " + (message.message || "The agent loop failed."));
+        addTraceNote(message.message || "The agent loop failed.");
+        setBusy(false);
+      }
+    }
+
+    function resetUserOutputs() {
+      refs.qualityStatusPill.textContent = "Waiting";
+      refs.qualityImageFrame.innerHTML = '<div class="placeholder">Quality preview will appear after analysis starts.</div>';
+      refs.qualityMetrics.innerHTML = `
+        <div class="metric"><strong>-</strong><span>Face signal</span></div>
+        <div class="metric"><strong>-</strong><span>Likely skin area</span></div>
+        <div class="metric"><strong>-</strong><span>Blur score</span></div>
+        <div class="metric"><strong>-</strong><span>Decision</span></div>
+      `;
+      refs.qualityWarnings.textContent = "Run the analysis to view quality feedback.";
+      refs.detectionStatusPill.textContent = "Waiting";
+      refs.detectionImageFrame.innerHTML = '<div class="placeholder">YOLO11n output will appear here.</div>';
+      refs.detectionBadges.innerHTML = "";
+      refs.userDetectionCards.innerHTML = "";
+      refs.productStatusPill.textContent = "Waiting";
+      refs.concernBadges.innerHTML = "";
+      refs.userProductList.innerHTML = '<div class="note">Recommendations will appear after analysis finishes.</div>';
+      refs.selectedProductReason.textContent = "Choose a product from the right panel.";
+      refs.faceMapLandmarks.innerHTML = "";
+      refs.faceHeatmapLayer.innerHTML = "";
+      refs.faceMapPoints.innerHTML = "";
+      refs.mappingExplanation.textContent = "The hidden face-model image anchors the map. MediaPipe landmarks from the submitted photo are drawn on top, then YOLO concern heat blobs are projected using the same box locations.";
+      renderRecommendPhoto();
+      renderLandmarkMesh();
+    }
+
+    function renderUserQuality(summary) {
+      refs.qualityStatusPill.textContent = summary && summary.acceptable ? "Usable" : "Check photo";
+      refs.qualityStatusPill.className = `pill ${summary && summary.acceptable ? "" : "amber"}`;
+      refs.qualityImageFrame.innerHTML = summary && summary.skin_mask_overlay
+        ? `<img src="data:image/jpeg;base64,${summary.skin_mask_overlay}" alt="Skin mask quality overlay">`
+        : userImageHtml();
+      const skinRatio = Number(summary && summary.skin_pixel_ratio ? summary.skin_pixel_ratio : 0);
+      refs.qualityMetrics.innerHTML = `
+        <div class="metric"><strong>${summary && summary.face_detected ? "Yes" : "Weak"}</strong><span>Face signal</span></div>
+        <div class="metric"><strong>${(skinRatio * 100).toFixed(1)}%</strong><span>Likely skin area</span></div>
+        <div class="metric"><strong>${escapeHtml(summary && summary.blur_score ? summary.blur_score : "n/a")}</strong><span>Blur score</span></div>
+        <div class="metric"><strong>${summary && summary.acceptable ? "Pass" : "Low"}</strong><span>Decision</span></div>
+      `;
+      const warnings = Array.isArray(summary && summary.warnings) ? summary.warnings : [];
+      refs.qualityWarnings.innerHTML = warnings.length
+        ? warnings.map(escapeHtml).join("<br>")
+        : "The image has enough visible face and skin signal for analysis.";
+    }
+
+    function renderUserDetections(summary) {
+      const detections = summary && Array.isArray(summary.detections) ? summary.detections : [];
+      const counts = summary && summary.counts ? summary.counts : {};
+      refs.detectionStatusPill.textContent = detections.length ? `${detections.length} findings` : "No boxes";
+      refs.detectionImageFrame.innerHTML = summary && summary.annotated_image
+        ? `<img src="data:image/jpeg;base64,${summary.annotated_image}" alt="YOLO11n annotated detection result">`
+        : userImageHtml();
+      refs.detectionBadges.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `<span class="badge" style="background:${hexToSoft(concernColors[name])};color:${escapeHtml(concernColors[name] || "var(--accent)")};">${escapeHtml(name)}: ${escapeHtml(count)}</span>`)
+        .join("") || '<span class="badge amber">No detections above threshold</span>';
+      refs.userDetectionCards.innerHTML = detections.slice(0, 10).map((detection) => `
+        <article class="det-card">
+          <div class="det-class">${escapeHtml(detection.class || "Detection")}</div>
+          <div class="det-meta">Confidence ${(Number(detection.confidence || 0) * 100).toFixed(1)}%</div>
+          <div class="det-meta">${regionNameForDetection(detection, summary.image_size)}</div>
+        </article>
+      `).join("");
+      renderConcernBadges();
+      renderFaceMap();
+    }
+
+    function toTitleCase(str) {
+      if (!str) return "Skincare";
+      return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    }
+
+    function getPastelCategoryStyle(category) {
+      const cat = (category || "").toLowerCase();
+      if (cat.includes("serum")) {
+        return { bg: "#ffe4e6", color: "#9f1239" }; // pastel rose
+      } else if (cat.includes("toner") || cat.includes("pad")) {
+        return { bg: "#e0f2fe", color: "#0369a1" }; // pastel blue
+      } else if (cat.includes("cleanser") || cat.includes("wash") || cat.includes("soap") || cat.includes("facial")) {
+        return { bg: "#dcfce7", color: "#15803d" }; // pastel green
+      } else if (cat.includes("moisturizer") || cat.includes("cream") || cat.includes("gel") || cat.includes("moist")) {
+        return { bg: "#f3e8ff", color: "#6b21a8" }; // pastel purple
+      } else if (cat.includes("sunscreen") || cat.includes("sun")) {
+        return { bg: "#fef9c3", color: "#a16207" }; // pastel yellow
+      } else if (cat.includes("mask") || cat.includes("peel")) {
+        return { bg: "#ccfbf1", color: "#0f766e" }; // pastel teal
+      }
+      return { bg: "#f1f5f9", color: "#334155" }; // pastel gray (default)
+    }
+
+    function parseConcerns(concernsString) {
+      if (!concernsString) return { targets: [], benefits: [] };
+      const items = concernsString.split(",").map(i => i.trim()).filter(Boolean);
+      const targets = [];
+      const benefits = [];
+      for (const item of items) {
+        if (item.length < 25) {
+          targets.push(item);
         } else {
-          path.lineTo(x, y);
+          benefits.push(item);
         }
       }
-
-      if (!started) {
-        drawOvalFallbackMask(context, width, height);
-        return;
-      }
-
-      path.closePath();
-      context.save();
-      context.fillStyle = "rgba(8, 10, 10, 0.62)";
-      const overlayPath = new Path2D();
-      overlayPath.rect(0, 0, width, height);
-      overlayPath.addPath(path);
-      context.fill(overlayPath, "evenodd");
-      context.strokeStyle = "rgba(70, 212, 154, 0.92)";
-      context.lineWidth = 5;
-      context.stroke(path);
-      context.restore();
+      return { targets, benefits };
     }
 
-    function drawOvalFallbackMask(context, width, height) {
-      const centerX = width / 2;
-      const centerY = height * 0.45;
-      const radiusX = width * 0.34;
-      const radiusY = height * 0.32;
-      context.save();
-      context.fillStyle = "rgba(8, 10, 10, 0.58)";
-      context.beginPath();
-      context.rect(0, 0, width, height);
-      context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2, true);
-      context.fill("evenodd");
-      context.strokeStyle = "rgba(255, 255, 255, 0.82)";
-      context.lineWidth = 4;
-      context.beginPath();
-      context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
-      context.stroke();
-      context.restore();
-    }
-
-    async function submitAnalysis(form, concern) {
-      busy = true;
-      closeActiveSocket();
-      resetResults();
-      setButtonsDisabled(true);
-      setStep("analyze");
-      setCallStatus("Reading your skin");
-      refs.maskStatus.textContent = "Face mask captured";
-      refs.analysisEmpty.hidden = true;
-      refs.analysisSkeleton.hidden = false;
-      refs.productsEmpty.hidden = true;
-      refs.productsSkeleton.hidden = false;
-
-      pendingRetrieveTimer = window.setTimeout(() => setStep("retrieve"), 900);
-
-      try {
-        const response = await fetch("/analyze", { method: "POST", body: form });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.detail || "Analysis failed.");
-        }
-
-        window.clearTimeout(pendingRetrieveTimer);
-        pendingRetrieveTimer = null;
-
-        if (data.manual_input_required) {
-          setStep("idle");
-          showInlineMessage(data.message || "Tell Skincaria about your skin manually.");
-          refs.personalConcern.focus();
-          return;
-        }
-
-        renderBadges(data.skin_labels);
-        setStep("retrieve");
-        renderProducts(data.products || []);
-        setStep("generate");
-        await startRecommendation(data, concern);
-      } catch (error) {
-        window.clearTimeout(pendingRetrieveTimer);
-        pendingRetrieveTimer = null;
-        setStep("idle");
-        setCallStatus("Try again");
-        showInlineMessage(error.message || "Something went wrong.");
-      } finally {
-        if (!activeSocket) {
-          busy = false;
-          setButtonsDisabled(false);
-        }
-        refs.analysisSkeleton.hidden = true;
-        refs.productsSkeleton.hidden = true;
-      }
-    }
-
-    function startRecommendation(data, concern) {
-      return new Promise((resolve) => {
-        recommendationText = "";
-        refs.outputEmpty.hidden = true;
-        refs.outputSkeleton.hidden = false;
-        refs.recommendationOutput.hidden = false;
-        refs.recommendationOutput.innerHTML = "";
-
-        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-        activeSocket = new WebSocket(`${protocol}://${window.location.host}/ws/recommend`);
-
-        activeSocket.addEventListener("open", () => {
-          activeSocket.send(JSON.stringify({
-            skin_labels: data.skin_labels,
-            concern,
-            products_context: data.products_context
-          }));
-        });
-
-        activeSocket.addEventListener("message", (event) => {
-          const message = JSON.parse(event.data);
-          if (message.type === "stage") {
-            setStep("generate");
-            setCallStatus("Personalizing your routine");
-            return;
-          }
-          if (message.type === "token") {
-            refs.outputSkeleton.hidden = true;
-            recommendationText += message.content;
-            refs.recommendationOutput.innerHTML = renderMarkdown(recommendationText);
-            return;
-          }
-          if (message.type === "done") {
-            setStep("done");
-            setCallStatus("Recommendation ready");
-            cleanupAfterStream();
-            resolve();
-            return;
-          }
-          if (message.type === "error") {
-            showInlineMessage(message.message || "Recommendation failed.");
-            setStep("idle");
-            setCallStatus("Try again");
-            cleanupAfterStream();
-            resolve();
-          }
-        });
-
-        activeSocket.addEventListener("error", () => {
-          showInlineMessage("Recommendation connection was interrupted.");
-          setStep("idle");
-          setCallStatus("Try again");
-          cleanupAfterStream();
-          resolve();
-        });
-
-        activeSocket.addEventListener("close", () => {
-          cleanupAfterStream();
-          resolve();
-        });
-      });
-    }
-
-    function cleanupAfterStream() {
-      activeSocket = null;
-      busy = false;
-      setButtonsDisabled(false);
-      refs.outputSkeleton.hidden = true;
-    }
-
-    function closeActiveSocket() {
-      if (activeSocket) {
-        activeSocket.close();
-        activeSocket = null;
-      }
-    }
-
-    function resetResults() {
-      refs.analysisEmpty.hidden = false;
-      refs.productsEmpty.hidden = false;
-      refs.outputEmpty.hidden = false;
-      refs.badges.hidden = true;
-      refs.productsRow.hidden = true;
-      refs.recommendationOutput.hidden = true;
-      refs.badges.innerHTML = "";
-      refs.productsRow.innerHTML = "";
-      refs.recommendationOutput.innerHTML = "";
-      refs.analysisSkeleton.hidden = true;
-      refs.productsSkeleton.hidden = true;
-      refs.outputSkeleton.hidden = true;
-    }
-
-    function setButtonsDisabled(disabled) {
-      refs.scanButton.disabled = disabled;
-      refs.videoToggle.disabled = disabled;
-      refs.fallbackFile.disabled = disabled;
-      refs.galleryButton.classList.toggle("is-disabled", disabled);
-    }
-
-    function setCallStatus(message) {
-      refs.callStatus.textContent = message;
-    }
-
-    function setStep(stage) {
-      const order = ["analyze", "retrieve", "generate"];
-      document.querySelectorAll(".step").forEach((element) => {
-        const name = element.dataset.step;
-        element.classList.remove("is-active", "is-done");
-        if (stage === "done") {
-          element.classList.add("is-done");
-          return;
-        }
-        const currentIndex = order.indexOf(stage);
-        const elementIndex = order.indexOf(name);
-        if (name === stage) {
-          element.classList.add("is-active");
-        } else if (currentIndex > -1 && elementIndex < currentIndex) {
-          element.classList.add("is-done");
-        }
-      });
-    }
-
-    function renderBadges(labels) {
-      refs.analysisEmpty.hidden = true;
-      refs.analysisSkeleton.hidden = true;
-      refs.badges.hidden = false;
-      refs.badges.innerHTML = Object.entries(labelMap).map(([key, config]) => {
-        const value = labels && labels[key] ? labels[key] : "";
-        const readable = config.values[value] || value || "-";
-        return `<span class="badge">${escapeHtml(config.title)}: ${escapeHtml(readable)}</span>`;
-      }).join("");
-    }
-
-    function renderProducts(products) {
-      refs.productsEmpty.hidden = true;
-      refs.productsSkeleton.hidden = true;
-      refs.productsRow.hidden = false;
-
+    function renderUserProducts(retrieval) {
+      const products = retrieval && Array.isArray(retrieval.products) ? retrieval.products : [];
+      refs.productStatusPill.textContent = products.length ? `${products.length} options` : "No products";
       if (!products.length) {
-        refs.productsRow.innerHTML = "<div class=\"empty-state\">No matching products found.</div>";
+        refs.userProductList.innerHTML = '<div class="note">No product candidates were returned from the knowledge base.</div>';
         return;
       }
-
-      refs.productsRow.innerHTML = products.map((product) => {
-        const price = product.price ? `<div class="product-meta">${escapeHtml(product.price)}</div>` : "";
-        const category = product.category ? `<div class="product-meta">${escapeHtml(product.category)}</div>` : "";
+      refs.userProductList.innerHTML = products.map((product, index) => {
+        const style = getPastelCategoryStyle(product.category);
+        const titleCategory = toTitleCase(product.category);
         return `
-          <article class="product-card">
-            <div class="product-brand">${escapeHtml(product.brand || "Brand")}</div>
-            <div class="product-name">${escapeHtml(product.product_name || "Product")}</div>
-            ${category}
-            ${price}
-          </article>
+          <button class="select-product ${index === state.selectedProductIndex ? "is-selected" : ""}" type="button" data-product-index="${index}">
+            <div class="product-badge-row">
+              <span class="cat-badge" style="background:${style.bg};color:${style.color};">${escapeHtml(titleCategory)}</span>
+              <span class="badge blue" style="margin-left:auto;font-size:0.68rem;padding:2px 6px;">Match ${product.similarity == null ? "n/a" : (Number(product.similarity) * 100).toFixed(0) + "%"}</span>
+            </div>
+            <div>
+              <div class="product-name" style="font-size:0.92rem;line-height:1.25;">${escapeHtml(product.product_name || "Unnamed product")}</div>
+              <div class="product-brand" style="font-size:0.75rem;margin-top:2px;">${escapeHtml(product.brand || "Unknown brand")}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span class="det-meta" style="font-size:0.78rem;font-weight:700;color:var(--muted);">${escapeHtml(product.price || "Price unavailable")}</span>
+              ${product.product_url ? `
+                <a href="${escapeHtml(product.product_url)}" target="_blank" class="sociolla-link-icon" style="padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; background: rgba(3, 105, 161, 0.08); color: #0369a1; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" onclick="event.stopPropagation();">
+                  🛍️ Shop →
+                </a>
+              ` : ''}
+            </div>
+          </button>
         `;
       }).join("");
+      refs.userProductList.querySelectorAll("[data-product-index]").forEach((button) => {
+        button.addEventListener("click", () => selectProduct(Number(button.dataset.productIndex)));
+      });
+      selectProduct(state.selectedProductIndex);
     }
 
-    function showInlineMessage(message) {
-      refs.analysisSkeleton.hidden = true;
-      refs.productsSkeleton.hidden = true;
-      refs.outputSkeleton.hidden = true;
-      refs.analysisEmpty.hidden = false;
-      refs.analysisEmpty.textContent = message;
+    function getConcernsForIngredient(name, func) {
+      const text = `${name} ${func}`.toLowerCase();
+      const mapped = [];
+      if (text.includes("salicylic") || text.includes("bha") || text.includes("acne") || text.includes("jerawat") || text.includes("tea tree") || text.includes("willow bark")) {
+        mapped.push("Acne", "Blackheads", "Whiteheads");
+      }
+      if (text.includes("niacinamide") || text.includes("bright") || text.includes("mencerahkan") || text.includes("vitamin c") || text.includes("dark spot") || text.includes("noda") || text.includes("tranexamic") || text.includes("alpha arbutin") || text.includes("licorice")) {
+        mapped.push("Dark-Spots", "Eyebags");
+      }
+      if (text.includes("centella") || text.includes("soothing") || text.includes("calming") || text.includes("redness") || text.includes("sensi") || text.includes("kemerahan") || text.includes("panthenol") || text.includes("allantoin") || text.includes("cica") || text.includes("madecassoside") || text.includes("mugwort") || text.includes("chamomile")) {
+        mapped.push("Skin-Redness", "Eyebags");
+      }
+      if (text.includes("hyaluronic") || text.includes("hydrat") || text.includes("moist") || text.includes("kering") || text.includes("dry") || text.includes("gliserin") || text.includes("glycerin") || text.includes("ceramide") || text.includes("aloe")) {
+        mapped.push("Dry-Skin");
+      }
+      if (text.includes("retinol") || text.includes("peptide") || text.includes("aging") || text.includes("kerutan") || text.includes("wrinkle") || text.includes("collagen") || text.includes("kolagen") || text.includes("adenosine")) {
+        mapped.push("Wrinkles");
+      }
+      if (text.includes("pore") || text.includes("pori") || text.includes("clay") || text.includes("charcoal") || text.includes("sebum") || text.includes("oil") || text.includes("minyak") || text.includes("zinc") || text.includes("witch hazel")) {
+        mapped.push("Enlarged-Pores", "Oily-Skin", "Blackheads", "Whiteheads");
+      }
+      if (mapped.length === 0) {
+        mapped.push("Acne", "Blackheads", "Whiteheads", "Skin-Redness", "Oily-Skin", "Enlarged-Pores", "Dry-Skin", "Wrinkles", "Dark-Spots", "Eyebags");
+      }
+      return mapped;
+    }
+
+    function getAllIngredientsForFunction(funcName, ingredientsStr) {
+      if (!ingredientsStr) return [];
+      const normalizedFunc = funcName.toLowerCase();
+      const allIngredients = ingredientsStr.split(",").map(i => i.trim()).filter(Boolean);
+      
+      const funcToKeywords = {
+        solvent: ["aqua", "water", "butylene glycol", "1,2-hexanediol", "propanediol", "pentylene glycol", "alcohol", "propylene glycol", "ethanol", "glycerin", "hexane"],
+        humectant: ["butylene glycol", "glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "beta-glucan", "trehalose", "sorbitol", "tremella", "yeast", "mushroom"],
+        soothing: ["centella", "cica", "mugwort", "chamomile", "allantoin", "panthenol", "bisabolol", "calendula", "green tea", "camellia sinensis", "madecassoside", "licorice", "glycyrrhizate", "artemisia", "aloe", "willow bark", "salix alba"],
+        antioxidant: ["vitamin c", "ascorbic", "tocopherol", "vitamin e", "niacinamide", "green tea", "centella", "resveratrol", "ubiquinone", "yeast", "extract"],
+        brightening: ["niacinamide", "vitamin c", "ascorbic", "arbutin", "kojic", "tranexamic", "licorice", "glycyrrhizate", "ascorbyl glucoside"],
+        exfoliant: ["salicylic", "glycolic", "lactic", "mandelic", "bha", "aha", "pha", "gluconolactone", "citric acid", "willow bark", "salix alba"],
+        "anti-aging": ["retinol", "retinoid", "peptide", "adenosine", "collagen", "ceramide", "tocopherol"],
+        aging: ["retinol", "retinoid", "peptide", "adenosine", "collagen", "ceramide"],
+        wrinkle: ["retinol", "retinoid", "peptide", "adenosine", "collagen"],
+        acne: ["salicylic", "zinc", "tea tree", "melaleuca", "witch hazel", "clay", "kaolin", "bentonite", "niacinamide", "bha", "willow bark", "salix alba"],
+        pore: ["salicylic", "zinc", "clay", "kaolin", "witch hazel", "niacinamide", "bha", "willow bark", "salix alba"],
+        sebum: ["salicylic", "zinc", "clay", "witch hazel", "niacinamide", "bha"],
+        barrier: ["ceramide", "cholesterol", "phytosphingosine", "squalane", "niacinamide", "centella", "panthenol", "lecithin", "phytosterols"],
+        "ph adjuster": ["hydroxide", "tromethamine", "citric acid", "phosphate", "sodium hydroxide"],
+        "viscosity": ["cellulose", "hydroxyethylcellulose", "gum", "carbomer", "gel", "copolymer"],
+        surfactant: ["polysorbate", "lecithin", "peg-", "lauryl", "sulfate", "glucoside", "cocamidopropyl"],
+        emulsifier: ["polysorbate", "lecithin", "hydrogenated lecithin", "cetearyl", "stearate"],
+        chelating: ["edta", "disodium edta"],
+        preservative: ["phenoxyethanol", "ethylhexylglycerin", "paraben", "benzoate", "salicylate"],
+        "skin conditioning": ["niacinamide", "centella", "panthenol", "allantoin", "extract", "tocopherol", "ceramide", "yeast", "hyaluronate", "glycerin", "lecithin", "phytosterols", "protein", "glycol", "propanediol", "aloe", "salicylic", "willow bark", "salix alba", "butylene glycol", "1,2-hexanediol"],
+        conditioning: ["niacinamide", "centella", "panthenol", "allantoin", "extract", "tocopherol", "ceramide", "yeast", "hyaluronate", "glycerin", "lecithin", "phytosterols", "protein", "glycol", "propanediol", "aloe", "salicylic"],
+        "skin protectant": ["allantoin", "centella", "panthenol", "ceramide", "aloe", "tocopherol"],
+        protectant: ["allantoin", "centella", "panthenol", "ceramide", "aloe", "tocopherol"],
+        moisturizer: ["glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "ceramide", "squalane", "lecithin", "oil", "butter", "cholesterol", "phytosterols"],
+        moisturizing: ["glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "ceramide", "squalane", "lecithin", "oil", "butter", "cholesterol", "phytosterols"],
+        emollient: ["glycerin", "hyaluronic", "hyaluronate", "glycol", "panthenol", "urea", "aloe", "allantoin", "ceramide", "squalane", "lecithin", "oil", "butter", "cholesterol", "phytosterols"],
+        buffering: ["phosphate", "citric acid", "sodium phosphate", "disodium phosphate"],
+        buffer: ["phosphate", "citric acid", "sodium phosphate", "disodium phosphate"]
+      };
+
+      const matches = [];
+      for (const [key, keywords] of Object.entries(funcToKeywords)) {
+        if (normalizedFunc.includes(key) || key.includes(normalizedFunc)) {
+          for (const ing of allIngredients) {
+            const lowerIng = ing.toLowerCase();
+            if (keywords.some(kw => lowerIng.includes(kw))) {
+              matches.push(ing);
+            }
+          }
+        }
+      }
+
+      if (matches.length === 0) {
+        for (const ing of allIngredients) {
+          const lowerIng = ing.toLowerCase();
+          const cleanIngName = lowerIng.split(" ")[0].replace(/[^a-z]/g, "");
+          if (cleanIngName.length > 3 && normalizedFunc.includes(cleanIngName)) {
+            matches.push(ing);
+          }
+        }
+      }
+
+      return Array.from(new Set(matches));
+    }
+
+    function getIngredientsForFunction(funcName, ingredientsStr) {
+      const matches = getAllIngredientsForFunction(funcName, ingredientsStr);
+      if (matches.length > 0) {
+        return matches.slice(0, 2).join(", ");
+      }
+      return "Active compound";
+    }
+
+    function parseAndGroupWarnings(warningStr) {
+      if (!warningStr) return [];
+      let cleanStr = warningStr.replace(/^yes:\s*/i, "");
+      const parts = cleanStr.split(";").map(p => p.trim()).filter(Boolean);
+      const grouped = new Map();
+      
+      for (const part of parts) {
+        const match = part.match(/^([^:]+):\s*(.*)$/);
+        if (match) {
+          const ing = match[1].trim();
+          const warns = match[2].split(",").map(w => w.trim()).filter(Boolean);
+          if (!grouped.has(ing)) {
+            grouped.set(ing, new Set());
+          }
+          const warnSet = grouped.get(ing);
+          warns.forEach(w => warnSet.add(w));
+        } else {
+          const general = part.trim();
+          if (!grouped.has(general)) {
+            grouped.set(general, new Set());
+          }
+        }
+      }
+      
+      const result = [];
+      grouped.forEach((warnSet, ing) => {
+        result.push({
+          ingredient: ing,
+          warnings: Array.from(warnSet)
+        });
+      });
+      return result;
+    }
+
+    function categorizeSafetyWarnings(allergenStr, warningStr) {
+      const allWarnings = parseAndGroupWarnings(allergenStr).concat(parseAndGroupWarnings(warningStr));
+      const grouped = new Map();
+      
+      for (const item of allWarnings) {
+        if (!grouped.has(item.ingredient)) {
+          grouped.set(item.ingredient, new Set());
+        }
+        const set = grouped.get(item.ingredient);
+        item.warnings.forEach(w => set.add(w));
+      }
+      
+      const allergens = [];
+      const comedogenic = [];
+      const others = [];
+      
+      grouped.forEach((warnSet, ingredient) => {
+        const warnList = Array.from(warnSet);
+        const cleanWarns = warnList.filter(w => !w.toLowerCase().includes("pregnancy"));
+        if (cleanWarns.length === 0) return;
+        
+        const isAllergen = cleanWarns.some(w => {
+          const l = w.toLowerCase();
+          return l.includes("allergen") || l.includes("irritant") || l.includes("sensitizer") || l.includes("allergy");
+        });
+        
+        const isComedogenic = cleanWarns.some(w => w.toLowerCase().includes("comedogenic"));
+        
+        const otherWarns = cleanWarns.filter(w => {
+          const l = w.toLowerCase();
+          return !l.includes("allergen") && !l.includes("irritant") && !l.includes("sensitizer") && !l.includes("allergy") && !l.includes("comedogenic");
+        });
+        
+        if (isAllergen) {
+          const allergenWarns = cleanWarns.filter(w => {
+            const l = w.toLowerCase();
+            return l.includes("allergen") || l.includes("irritant") || l.includes("sensitizer") || l.includes("allergy");
+          });
+          allergens.push({ ingredient, warnings: allergenWarns });
+        }
+        
+        if (isComedogenic) {
+          comedogenic.push({ ingredient, warnings: ["Pore-clogging potential"] });
+        }
+        
+        if (otherWarns.length > 0) {
+          others.push({ ingredient, warnings: otherWarns });
+        }
+      });
+      
+      return { allergens, comedogenic, others };
+    }
+
+    async function triggerGemmaPregnancyCheck(productName, brand, ingredients, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+      
+      try {
+        const response = await fetch('/pregnancy-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            product_name: productName,
+            brand: brand,
+            ingredients: ingredients
+          })
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error('Validasi gagal');
+        
+        const result = await response.json();
+        const status = result.status || 'caution';
+        const verdict = result.gemma_verdict || '';
+        
+        let rowClass = 'safety-row-info';
+        let badgeColor = '#2563eb';
+        let badgeBg = 'rgba(37,99,235,0.1)';
+        let badgeText = 'ℹ️ Gemma Verified';
+        
+        if (status === 'safe') {
+          rowClass = 'safety-row-success';
+          badgeColor = '#16a34a';
+          badgeBg = 'rgba(22,163,74,0.1)';
+          badgeText = '✅ Gemma: Safe';
+        } else if (status === 'avoid') {
+          rowClass = 'safety-row-danger';
+          badgeColor = '#dc2626';
+          badgeBg = 'rgba(220,38,38,0.1)';
+          badgeText = '❌ Gemma: Avoid';
+        } else {
+          rowClass = 'safety-row-warning';
+          badgeColor = '#d97706';
+          badgeBg = 'rgba(217,119,6,0.1)';
+          badgeText = '⚠️ Gemma: Caution';
+        }
+        
+        const td = container.closest('td');
+        const tr = container.closest('tr');
+        if (td) {
+          td.innerHTML = `
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px; animation: fadeIn 0.3s ease;">
+              <span class="badge" style="background:${badgeBg};color:${badgeColor};font-size:0.7rem;padding:2px 6px;font-weight:600;">${badgeText}</span>
+            </div>
+            <div style="font-size:0.8rem; animation: fadeIn 0.3s ease;">${escapeHtml(verdict)}</div>
+          `;
+        }
+        if (tr) {
+          tr.className = rowClass;
+        }
+      } catch (error) {
+        clearTimeout(timeoutId);
+        let errorMsg = error.message;
+        if (error.name === 'AbortError') {
+          errorMsg = 'Koneksi ke Gemma AI melebihi batas waktu (timeout). Hubungi dokter Anda untuk keamanan maksimal.';
+        }
+        container.innerHTML = `
+          <div style="margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 6px; font-size: 0.72rem; color: var(--muted); animation: fadeIn 0.3s ease;">
+            <span class="badge" style="background:rgba(100,116,139,0.1);color:#64748b;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Local Verification</span>
+            <div style="margin-top:4px; font-size:0.78rem; font-style: italic;">${escapeHtml(errorMsg)}</div>
+          </div>
+        `;
+      }
+    }
+
+    function selectProduct(index) {
+      const products = state.lastRun && state.lastRun.retrieval && Array.isArray(state.lastRun.retrieval.products)
+        ? state.lastRun.retrieval.products
+        : [];
+      if (!products.length) return;
+      state.selectedProductIndex = Math.max(0, Math.min(index, products.length - 1));
+      refs.userProductList.querySelectorAll(".select-product").forEach((button, idx) => {
+        button.classList.toggle("is-selected", idx === state.selectedProductIndex);
+      });
+      const product = products[state.selectedProductIndex];
+      const matched = matchedDetectionsForProduct(product);
+      const matchedNames = matched.map((item) => item.class).filter(Boolean);
+
+      // Reset filter on product change
+      state.activeIngredientFilter = null;
+      state.activeIngredientFunc = null;
+      state.hoveredIngredientFilter = null;
+      state.hoveredIngredientFunc = null;
+
+      // Parse details
+      const style = getPastelCategoryStyle(product.category);
+      const titleCategory = toTitleCase(product.category);
+      const concernsData = parseConcerns(product.concerns);
+      
+      // Ingredient parsed functions
+      const ingredients = product.ingredient_functions
+        ? product.ingredient_functions.split(",").map(i => i.trim()).filter(Boolean).map(funcName => {
+            const chemicalMatch = getIngredientsForFunction(funcName, product.ingredients);
+            const allChemicals = getAllIngredientsForFunction(funcName, product.ingredients).join(", ");
+            return { name: funcName, func: chemicalMatch, allChemicals: allChemicals || "Active compound" };
+          })
+        : [];
+      
+      // Get categorized warnings from the backend strings
+      const categorized = categorizeSafetyWarnings(product.allergen_flag, product.ingredient_warnings);
+      
+      // 1. Allergens / Irritants Row
+      const hasAllergens = categorized.allergens.length > 0;
+      const allergenRowClass = hasAllergens ? "safety-row-danger" : "safety-row-success";
+      const allergenBadge = hasAllergens
+        ? `<span class="badge" style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Potential Irritant</span>`
+        : `<span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✅ Safe & Gentle</span>`;
+
+      let allergenContent = "";
+      if (hasAllergens) {
+        allergenContent = `
+          <div style="font-size:0.8rem;">Contains potential allergens/irritants. Avoid if you have highly reactive skin:</div>
+          <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+            ${categorized.allergens.map(item => `
+              <li><strong>${escapeHtml(item.ingredient)}</strong>: <span style="font-weight: 500; color: var(--muted);">${escapeHtml(item.warnings.join(", "))}</span></li>
+            `).join("")}
+          </ul>
+        `;
+      } else {
+        allergenContent = `<div style="font-size:0.8rem;">No common allergens or harsh irritants detected in key active listing.</div>`;
+      }
+
+      // 2. Comedogenic Row
+      let comedogenicRow = "";
+      if (categorized.comedogenic.length > 0) {
+        comedogenicRow = `
+          <tr class="safety-row-warning">
+            <td>Pore-Clogging</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Comedogenic Actives</span>
+              </div>
+              <div style="font-size:0.8rem;">These ingredients have comedogenic potential (may clog pores):</div>
+              <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+                ${categorized.comedogenic.map(item => `
+                  <li><strong>${escapeHtml(item.ingredient)}</strong></li>
+                `).join("")}
+              </ul>
+            </td>
+          </tr>
+        `;
+      }
+
+      // 3. Other Usage Cautions Row
+      let otherCautionsRow = "";
+      if (categorized.others.length > 0) {
+        otherCautionsRow = `
+          <tr class="safety-row-warning">
+            <td>Usage Caution</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Special Note</span>
+              </div>
+              <div style="font-size:0.8rem;">Potential ingredient warnings and usage alerts detected:</div>
+              <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+                ${categorized.others.map(item => `
+                  <li><strong>${escapeHtml(item.ingredient)}</strong>: <span style="font-weight: 500; color: var(--muted);">${escapeHtml(item.warnings.join(", "))}</span></li>
+                `).join("")}
+              </ul>
+            </td>
+          </tr>
+        `;
+      }
+
+      // 4. Pregnancy Safety & Friendly Actives splitting
+      let pregnancyRow = "";
+      let friendlyRow = "";
+      let isPregnancyUnknown = false;
+      let cleanPregSafe = "";
+
+      if (product.pregnancy_safe) {
+        let pregSafe = product.pregnancy_safe;
+        let friendlyList = [];
+        cleanPregSafe = pregSafe;
+        
+        if (pregSafe.toLowerCase().includes("matched pregnancy-friendly ingredients:")) {
+          const splitParts = pregSafe.split(/matched pregnancy-friendly ingredients:/i);
+          cleanPregSafe = splitParts[0].replace(/;\s*$/, "").trim(); // E.g., "unknown overall"
+          friendlyList = splitParts[1].split(",").map(i => i.trim()).filter(Boolean); // E.g., ["Allantoin", "Trehalose", "Lactic Acid"]
+        }
+
+        const pregSafeLower = cleanPregSafe.toLowerCase();
+        let pregRowClass = "safety-row-info";
+        let pregBadge = `<span class="badge" style="background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.7rem;padding:2px 6px;font-weight:600;">ℹ️ Info</span>`;
+        
+        const unsafeIngredients = ["salicylic acid", "retinol", "retinoid", "retinyl", "tretinoin", "hydroquinone", "alpha-arbutin", "arbutin", "wintergreen", "methyl salicylate", "bha"];
+        const isUnsafe = pregSafeLower.includes("avoid") || unsafeIngredients.some(ing => pregSafeLower.includes(ing));
+
+        if (isUnsafe) {
+          pregRowClass = "safety-row-danger";
+          pregBadge = `<span class="badge" style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.7rem;padding:2px 6px;font-weight:600;">❌ Avoid</span>`;
+        } else if (pregSafeLower.includes("unknown overall") || pregSafeLower === "unknown") {
+          pregRowClass = "safety-row-warning";
+          pregBadge = `<span class="badge" style="background:rgba(217,119,6,0.1);color:#d97706;font-size:0.7rem;padding:2px 6px;font-weight:600;">⚠️ Verification Needed</span>`;
+          isPregnancyUnknown = true;
+        } else if (pregSafeLower.includes("claimed pregnancy safe") || pregSafeLower.includes("aman") || pregSafeLower.includes("pregnancy safe")) {
+          pregRowClass = "safety-row-success";
+          pregBadge = `<span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✅ Claimed Safe</span>`;
+        }
+
+        // Clean out redundant prefixes
+        cleanPregSafe = cleanPregSafe.replace(/^avoid during pregnancy:\s*/i, "");
+        cleanPregSafe = cleanPregSafe.replace(/^claimed pregnancy safe on source page/i, "Claimed safe on source page");
+        cleanPregSafe = cleanPregSafe.replace(/^pregnancy mentioned;\s*/i, "");
+        
+        let gemmaCheckContainer = "";
+        if (isPregnancyUnknown) {
+          gemmaCheckContainer = `
+            <div id="gemma-safety-check" style="margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 6px;">
+              <span style="font-size: 0.72rem; color: var(--muted); display: inline-flex; align-items: center;">
+                <span class="spinner-mini"></span> Verifikasi keamanan kehamilan via Gemma AI...
+              </span>
+            </div>
+          `;
+        }
+        
+        pregnancyRow = `
+          <tr class="${pregRowClass}">
+            <td>Pregnancy Safety</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                ${pregBadge}
+              </div>
+              <div style="font-size:0.8rem;">${escapeHtml(cleanPregSafe)}</div>
+              ${gemmaCheckContainer}
+            </td>
+          </tr>
+        `;
+
+        if (friendlyList.length > 0) {
+          friendlyRow = `
+            <tr class="safety-row-success">
+              <td>Pregnancy Friendly</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                  <span class="badge" style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:0.7rem;padding:2px 6px;font-weight:600;">✨ Pregnancy Safe Actives</span>
+                </div>
+                <div style="font-size:0.8rem;">Matched pregnancy-friendly ingredients found in this product:</div>
+                <ul style="margin: 6px 0 0 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.5; color: var(--text);">
+                  ${friendlyList.map(item => `<li><strong>${escapeHtml(item)}</strong></li>`).join("")}
+                </ul>
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      refs.selectedProductReason.innerHTML = `
+        <div class="prescription-card">
+          <div class="prescription-header">
+            <div class="prescription-title-row">
+              <h4>${escapeHtml(product.product_name)}</h4>
+              <span class="cat-badge" style="background:${style.bg};color:${style.color};font-size:0.75rem;">${escapeHtml(titleCategory)}</span>
+            </div>
+            <div style="font-size:0.8rem;font-weight:900;color:var(--violet);text-transform:uppercase;letter-spacing:0.04em;">${escapeHtml(product.brand)}</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span>Price: <strong>${escapeHtml(product.price || "n/a")}</strong></span>
+              <span>Skin Type: <strong>${escapeHtml(product.skin_type || "All types")}</strong></span>
+              ${product.product_url ? `
+                <a href="${escapeHtml(product.product_url)}" target="_blank" class="sociolla-btn">
+                  🛍️ Shop on Sociolla
+                </a>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>🎯 Targeted Skin Concerns</h5>
+            <div class="prescription-section-content" style="display:flex;flex-wrap:wrap;gap:4px;background:transparent;border:0;padding:0;">
+              ${concernsData.targets.map(t => `<span class="badge" style="background:var(--accent-soft);color:var(--accent);font-size:0.75rem;">${escapeHtml(t)}</span>`).join("") || `<span class="badge gray">General Care</span>`}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>✨ Key Benefits & Actions</h5>
+            <div class="prescription-section-content">
+              ${concernsData.benefits.join(". ") || "Membantu menutrisi, menyegarkan, dan menjaga kelembaban alami kulit wajah."}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>🧪 Core Ingredients & Benefits <span style="font-size:0.7rem;color:var(--muted);text-transform:none;font-weight:normal;margin-left:auto;">(Click to map)</span></h5>
+            <div class="prescription-section-content ingredient-list-tags">
+              ${ingredients.map(ing => `
+                <div class="ingredient-tag" data-ingredient-name="${escapeHtml(ing.name)}" data-ingredient-func="${escapeHtml(ing.func)}" data-tooltip="${escapeHtml(ing.allChemicals)}">
+                  <strong>${escapeHtml(ing.name)}</strong>
+                  <span>${escapeHtml(ing.func)}</span>
+                </div>
+              `).join("") || `<div class="det-meta">No specific active ingredient metadata recorded.</div>`}
+            </div>
+          </div>
+
+          <div class="prescription-section">
+            <h5>⚠️ Safety & Allergen Warnings</h5>
+            <table class="safety-table">
+              <thead>
+                <tr>
+                  <th style="width: 32%;">Category</th>
+                  <th>Analysis & Guidelines</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="${allergenRowClass}">
+                  <td>Allergens / Irritants</td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                      ${allergenBadge}
+                    </div>
+                    ${allergenContent}
+                  </td>
+                </tr>
+                ${comedogenicRow}
+                ${otherCautionsRow}
+                ${pregnancyRow}
+                ${friendlyRow}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      if (isPregnancyUnknown) {
+        triggerGemmaPregnancyCheck(product.product_name, product.brand, product.ingredients, "gemma-safety-check");
+      }
+
+      // Attach hover and click listeners to ingredient tags
+      const tagElements = refs.selectedProductReason.querySelectorAll(".ingredient-tag");
+      
+      function updateTagVisuals() {
+        const currentActive = state.hoveredIngredientFilter || state.activeIngredientFilter;
+        tagElements.forEach(t => {
+          const name = t.getAttribute("data-ingredient-name");
+          t.classList.toggle("is-active-filter", currentActive === name);
+          t.classList.toggle("is-dimmed", currentActive !== null && currentActive !== name);
+        });
+      }
+
+      tagElements.forEach(tag => {
+        const ingName = tag.getAttribute("data-ingredient-name");
+        const ingFunc = tag.getAttribute("data-ingredient-func");
+
+        tag.addEventListener("mouseenter", () => {
+          state.hoveredIngredientFilter = ingName;
+          state.hoveredIngredientFunc = ingFunc;
+          updateTagVisuals();
+          renderFaceMap();
+        });
+
+        tag.addEventListener("mouseleave", () => {
+          state.hoveredIngredientFilter = null;
+          state.hoveredIngredientFunc = null;
+          updateTagVisuals();
+          renderFaceMap();
+        });
+
+        tag.addEventListener("click", () => {
+          if (state.activeIngredientFilter === ingName) {
+            state.activeIngredientFilter = null;
+            state.activeIngredientFunc = null;
+          } else {
+            state.activeIngredientFilter = ingName;
+            state.activeIngredientFunc = ingFunc;
+          }
+          updateTagVisuals();
+          renderFaceMap();
+        });
+      });
+
+      renderFaceMap();
+    }
+
+    function renderRecommendPhoto() {
+      refs.recommendPhotoFrame.innerHTML = userImageHtml();
+    }
+
+    function renderConcernBadges() {
+      const counts = state.lastRun && state.lastRun.detections ? state.lastRun.detections.counts || {} : {};
+      refs.concernBadges.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `<span class="badge" style="background:${hexToSoft(concernColors[name])};color:${escapeHtml(concernColors[name] || "var(--accent)")};">${escapeHtml(name)} ${escapeHtml(count)}</span>`)
+        .join("") || '<span class="badge amber">No localized concern boxes yet</span>';
+    }
+
+    function renderFaceMap() {
+      const summary = state.lastRun && state.lastRun.detections ? state.lastRun.detections : {};
+      const detections = Array.isArray(summary.detections) ? summary.detections : [];
+      const products = state.lastRun && state.lastRun.retrieval && Array.isArray(state.lastRun.retrieval.products)
+        ? state.lastRun.retrieval.products
+        : [];
+      const selectedProduct = products[state.selectedProductIndex] || null;
+      const activeSet = new Set(matchedDetectionsForProduct(selectedProduct).map((item) => item.id));
+      const imageSize = summary.image_size || {};
+      renderLandmarkMesh();
+
+      const filterName = state.hoveredIngredientFilter || state.activeIngredientFilter;
+      const filterFunc = state.hoveredIngredientFunc || state.activeIngredientFunc;
+      const isFiltering = filterName !== null;
+      
+      let allowedConcerns = [];
+      if (isFiltering) {
+        allowedConcerns = getConcernsForIngredient(filterName, filterFunc);
+      }
+
+      refs.faceHeatmapLayer.innerHTML = detections.slice(0, 30).map((detection) => {
+        const blob = mapDetectionBoxToFace(detection, imageSize);
+        const color = concernColors[detection.class] || "#168661";
+        const active = activeSet.has(detection.id);
+        
+        let opacity = active ? 0.48 : 0.20;
+        if (isFiltering) {
+          const isTargeted = allowedConcerns.some(c => detection.class && detection.class.toLowerCase().includes(c.toLowerCase()));
+          if (!isTargeted) opacity = 0.02; // extremely dimmed
+        }
+
+        return `
+          <ellipse class="concern-blob" cx="${blob.x.toFixed(1)}" cy="${blob.y.toFixed(1)}" rx="${blob.rx.toFixed(1)}" ry="${blob.ry.toFixed(1)}" fill="${hexToRgba(color, opacity)}"></ellipse>
+        `;
+      }).join("");
+
+      refs.faceMapPoints.innerHTML = detections.slice(0, 30).map((detection) => {
+        const point = mapDetectionToFace(detection, imageSize);
+        const color = concernColors[detection.class] || "#168661";
+        const active = activeSet.has(detection.id);
+        
+        let opacity = active ? 0.95 : 0.32;
+        let r = active ? 9 : 6;
+        if (isFiltering) {
+          const isTargeted = allowedConcerns.some(c => detection.class && detection.class.toLowerCase().includes(c.toLowerCase()));
+          if (!isTargeted) {
+            opacity = 0.04; // extremely dimmed
+            r = 3;
+          }
+        }
+
+        return `
+          <circle class="map-point ${active && !isFiltering ? "is-active" : ""}" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}" fill="${escapeHtml(color)}" opacity="${opacity}"></circle>
+        `;
+      }).join("");
+
+      const matched = selectedProduct ? matchedDetectionsForProduct(selectedProduct) : [];
+      const matchedNames = unique(matched.map((item) => item.class).filter(Boolean));
+      
+      let explanation = "";
+      if (selectedProduct) {
+        explanation = `${selectedProduct.product_name || "This product"} maps to ${matched.length || 0} localized YOLO concern area(s): ${matchedNames.join(", ") || "none matched"}.`;
+        if (isFiltering) {
+          explanation += ` <strong>Showing targets for active compound "${filterName}": ${allowedConcerns.join(", ")}.</strong>`;
+        } else {
+          explanation += ` Click or hover any active ingredient tag below to filter which face concerns it targets!`;
+        }
+      } else {
+        explanation = `Select a product to highlight matching detected concerns. Landmark mode: ${state.landmarkStatus}.`;
+      }
+      refs.mappingExplanation.innerHTML = explanation;
+    }
+
+    async function estimateModelFaceLandmarks() {
+      if (!state.faceLandmarker) return;
+      try {
+        const image = await loadImageElement("/assets/face-model");
+        const result = state.faceLandmarker.detect(image);
+        const landmarks = result && result.faceLandmarks && result.faceLandmarks[0] ? result.faceLandmarks[0] : null;
+        state.modelFaceLandmarks = landmarks;
+      } catch (error) {
+        console.error("Failed to estimate model face landmarks:", error);
+        state.modelFaceLandmarks = null;
+      }
+    }
+
+    async function initMediaPipeLandmarker() {
+      try {
+        const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
+        );
+        state.faceLandmarker = await createFaceLandmarker(vision, fileset, "GPU");
+        state.landmarkStatus = "MediaPipe";
+        await estimateModelFaceLandmarks();
+        if (state.selectedImageDataUrl) {
+          estimateFaceLandmarks(state.selectedImageDataUrl);
+        } else {
+          renderLandmarkMesh();
+        }
+      } catch (error) {
+        console.error("MediaPipe initialization failed:", error);
+        state.landmarkStatus = "template fallback";
+        state.faceLandmarker = null;
+        renderLandmarkMesh();
+      }
+    }
+
+    async function createFaceLandmarker(vision, fileset, delegate) {
+      const options = {
+        baseOptions: {
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
+          delegate
+        },
+        runningMode: "IMAGE",
+        numFaces: 1
+      };
+      try {
+        return await vision.FaceLandmarker.createFromOptions(fileset, options);
+      } catch (error) {
+        if (delegate === "GPU") {
+          return await createFaceLandmarker(vision, fileset, "CPU");
+        }
+        throw error;
+      }
+    }
+
+    async function estimateFaceLandmarks(dataUrl) {
+      if (!dataUrl) return;
+      if (!state.faceLandmarker) {
+        state.faceLandmarks = null;
+        renderLandmarkMesh();
+        renderFaceMap();
+        return;
+      }
+      try {
+        const image = await loadImageElement(dataUrl);
+        const result = state.faceLandmarker.detect(image);
+        const landmarks = result && result.faceLandmarks && result.faceLandmarks[0] ? result.faceLandmarks[0] : null;
+        state.faceLandmarks = landmarks;
+        state.landmarkStatus = landmarks ? "MediaPipe" : "template fallback";
+      } catch (error) {
+        state.faceLandmarks = null;
+        state.landmarkStatus = "template fallback";
+      }
+      renderLandmarkMesh();
+      renderFaceMap();
+    }
+
+    function renderLandmarkMesh() {
+      const landmarks = state.modelFaceLandmarks || buildFallbackFaceLandmarks();
+      const lineHtml = faceContourGroups.map((group) => {
+        const points = group
+          .map((index) => landmarks[index] ? landmarkToSvgPoint(landmarks[index]) : null)
+          .filter(Boolean);
+        if (points.length < 2) return "";
+        return `<polyline class="landmark-line" points="${points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ")}"></polyline>`;
+      }).join("");
+      const pointHtml = landmarks
+        .map((point, index) => point && (state.modelFaceLandmarks || index % 6 === 0)
+          ? `<circle class="landmark-point" cx="${landmarkToSvgPoint(point).x.toFixed(1)}" cy="${landmarkToSvgPoint(point).y.toFixed(1)}" r="${state.modelFaceLandmarks ? 1.1 : 1.4}"></circle>`
+          : "")
+        .join("");
+      refs.faceMapLandmarks.innerHTML = `${lineHtml}${pointHtml}`;
+    }
+
+    function buildFallbackFaceLandmarks() {
+      const landmarks = Array.from({ length: 468 }, () => null);
+      const set = (index, x, y) => { landmarks[index] = { x, y, z: 0 }; };
+      const oval = faceContourGroups[0].slice(0, -1);
+      oval.forEach((index, i) => {
+        const angle = (-90 + (360 * i) / oval.length) * Math.PI / 180;
+        set(index, 0.5 + Math.cos(angle) * 0.34, 0.49 + Math.sin(angle) * 0.39);
+      });
+      const leftEye = faceContourGroups[1].slice(0, -1);
+      leftEye.forEach((index, i) => {
+        const angle = (360 * i) / leftEye.length * Math.PI / 180;
+        set(index, 0.38 + Math.cos(angle) * 0.08, 0.39 + Math.sin(angle) * 0.035);
+      });
+      const rightEye = faceContourGroups[2].slice(0, -1);
+      rightEye.forEach((index, i) => {
+        const angle = (360 * i) / rightEye.length * Math.PI / 180;
+        set(index, 0.62 + Math.cos(angle) * 0.08, 0.39 + Math.sin(angle) * 0.035);
+      });
+      const lips = faceContourGroups[3].slice(0, -1);
+      lips.forEach((index, i) => {
+        const angle = (360 * i) / lips.length * Math.PI / 180;
+        set(index, 0.5 + Math.cos(angle) * 0.13, 0.65 + Math.sin(angle) * 0.045);
+      });
+      set(1, 0.5, 0.43);
+      set(2, 0.5, 0.53);
+      set(98, 0.45, 0.56);
+      set(97, 0.48, 0.58);
+      set(327, 0.55, 0.56);
+      set(326, 0.52, 0.58);
+      return landmarks;
+    }
+
+    function landmarkToSvgPoint(landmark) {
+      return {
+        x: 20 + clamp01(Number(landmark.x || 0)) * 200,
+        y: 20 + clamp01(Number(landmark.y || 0)) * 280
+      };
+    }
+
+    function faceLandmarkBounds() {
+      if (!state.faceLandmarks || !state.faceLandmarks.length) return null;
+      const xs = state.faceLandmarks.map((point) => Number(point.x)).filter(Number.isFinite);
+      const ys = state.faceLandmarks.map((point) => Number(point.y)).filter(Number.isFinite);
+      if (!xs.length || !ys.length) return null;
+      return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys)
+      };
+    }
+
+    function loadImageElement(src) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = src;
+      });
+    }
+
+    function matchedDetectionsForProduct(product) {
+      if (!product) return [];
+      const detections = state.lastRun && state.lastRun.detections && Array.isArray(state.lastRun.detections.detections)
+        ? state.lastRun.detections.detections
+        : [];
+      const text = `${product.product_name || ""} ${product.category || ""} ${product.concerns || ""} ${product.skin_type || ""} ${product.ingredient_functions || ""} ${product.ingredient_warnings || ""}`.toLowerCase();
+      return detections.filter((detection) => {
+        const terms = concernTermsForClass(detection.class || "");
+        return terms.some((term) => text.includes(term));
+      });
+    }
+
+    function concernTermsForClass(className) {
+      const name = className.toLowerCase();
+      if (name.includes("acne")) return ["acne", "blemish", "jerawat", "soothing"];
+      if (name.includes("whitehead") || name.includes("blackhead")) return ["pore", "pori", "komedo", "acne", "cleansing"];
+      if (name.includes("redness")) return ["soothing", "sensitive", "redness", "kemerahan", "barrier"];
+      if (name.includes("oily")) return ["oil", "sebum", "oily", "minyak"];
+      if (name.includes("pore")) return ["pore", "pori", "smoothing", "texture"];
+      if (name.includes("dry")) return ["hydrat", "moistur", "barrier", "dry"];
+      if (name.includes("wrinkle")) return ["anti-aging", "aging", "wrinkle", "elasticity"];
+      if (name.includes("dark")) return ["bright", "dark spot", "noda"];
+      if (name.includes("eyebag")) return ["hydrating", "anti-aging", "soothing"];
+      return [name];
+    }
+
+    function customerReason(product, matchedNames) {
+      const concerns = product.concerns || "the product metadata";
+      const matched = matchedNames.length ? unique(matchedNames).join(", ") : "your selected concern profile";
+      return `Recommended because its listed concerns (${escapeHtml(concerns)}) overlap with ${escapeHtml(matched)} detected in the image or stated in your inquiry.`;
+    }
+
+    function mapDetectionToFace(detection, imageSize) {
+      const box = Array.isArray(detection.bbox) ? detection.bbox : [0, 0, 1, 1];
+      const width = Number(imageSize.width || 1);
+      const height = Number(imageSize.height || 1);
+      const cx = ((Number(box[0]) + Number(box[2])) / 2) / width;
+      const cy = ((Number(box[1]) + Number(box[3])) / 2) / height;
+
+      if (state.faceLandmarks && state.faceLandmarks.length) {
+        const modelLandmarks = state.modelFaceLandmarks || buildFallbackFaceLandmarks();
+        let minDist = Infinity;
+        let closestIndex = 1; // Default to nose tip
+        for (let i = 0; i < state.faceLandmarks.length; i++) {
+          const pt = state.faceLandmarks[i];
+          if (pt) {
+            const dx = pt.x - cx;
+            const dy = pt.y - cy;
+            const dist = dx * dx + dy * dy;
+            if (dist < minDist) {
+              minDist = dist;
+              closestIndex = i;
+            }
+          }
+        }
+        if (modelLandmarks[closestIndex]) {
+          return landmarkToSvgPoint(modelLandmarks[closestIndex]);
+        }
+      }
+
+      const bounds = faceLandmarkBounds();
+      if (bounds && bounds.maxX > bounds.minX && bounds.maxY > bounds.minY) {
+        const localX = clamp01((cx - bounds.minX) / (bounds.maxX - bounds.minX));
+        const localY = clamp01((cy - bounds.minY) / (bounds.maxY - bounds.minY));
+        return {
+          x: 45 + localX * 150,
+          y: 55 + localY * 220
+        };
+      }
+      return {
+        x: 45 + clamp01(cx) * 150,
+        y: 55 + clamp01(cy) * 220
+      };
+    }
+
+    function mapDetectionBoxToFace(detection, imageSize) {
+      const box = Array.isArray(detection.bbox) ? detection.bbox : [0, 0, 1, 1];
+      const width = Number(imageSize.width || 1);
+      const height = Number(imageSize.height || 1);
+      const point = mapDetectionToFace(detection, imageSize);
+      const normalizedWidth = Math.abs(Number(box[2]) - Number(box[0])) / width;
+      const normalizedHeight = Math.abs(Number(box[3]) - Number(box[1])) / height;
+      return {
+        x: point.x,
+        y: point.y,
+        rx: Math.max(8, Math.min(30, normalizedWidth * 150 * 0.72)),
+        ry: Math.max(8, Math.min(24, normalizedHeight * 220 * 0.72))
+      };
+    }
+
+    function regionNameForDetection(detection, imageSize) {
+      const point = mapDetectionToFace(detection, imageSize || {});
+      if (point.y < 120) return "Approx. forehead / upper face";
+      if (point.y < 170 && point.x < 100) return "Approx. left cheek / eye area";
+      if (point.y < 170 && point.x > 140) return "Approx. right cheek / eye area";
+      if (point.y < 205) return "Approx. nose / mid-face";
+      return "Approx. lower cheek / chin";
+    }
+
+    function renderPlan(plan) {
+      const card = ensureCard("stage-plan", "Agent Plan", "Gemma", "");
+      const actions = Array.isArray(plan && plan.actions) ? plan.actions : [];
+      card.querySelector(".trace-card-body").innerHTML = `
+        <p>${escapeHtml(plan && plan.summary ? plan.summary : "Using the agentic visual analysis path.")}</p>
+        <div class="badge-row">${actions.map((action) => `<span class="badge">${escapeHtml(action.tool || "STEP")}</span>`).join("")}</div>
+      `;
+    }
+
+    function renderQuality(summary) {
+      const card = ensureCard("stage-quality", "Input Quality Check", "Quality Gate", "amber");
+      const warnings = Array.isArray(summary && summary.warnings) ? summary.warnings : [];
+      const skinRatio = Number(summary && summary.skin_pixel_ratio ? summary.skin_pixel_ratio : 0);
+      card.querySelector(".trace-card-body").innerHTML = `
+        ${summary && summary.skin_mask_overlay ? `<img class="detection-image" src="data:image/jpeg;base64,${summary.skin_mask_overlay}" alt="Likely skin mask input quality preview">` : ""}
+        <div class="badge-row">
+          <span class="badge">${summary && summary.face_detected ? "Face detected" : "No frontal face detected"}</span>
+          <span class="badge">Skin area ${(skinRatio * 100).toFixed(1)}%</span>
+          <span class="badge">Blur ${escapeHtml(summary && summary.blur_score ? summary.blur_score : "n/a")}</span>
+        </div>
+        <div class="note">${warnings.length ? warnings.map(escapeHtml).join("<br>") : "Input passed the quality gate."}</div>
+      `;
+    }
+
+    function renderDetections(summary) {
+      const card = ensureCard("stage-detect", "YOLO11n Detection", "YOLO11n", "amber");
+      const detections = summary && Array.isArray(summary.detections) ? summary.detections : [];
+      const counts = summary && summary.counts ? summary.counts : {};
+      card.querySelector(".trace-card-body").innerHTML = `
+        ${summary && summary.annotated_image ? `<img class="detection-image" src="data:image/jpeg;base64,${summary.annotated_image}" alt="YOLO11n annotated detection result">` : ""}
+        <div class="badge-row">${Object.entries(counts).map(([name, count]) => `<span class="badge">${escapeHtml(name)}: ${escapeHtml(count)}</span>`).join("")}</div>
+        <div class="detection-grid">${detections.slice(0, 12).map((d) => `
+          <article class="det-card">
+            <div class="det-class">${escapeHtml(d.class || "Detection")}</div>
+            <div class="det-meta">Confidence ${(Number(d.confidence || 0) * 100).toFixed(1)}%</div>
+            <div class="det-meta">Box ${(d.bbox || []).join(", ")}</div>
+          </article>
+        `).join("")}</div>
+      `;
+    }
+
+    function renderTexture(summary) {
+      const card = ensureCard("stage-classify", "EfficientNet Texture", "EfficientNetV2-B0", "");
+      const active = summary && Array.isArray(summary.active_labels) ? summary.active_labels : [];
+      const predictions = summary && Array.isArray(summary.predictions) ? summary.predictions : [];
+      card.querySelector(".trace-card-body").innerHTML = `
+        <div class="note">Texture classifier output is developer-only in this interface. User view intentionally hides Grad-CAM.</div>
+        <div class="badge-row">${active.length ? active.map((item) => `<span class="badge">${escapeHtml(item.class)} ${(Number(item.probability || 0) * 100).toFixed(1)}%</span>`).join("") : '<span class="badge amber">No active texture labels</span>'}</div>
+        <div class="detection-grid">${predictions.map((item) => `
+          <article class="det-card">
+            <div class="det-class">${escapeHtml(item.class || "")}</div>
+            <div class="det-meta">Probability ${(Number(item.probability || 0) * 100).toFixed(1)}%</div>
+            <div class="det-meta">Threshold ${(Number(item.threshold || 0) * 100).toFixed(1)}%</div>
+          </article>
+        `).join("")}</div>
+      `;
+    }
+
+    function renderReview(review) {
+      const card = ensureCard("stage-review", "Visual Review", "Gemma", "");
+      const observations = Array.isArray(review && review.observations) ? review.observations : [];
+      const uncertainties = Array.isArray(review && review.uncertainties) ? review.uncertainties : [];
+      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown([
+        observations.length ? "### Observations\n" + observations.map((item) => `- ${item}`).join("\n") : "",
+        uncertainties.length ? "### Caveats\n" + uncertainties.map((item) => `- ${item}`).join("\n") : "",
+        "### Answer\n" + (review && review.final_answer ? review.final_answer : "Review completed.")
+      ].filter(Boolean).join("\n\n"))}</div>`;
+    }
+
+    function renderProducts(retrieval) {
+      const card = ensureCard("stage-products", "Product Knowledge Base", "ChromaDB", "violet");
+      const products = retrieval && Array.isArray(retrieval.products) ? retrieval.products : [];
+      card.querySelector(".trace-card-body").innerHTML = products.length ? `
+        <div class="product-grid">${products.map((product) => `
+          <article class="product-card">
+            <div class="product-name">${escapeHtml(product.product_name || "Unnamed product")}</div>
+            <div class="product-brand">${escapeHtml(product.brand || "Unknown brand")}</div>
+            <div class="det-meta">${escapeHtml(product.category || "")} · ${escapeHtml(product.price || "")}</div>
+            <div class="det-meta">Concerns: ${escapeHtml(product.concerns || "not specified")}</div>
+          </article>
+        `).join("")}</div>
+      ` : '<div class="note">No products were found in the knowledge base.</div>';
+    }
+
+    function appendRecommendationToken(token) {
+      state.recommendationMarkdown += token;
+      if (state.lastRun) state.lastRun.assistant_response = state.recommendationMarkdown;
+      const card = ensureCard("stage-recommend", "Product Recommendation", "Grounded Template", "violet");
+      card.querySelector(".trace-card-body").innerHTML = `<div class="markdown">${renderMarkdown(state.recommendationMarkdown || "Preparing recommendation...")}</div>`;
+    }
+
+    async function saveEvaluationCase() {
+      if (!state.lastRun || !state.lastRun.assistant_response || !state.lastRun.retrieval) {
+        setStatus("Run first");
+        return;
+      }
+      openSaveCaseModal();
+    }
+
+    function openSaveCaseModal() {
+      const nameInput = document.getElementById("casePersonName");
+      nameInput.value = state.uploadedFileName || "";
+      document.querySelector('input[name="casePersonGender"][value="female"]').checked = true;
+      document.getElementById("saveCaseModal").style.display = "flex";
+    }
+
+    function closeSaveCaseModal() {
+      document.getElementById("saveCaseModal").style.display = "none";
+    }
+
+    async function confirmSaveEvaluationCase() {
+      closeSaveCaseModal();
+      
+      refs.saveCaseButton.disabled = true;
+      refs.userSaveCaseButton.disabled = true;
+      
+      const name = document.getElementById("casePersonName").value.trim();
+      const gender = document.querySelector('input[name="casePersonGender"]:checked').value;
+      
+      const payload = buildEvaluationPayload(state.lastRun);
+      payload.name = name;
+      payload.gender = gender;
+      
+      try {
+        const response = await fetch("/evaluation/cases", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || "Could not save evaluation case.");
+        state.caseSaved = true;
+        setStatus(`Saved ${result.id}`);
+      } catch (error) {
+        setStatus("Save failed");
+        ensureCard("stage-save", "Evaluation Case", "Dataset", "violet").querySelector(".trace-card-body").innerHTML =
+          `<div class="note">${escapeHtml(error.message || "Could not save evaluation case.")}</div>`;
+      }
+      updateSaveCaseButton();
+    }
+
+    function buildEvaluationPayload(run) {
+      const detections = run.detections || {};
+      const texture = run.texture || {};
+      const review = run.review || {};
+      const retrieval = run.retrieval || {};
+      const products = Array.isArray(retrieval.products) ? retrieval.products : [];
+      return {
+        user_concern: run.user_concern || "",
+        visual_evidence: {
+          quality: run.quality || {},
+          yolo_counts: detections.counts || {},
+          yolo_top_detections: Array.isArray(detections.detections) ? detections.detections.slice(0, 20) : [],
+          efficientnet_active: Array.isArray(texture.active_labels) ? texture.active_labels : [],
+          visual_review: review || {}
+        },
+        retrieved_products: products.map((product) => ({
+          brand: product.brand || "",
+          product_name: product.product_name || "",
+          category: product.category || "",
+          price: product.price || "",
+          skin_type: product.skin_type || "",
+          concerns: product.concerns || "",
+          allergen_flag: product.allergen_flag || "",
+          pregnancy_safe: product.pregnancy_safe || "",
+          ingredient_functions: product.ingredient_functions || "",
+          ingredient_warnings: product.ingredient_warnings || "",
+          similarity: product.similarity
+        })),
+        assistant_response: run.assistant_response || ""
+      };
+    }
+
+    function renderStageSkeleton(stage) {
+      const titles = {
+        plan: "Agent Plan",
+        quality: "Input Quality Check",
+        detect: "YOLO11n Detection",
+        classify: "EfficientNet Texture",
+        answer: "Visual Review",
+        retrieve: "Product Knowledge Base",
+        recommend: "Product Recommendation"
+      };
+      const id = `stage-${stage}`;
+      if (document.getElementById(id)) return;
+      const card = ensureCard(id, titles[stage] || stage || "Stage", stage === "retrieve" || stage === "recommend" ? "RAG" : "Running", stage === "detect" ? "amber" : stage === "retrieve" || stage === "recommend" ? "violet" : "");
+      card.querySelector(".trace-card-body").innerHTML = '<div class="skeleton"></div><div class="skeleton big"></div>';
+    }
+
+    function ensureCard(id, title, pill, pillClass) {
+      let card = document.getElementById(id);
+      if (card) return card;
+      refs.trace.insertAdjacentHTML("beforeend", `
+        <article class="trace-card" id="${id}">
+          <div class="trace-card-header">
+            <h3>${escapeHtml(title)}</h3>
+            <span class="pill ${escapeHtml(pillClass || "")}">${escapeHtml(pill)}</span>
+          </div>
+          <div class="trace-card-body"></div>
+        </article>
+      `);
+      return document.getElementById(id);
+    }
+
+    function setUserPage(index) {
+      state.userPage = Math.max(0, Math.min(index, pageNames.length - 1));
+      document.querySelectorAll("[data-user-page]").forEach((page) => {
+        page.classList.toggle("is-active", Number(page.dataset.userPage) === state.userPage);
+      });
+      document.querySelectorAll("[data-page]").forEach((step) => {
+        const stepIndex = Number(step.dataset.page);
+        step.classList.toggle("is-active", stepIndex === state.userPage);
+        step.classList.toggle("is-done", stepIndex < state.userPage);
+      });
+      refs.prevPageButton.disabled = state.userPage === 0;
+      refs.nextPageButton.disabled = state.userPage === pageNames.length - 1;
+    }
+
+    function closeSocket() {
+      if (state.activeSocket) {
+        state.activeSocket.close();
+        state.activeSocket = null;
+      }
+    }
+
+    function setBusy(value) {
+      state.busy = value;
+      refs.runButton.disabled = value;
+      refs.userRunButton.disabled = value;
+      refs.clearButton.disabled = value;
+      refs.fileInput.disabled = value;
+      refs.userFileInput.disabled = value;
+      refs.captureButton.disabled = value || !state.cameraStream;
+      refs.stopCameraButton.disabled = value || !state.cameraStream;
+      refs.openCameraButton.disabled = value || Boolean(state.cameraStream);
+      updateSaveCaseButton();
+    }
+
+    function updateSaveCaseButton() {
+      const ready = Boolean(
+        state.lastRun &&
+        state.lastRun.assistant_response &&
+        state.lastRun.retrieval &&
+        Array.isArray(state.lastRun.retrieval.products) &&
+        state.lastRun.retrieval.products.length &&
+        !state.busy &&
+        !state.caseSaved
+      );
+      refs.saveCaseButton.disabled = !ready;
+      refs.userSaveCaseButton.disabled = !ready;
+      refs.saveCaseButton.textContent = state.caseSaved ? "Judge Case Saved" : "Save Judge Case";
+      refs.userSaveCaseButton.textContent = state.caseSaved ? "Judge Case Saved" : "Save Judge Case";
+    }
+
+    function setStatus(message) {
+      refs.status.querySelector("span:last-child").textContent = message;
+    }
+
+    function addTraceNote(message) {
+      refs.trace.innerHTML = `<div class="note">${escapeHtml(message)}</div>`;
+    }
+
+    function userImageHtml() {
+      return state.selectedImageDataUrl
+        ? `<img src="${escapeHtml(state.selectedImageDataUrl)}" alt="Selected face photo">`
+        : '<div class="placeholder">No photo selected.</div>';
     }
 
     function renderMarkdown(source) {
       const lines = escapeHtml(source).split("\n");
       let html = "";
       let inList = false;
-
       for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line) {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
+          if (inList) { html += "</ul>"; inList = false; }
           continue;
         }
-
         if (line.startsWith("### ")) {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
+          if (inList) { html += "</ul>"; inList = false; }
           html += `<h3>${inlineMarkdown(line.slice(4))}</h3>`;
-          continue;
-        }
-
-        if (line.startsWith("## ")) {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
-          html += `<h2>${inlineMarkdown(line.slice(3))}</h2>`;
-          continue;
-        }
-
-        if (line.startsWith("- ") || line.startsWith("* ")) {
-          if (!inList) {
-            html += "<ul>";
-            inList = true;
-          }
+        } else if (line.startsWith("- ") || line.startsWith("* ")) {
+          if (!inList) { html += "<ul>"; inList = true; }
           html += `<li>${inlineMarkdown(line.slice(2))}</li>`;
-          continue;
+        } else {
+          if (inList) { html += "</ul>"; inList = false; }
+          html += `<p>${inlineMarkdown(line)}</p>`;
         }
-
-        if (/^\d+\.\s+/.test(line)) {
-          if (!inList) {
-            html += "<ul>";
-            inList = true;
-          }
-          html += `<li>${inlineMarkdown(line.replace(/^\d+\.\s+/, ""))}</li>`;
-          continue;
-        }
-
-        if (inList) {
-          html += "</ul>";
-          inList = false;
-        }
-        html += `<p>${inlineMarkdown(line)}</p>`;
       }
-
-      if (inList) {
-        html += "</ul>";
-      }
+      if (inList) html += "</ul>";
       return html;
     }
 
@@ -1640,14 +3110,60 @@
         .replace(/\*(.*?)\*/g, "<em>$1</em>");
     }
 
+    function stripDataUrl(value) {
+      return value.includes(",") && value.startsWith("data:") ? value.split(",", 2)[1] : value;
+    }
+
     function escapeHtml(value) {
-      return String(value)
+      return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
+
+    function clamp01(value) {
+      if (!Number.isFinite(value)) return 0;
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function unique(values) {
+      const seen = new Set();
+      const result = [];
+      for (const value of values) {
+        const key = String(value).toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        result.push(value);
+      }
+      return result;
+    }
+
+    function hexToSoft(hex) {
+      if (!hex || !hex.startsWith("#")) return "var(--accent-soft)";
+      const raw = hex.slice(1);
+      const bigint = parseInt(raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r}, ${g}, ${b}, 0.13)`;
+    }
+
+    function hexToRgba(hex, alpha) {
+      if (!hex || !hex.startsWith("#")) return `rgba(22, 134, 97, ${alpha})`;
+      const raw = hex.slice(1);
+      const bigint = parseInt(raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    setUserPage(0);
+    renderLandmarkMesh();
+    initMediaPipeLandmarker();
+    updateSaveCaseButton();
   </script>
 </body>
 </html>

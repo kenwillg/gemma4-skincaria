@@ -7,3 +7,8 @@ httpx
 Pillow
 aiofiles
 websockets
+ultralytics
+timm
+transformers
+safetensors
+opencv-python

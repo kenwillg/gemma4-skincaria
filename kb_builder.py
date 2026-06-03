@@ -164,8 +164,11 @@ class SkincareKB:
     def _load_products(self) -> list[dict[str, Any]]:
         sociolla = self.data_dir / "sociolla_products.csv"
         inci = self.data_dir / "inci_products.csv"
-        if sociolla.exists() and inci.exists():
-            return self._load_normalized_products([sociolla, inci])
+        if sociolla.exists():
+            normalized_paths = [sociolla]
+            if inci.exists():
+                normalized_paths.append(inci)
+            return self._load_normalized_products(normalized_paths)
 
         product_csv = self.data_dir / "Indonesian Skincare Sample Dataset" / "product.csv"
         claim_csv = self.data_dir / "Indonesian Skincare Sample Dataset" / "product_claim_category.csv"

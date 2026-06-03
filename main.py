@@ -2,15 +2,18 @@ import asyncio
 import base64
 import binascii
 import io
+import json
 import os
 import socket
 import sys
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -22,6 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 INDEX_HTML = STATIC_DIR / "index.html"
 IMAGE_TEST_HTML = STATIC_DIR / "image_test.html"
+FACE_MODEL_IMAGE = BASE_DIR / "data" / "face-model.jpg"
+EVALUATION_DIR = BASE_DIR / "data" / "evaluation"
+LLM_JUDGE_CASES_JSONL = EVALUATION_DIR / "llm_judge_cases.jsonl"
 MODEL_NAME = os.getenv("SKINCARIA_MODEL", "gemma4:e4b")
 HOST = "0.0.0.0"
 PORT = 8000
@@ -33,12 +39,24 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")
 async def index():
-    return FileResponse(IMAGE_TEST_HTML)
+    return FileResponse(INDEX_HTML)
 
 
 @app.get("/app")
 async def skincare_app():
     return FileResponse(INDEX_HTML)
+
+
+@app.get("/image-test")
+async def image_test():
+    return FileResponse(IMAGE_TEST_HTML)
+
+
+@app.get("/assets/face-model")
+async def face_model_asset():
+    if not FACE_MODEL_IMAGE.exists():
+        raise HTTPException(status_code=404, detail="face-model.jpg not found in data/.")
+    return FileResponse(FACE_MODEL_IMAGE)
 
 
 @app.get("/health")
@@ -60,6 +78,51 @@ async def health():
         "model_available": model_available,
         "kb_collection": "skincare_kb",
         "kb_document_count": kb.count(),
+    }
+
+
+@app.post("/evaluation/cases")
+async def save_evaluation_case(request: Request):
+    payload = await request.json()
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Expected a JSON object.")
+
+    user_concern = str(payload.get("user_concern") or "").strip()
+    assistant_response = str(payload.get("assistant_response") or "").strip()
+    retrieved_products = payload.get("retrieved_products") or []
+    visual_evidence = payload.get("visual_evidence") or {}
+    name = str(payload.get("name") or "").strip()
+    gender = str(payload.get("gender") or "").strip()
+
+    if not user_concern and not visual_evidence:
+        raise HTTPException(status_code=400, detail="Evaluation case needs a concern or visual evidence.")
+    if not assistant_response:
+        raise HTTPException(status_code=400, detail="Evaluation case needs an assistant response.")
+    if not isinstance(retrieved_products, list):
+        raise HTTPException(status_code=400, detail="retrieved_products must be a list.")
+    if not isinstance(visual_evidence, dict):
+        raise HTTPException(status_code=400, detail="visual_evidence must be an object.")
+
+    row = {
+        "id": payload.get("id") or f"case_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "name": name,
+        "gender": gender,
+        "user_concern": user_concern,
+        "visual_evidence": visual_evidence,
+        "retrieved_products": retrieved_products,
+        "assistant_response": assistant_response,
+        "metadata": {
+            "source": "skincaria_frontend",
+            "raw_image_saved": False,
+            "note": "Raw face image is intentionally not stored in the LLM judge case.",
+        },
+    }
+    await asyncio.to_thread(append_jsonl_row, LLM_JUDGE_CASES_JSONL, row)
+    return {
+        "saved": True,
+        "id": row["id"],
+        "path": str(LLM_JUDGE_CASES_JSONL.relative_to(BASE_DIR)),
     }
 
 
@@ -136,6 +199,88 @@ async def image_caption(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+PREGNANCY_CHECK_CACHE = {}
+
+
+@app.post("/pregnancy-check")
+async def pregnancy_check(request: Request):
+    payload = await request.json()
+    product_name = payload.get("product_name", "")
+    brand = payload.get("brand", "")
+    ingredients = payload.get("ingredients", "")
+    
+    if not product_name or not ingredients:
+        raise HTTPException(status_code=400, detail="Missing product name or ingredients.")
+        
+    cache_key = f"{brand.lower()}|{product_name.lower()}"
+    if cache_key in PREGNANCY_CHECK_CACHE:
+        return PREGNANCY_CHECK_CACHE[cache_key]
+    
+    client = get_ollama_client()
+    import re
+    
+    prompt = f"""You are a professional pregnancy skincare safety analyzer. 
+Analyze the safety of the following product during pregnancy based strictly on its ingredients list.
+
+Product: {product_name} by {brand}
+Ingredients: {ingredients}
+
+Identify if there are any ingredients that present specific contraindications, systemic absorption hazards, or developmental risks during pregnancy (such as Retinoids/Retinol, high BHA/Salicylic Acid, Hydroquinone, Alpha-Arbutin, Wintergreen/Methyl Salicylate, or certain essential oils).
+
+CRITICAL RULES:
+1. Focus EXCLUSIVELY on pregnancy-specific concerns (e.g. fetal safety, systemic risk).
+2. Do NOT mention general cosmetic skin irritation, comedogenicity (pore-clogging), or standard allergens, as these are already displayed in other sections.
+3. Keep your verdict strictly to a single, direct, concise sentence in Indonesian (maximum 15-20 words).
+
+Respond in JSON format with exactly these fields:
+{{
+  "status": "safe|caution|avoid",
+  "gemma_verdict": "A single extremely concise sentence in Indonesian focusing ONLY on pregnancy safety."
+}}
+Do not include markdown wrappers or any explanation outside of the JSON."""
+
+    try:
+        messages = [
+            {"role": "system", "content": "You are a professional skincare safety analyzer. Respond in JSON only."},
+            {"role": "user", "content": prompt}
+        ]
+        raw = await client.chat(messages, json_mode=True, temperature=0.1)
+        
+        # Parse JSON
+        try:
+            data = json.loads(raw)
+        except Exception:
+            # Fallback if parsing fails
+            match = re.search(r"\{.*\}", raw, flags=re.DOTALL)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                raise ValueError("Invalid JSON response from LLM")
+        
+        if not isinstance(data, dict):
+            data = {}
+            
+        status = str(data.get("status") or "caution").strip().lower()
+        if status not in {"safe", "caution", "avoid"}:
+            status = "caution"
+            
+        verdict = str(data.get("gemma_verdict") or "").strip()
+        if not verdict:
+            verdict = "Analisis ingredients selesai dilakukan oleh sistem safety net Gemma."
+            
+        result = {
+            "status": status,
+            "gemma_verdict": verdict
+        }
+        PREGNANCY_CHECK_CACHE[cache_key] = result
+        return result
+    except Exception as exc:
+        return {
+            "status": "caution",
+            "gemma_verdict": f"Gemma tidak dapat memvalidasi saat ini: {str(exc)}. Konsultasikan dengan dokter kandungan Anda."
+        }
+
+
 @app.websocket("/ws/recommend")
 async def recommend(websocket: WebSocket):
     await websocket.accept()
@@ -153,6 +298,124 @@ async def recommend(websocket: WebSocket):
             products_context=products_context,
         ):
             await websocket.send_json({"type": "token", "content": token})
+        await websocket.send_json({"type": "done"})
+    except WebSocketDisconnect:
+        return
+    except Exception as exc:
+        await websocket.send_json({"type": "error", "message": str(exc)})
+        await websocket.close()
+
+
+@app.websocket("/ws/agentic")
+async def agentic_analysis(websocket: WebSocket):
+    await websocket.accept()
+    agent = get_agentic_pipeline()
+    try:
+        payload = await websocket.receive_json()
+        concern = (payload.get("concern") or "").strip()
+        image_base64 = payload.get("image_base64")
+        face_landmarks = payload.get("face_landmarks")
+
+        if not image_base64 and not concern:
+            await websocket.send_json(
+                {
+                    "type": "error",
+                    "message": "Please turn video on, upload a photo, or tell Skincaria what changed.",
+                }
+            )
+            await websocket.close()
+            return
+
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "plan",
+                "message": "Gemma is routing the request and choosing tools.",
+            }
+        )
+        plan = await agent.plan(concern=concern, has_image=bool(image_base64))
+        await websocket.send_json({"type": "plan", "plan": plan})
+
+        quality = None
+        detections = None
+        texture = None
+        if image_base64:
+            await websocket.send_json(
+                {
+                    "type": "stage",
+                    "stage": "quality",
+                    "message": "Checking whether the image contains enough face/skin signal.",
+                }
+            )
+            quality = await agent.assess_input(image_base64, face_landmarks)
+            await websocket.send_json({"type": "quality", "quality": quality})
+
+            await websocket.send_json(
+                {
+                    "type": "stage",
+                    "stage": "detect",
+                    "message": "YOLO11n 960 is detecting visible skin-condition boxes.",
+                }
+            )
+            detections = await agent.detect(image_base64)
+            await websocket.send_json({"type": "detections", "detections": detections})
+
+            await websocket.send_json(
+                {
+                    "type": "stage",
+                    "stage": "classify",
+                    "message": "EfficientNetV2-B0 is classifying image-level texture labels.",
+                }
+            )
+            texture = await agent.classify_texture(image_base64, face_landmarks)
+            await websocket.send_json({"type": "texture", "texture": texture})
+
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "answer",
+                "message": "Gemma is reviewing the detections and preparing the answer.",
+            }
+        )
+        review = await agent.review(
+            concern=concern,
+            detection_summary=detections,
+            texture_summary=texture,
+            original_image_base64=image_base64,
+        )
+        await websocket.send_json({"type": "review", "review": review})
+
+        recommendation_pipeline = get_pipeline()
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "retrieve",
+                "message": "Searching the product knowledge base for matched skincare options.",
+            }
+        )
+        retrieval = await recommendation_pipeline.retrieve_products_from_perception(
+            concern=concern,
+            detection_summary=detections,
+            texture_summary=texture,
+            review=review,
+            top_k=5,
+        )
+        await websocket.send_json({"type": "products", "retrieval": retrieval})
+
+        await websocket.send_json(
+            {
+                "type": "stage",
+                "stage": "recommend",
+                "message": "Preparing grounded product recommendations with customer-specific reasons.",
+            }
+        )
+        await websocket.send_json(
+            {
+                "type": "recommendation_token",
+                "content": retrieval.get("recommendation_markdown")
+                or "Tidak ada rekomendasi produk yang bisa dibuat dari knowledge base lokal.",
+            }
+        )
         await websocket.send_json({"type": "done"})
     except WebSocketDisconnect:
         return
@@ -202,6 +465,22 @@ def get_pipeline() -> Any:
         pipeline = SkincariaPipeline(ollama=get_ollama_client(), kb=get_kb())
         app.state.pipeline = pipeline
     return pipeline
+
+
+def get_agentic_pipeline() -> Any:
+    from agentic_yolo import AgenticYoloPipeline
+
+    pipeline = getattr(app.state, "agentic_pipeline", None)
+    if pipeline is None:
+        pipeline = AgenticYoloPipeline(ollama=get_ollama_client())
+        app.state.agentic_pipeline = pipeline
+    return pipeline
+
+
+def append_jsonl_row(path: Path, row: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as file:
+        file.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 async def extract_image_base64(
@@ -321,10 +600,10 @@ def main() -> None:
 
     lan_ip = get_lan_ip()
     print()
-    print(f"Image caption tester: http://localhost:{PORT}")
-    print(f"Image caption tester di HP: http://{lan_ip}:{PORT}")
-    print(f"Skincaria app lama: http://localhost:{PORT}/app")
-    uvicorn.run(app, host=HOST, port=PORT)
+    print(f"Skincaria agent loop: http://localhost:{PORT}")
+    print(f"Skincaria agent loop di HP: http://{lan_ip}:{PORT}")
+    print(f"Image caption tester: http://localhost:{PORT}/image-test")
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
 
 if __name__ == "__main__":
