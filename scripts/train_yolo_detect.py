@@ -16,6 +16,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project", default="skincaria-detect")
     parser.add_argument("--name", default="yolo11n")
     parser.add_argument("--device", default=None, help="Use 0 for GPU, cpu for CPU, or omit for auto.")
+    parser.add_argument(
+        "--cls-pw",
+        type=float,
+        default=0.0,
+        help="Class-frequency weighting power for detection loss. 0 disables weighting; valid range is 0..1.",
+    )
     return parser.parse_args()
 
 
@@ -55,6 +61,7 @@ def main() -> None:
         project=args.project,
         name=args.name,
         device=device,
+        cls_pw=args.cls_pw,
         plots=True,
         save=True,
     )
